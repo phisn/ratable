@@ -12,6 +12,9 @@ provider "azurerm" {
   features {}
 }
 
+provider "azapi" {
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-localrating"
   location = "westeurope"
@@ -35,21 +38,7 @@ resource "azurerm_static_site" "staticsite" {
   location            = azurerm_resource_group.rg.location
 }
 
-// https://docs.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own
-// https://docs.microsoft.com/en-us/azure/templates/microsoft.web/staticsites/config-appsettings?pivots=deployment-language-terraform
-/*
-resource "azapi_resource" "symbolicname" {
-  type = "Microsoft.Web/staticSites/config@2022-03-01"
-  name = "appsettings"
-  parent_id = "string"
-  body = jsonencode({
-    properties = {
-      setting = "value"
-    }
-    kind = "string"
-  })
-}
-*/
+// https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app
 
 output "api_key" {
   value = azurerm_static_site.staticsite.api_key

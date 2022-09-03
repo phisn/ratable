@@ -15,9 +15,9 @@ given (using scheduler: Scheduler): Sink[Var] with
 given colibri.Source[Event] with
   def unsafeSubscribe[A](stream: Event[A])(sink: Observer[A]): Cancelable =
     val sub = stream.observe(sink.unsafeOnNext, sink.unsafeOnError)
-    Cancelable(sub.remove)
+    Cancelable(sub.disconnect)
 
 given colibri.Source[Signal] with
   def unsafeSubscribe[A](stream: Signal[A])(sink: colibri.Observer[A]): colibri.Cancelable =
     val sub = stream.observe(sink.unsafeOnNext, sink.unsafeOnError)
-    colibri.Cancelable(sub.remove)
+    colibri.Cancelable(sub.disconnect)
