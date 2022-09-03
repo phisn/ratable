@@ -27,11 +27,29 @@ resource "azurerm_service_plan" "plan" {
 }
 */
 
+// https://docs.microsoft.com/en-us/azure/static-web-apps/overview
+// https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/static_site
 resource "azurerm_static_site" "staticsite" {
   name                = "stapp-localrating"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 }
+
+// https://docs.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own
+// https://docs.microsoft.com/en-us/azure/templates/microsoft.web/staticsites/config-appsettings?pivots=deployment-language-terraform
+/*
+resource "azapi_resource" "symbolicname" {
+  type = "Microsoft.Web/staticSites/config@2022-03-01"
+  name = "appsettings"
+  parent_id = "string"
+  body = jsonencode({
+    properties = {
+      setting = "value"
+    }
+    kind = "string"
+  })
+}
+*/
 
 output "api_key" {
   value = azurerm_static_site.staticsite.api_key
