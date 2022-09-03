@@ -1,3 +1,4 @@
+[![Scala CI](https://github.com/phisn/local-rating/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/phisn/local-rating/actions/workflows/main.yml)
 # Development
 ## Prerequisites
 You should make sure that the following components are pre-installed on your machine:
