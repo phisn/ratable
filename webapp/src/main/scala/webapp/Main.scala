@@ -44,9 +44,18 @@ def token_for_number(n: Int): String =
     (20, "D"),
     (40, "E"),
     (80, "F"),
-    (100, "G"),
-    (150, "H"),
-    (200, "I")
+    (100, "1"),
+    (150, "2"),
+    (200, "3"),
+    (250, "4"),
+    (300, "5"),
+    (400, "6"),
+    (500, "7"),
+    (60, "8"),
+    (700, "9"),
+    (850, "0"),
+    (900, "X"),
+    (1000, "Y"),
   ).find(_(0) > n).getOrElse((0, "Z"))(1)
 
 object ServicesProduction extends Services:
@@ -212,7 +221,10 @@ def app(using services: Services) =
   div(
     div(
       button("Increment", onClick.as(()) --> incEvt),
+      " ",
       counterRdt.map(_.value),
+      ": ",
+      counterRdt.map(counter => token_for_number(counter.value))
     ),
     div(
       testCounter
@@ -226,7 +238,9 @@ def app(using services: Services) =
       ),
       div(
         button("Connect from", onClick.as(()) --> connectFromEvt),
+        " ",
         button("Connect to", onClick.as(()) --> connectToEvt),
+        " ",
         button("Connect accept", onClick.as(()) --> connectAcceptEvt),
       )
     )
