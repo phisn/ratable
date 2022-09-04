@@ -17,6 +17,7 @@ import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import kofre.time.Dot
+import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
@@ -30,6 +31,7 @@ import scala.util.*
 import scalajs.*
 import webapp.*
 import webapp.services.*
+
 
 // Outwatch documentation:
 // https://outwatch.github.io/docs/readme.html
@@ -116,8 +118,31 @@ def app(using services: Services) =
   val codec: JsonValueCodec[webrtc.WebRTC.CompleteSession] = JsonCodecMaker.make
   var pendingServer: Option[PendingConnection] = None
 
+  val rtcConfig = new dom.RTCConfiguration {
+    iceServers = js.Array[dom.RTCIceServer](
+      new dom.RTCIceServer {
+        urls = js.Array("stun:openrelay.metered.ca:80")
+      },
+      new dom.RTCIceServer {
+        urls = js.Array("turn:openrelay.metered.ca:80")
+        username = "openrelayproject"
+        credential = "openrelayproject"
+      },
+      new dom.RTCIceServer {
+        urls = js.Array("turn:openrelay.metered.ca:443")
+        username = "openrelayproject"
+        credential = "openrelayproject"
+      },
+      new dom.RTCIceServer {
+        urls = js.Array("turn:openrelay.metered.ca:443?transport=tcp")
+        username = "openrelayproject"
+        credential = "openrelayproject"
+      }
+    )
+  }
+
   connectFromEvt.observe { _ =>
-    val conn = webrtcIntermediate(WebRTC.offer())
+    val conn = webrtcIntermediate(WebRTC.offer(rtcConfig))
     conn.session.foreach(session => connOutput.set(writeToString(session)(codec)))
     registry.connect(conn.connector).foreach(_ => testCounter.transform(_ + 10))
 
@@ -125,7 +150,7 @@ def app(using services: Services) =
   }
 
   connectToEvt.observe { _ =>
-    val conn = webrtcIntermediate(WebRTC.answer())
+    val conn = webrtcIntermediate(WebRTC.answer(rtcConfig))
     conn.session.foreach(session => connOutput.set(writeToString(session)(codec)))
     registry.connect(conn.connector).foreach(_ => testCounter.transform(_ + 1000))
 
