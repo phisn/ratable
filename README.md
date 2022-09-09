@@ -5,6 +5,7 @@ You should make sure that the following components are pre-installed on your mac
  - [Node.js](https://nodejs.org/en/download/)
  - [Yarn](https://yarnpkg.com/en/docs/install)
  - JDK 11+
+ - sbt
 
 ## Working in dev mode
 
