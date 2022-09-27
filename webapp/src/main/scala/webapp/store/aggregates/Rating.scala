@@ -4,7 +4,7 @@ import kofre.base.{Bottom, DecomposeLattice}
 import kofre.datatypes.GrowOnlyCounter
 import kofre.syntax.PermIdMutate.withID
 import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
-import webapp.store.framework.{LWW, given_Bottom_LWW}
+import webapp.store.framework.{LWW, given}
 
 import scala.util.Random
 

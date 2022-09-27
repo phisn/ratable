@@ -5,6 +5,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.*
 import webapp.services.*
 import webapp.store.aggregates.*
 import webapp.store.framework.*
@@ -29,29 +30,4 @@ def app(using services: Services) =
   div(
     button(onClick.as(()) --> clickEvent),
     ratings
-  )
-
-def ratings(using services: Services) =
-  div(
-    services.stateProvider.ratings.map(ratings => 
-      ratings
-        .toList
-        .sortBy((_, r) => r.value.read)
-        .map(rating))
-  )
-
-def rating(id: Int, rating: Rating)(using services: Services) =
-  div(
-    display := "flex",
-    div(
-      width := "200px",
-      id & 0x00000000ffffffffL
-    ),
-    div(
-      marginLeft := "5px",
-      rating.value match {
-        case Some(register) => register.value
-        case None => 0
-      }
-    )
   )

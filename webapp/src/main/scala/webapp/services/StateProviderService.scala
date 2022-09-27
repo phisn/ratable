@@ -16,4 +16,3 @@ class StateProviderService(services: {
 
   def ratings = state.ratings.changes
   def ratings(action: DeltaBufferRDT[Ratings] => DeltaBufferRDT[Ratings]) = state.ratings.actions.fire(action)
-
