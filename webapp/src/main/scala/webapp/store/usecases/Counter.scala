@@ -6,5 +6,5 @@ import rescala.default.*
 import webapp.store.LocalRatingState
 import webapp.store.aggregates.Counter
 
-def incrementCounterUsecase(rdt: DeltaBufferRDT[LocalRatingState]): DeltaBufferRDT[LocalRatingState] =
-  LocalRatingState(Counter(Map(rdt.replicaID -> (rdt.state.getOrElse(state.replicaID, 0) + 1)))).mutator
+def incrementCounterUsecase(rdt: Counter): Counter =
+  Counter(Map(rdt.replicaID -> (rdt.state.getOrElse(state.replicaID, 0) + 1)))

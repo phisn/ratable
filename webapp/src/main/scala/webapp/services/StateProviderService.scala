@@ -5,8 +5,10 @@ import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import loci.registry.Binding
 import loci.serializer.jsoniterScala.*
+import org.w3c.dom.css.Counter
 import rescala.default.*
 import webapp.services.*
+import webapp.store.aggregates
 import webapp.store.LocalRatingState
 
 import reflect.Selectable.*
@@ -19,11 +21,14 @@ class StateProviderService(services: {
   val stateBinding: Binding[Dotted[LocalRatingState] => Unit, Dotted[LocalRatingState] => Future[Unit]]
 
   val deltaDispatcher = Evt[DottedName[LocalRatingState]]()
-  val useCaseDispatcher = Evt[DeltaBufferRDT[LocalRatingState] => DeltaBufferRDT[LocalRatingState]]()
+  val counterUseCaseDispatcher = Evt[Counter => Counter]()
 
-  Events.foldAll(DeltaBufferRDT[LocalRatingState](services.config.replicaId, LocalRatingState()))(current =>
+  Events.foldAll(
+    LocalRatingState(
+      DeltaBufferRDT[Counter](services.config.replicaId, Counter()),
+    ))(current =>
     Seq(
-      useCaseDispatcher.act(useCase => useCase(current)),
+      counterUseCaseDispatcher.act(useCase => LocalRatingState(current.counter.applyDelta(useCase(useCase)))),
       deltaDispatcher.act(delta => current.resetDeltaBuffer().applyDelta(delta))
     )
   )
