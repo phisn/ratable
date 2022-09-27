@@ -1,8 +1,8 @@
 package webapp.store
 
-import kofre.decompose.containers.DeltaBufferRDT
-import webapp.store.aggregates.Counter
+import webapp.store.aggregates.*
+import webapp.store.framework.*
 
 case class LocalRatingState(
-  counter: DeltaBufferRDT[Counter]
+  ratings: RepositoryRDT[Ratings]
 )

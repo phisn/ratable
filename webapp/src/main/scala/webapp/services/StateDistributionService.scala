@@ -1,61 +1,101 @@
 package webapp.services
 
 import kofre.base.*
-import kofre.datatypes.GrowOnlyCounter
+import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import loci.registry.{Binding, Registry}
-import loci.serializer.jsoniterScala.*
 import loci.transmitter.RemoteRef
 import rescala.default.*
-import webapp.store.codec.*
+import scribe.Execution.global
+import webapp.services.*
 import webapp.store.LocalRatingState
+import webapp.store.aggregates.*
+import webapp.store.framework.*
 
-import java.util.concurrent.ThreadLocalRandom
-import reflect.Selectable.*
 import scala.concurrent.Future
+import scala.reflect.Selectable.*
 import scala.util.{Failure, Success}
 
 class StateDistributionService(services: {
+  val config: ApplicationConfig
   val stateProvider: StateProviderService
 }):
+  def registerRepository[Repository : Bottom : DecomposeLattice]: RepositoryRDT[Repository] =
+    val rdt = DeltaBufferRDT[Repository](services.config.replicaID, Bottom[Repository].empty)
+
+    val deltaEvt = Evt[DottedName[Repository]]()
+    val actions = Evt[DeltaBufferRDT[Repository] => DeltaBufferRDT[Repository]]()
+
+    val rdtSignal = Events.foldAll(rdt)(current =>
+      Seq(
+        deltaEvt.act(delta => current.resetDeltaBuffer().applyDelta(delta)),
+        actions.act(mutator => mutator(current))
+      )
+    )
+
+    RepositoryRDT[Repository](
+      actions,
+      rdtSignal.map(_.state.store)
+    )
+
   private var observers = Map[RemoteRef, Disconnectable]()
   private var resendBuffer = Map[RemoteRef, Dotted[LocalRatingState]]()
   private val registry = new Registry
 
-  private def registerRemote(remoteRef: RemoteRef)(implicit bottom: Bottom[Dotted[LocalRatingState]]): Unit =
-    val update: Dotted[LocalRatingState] => Future[Unit] = registry.lookup(services.stateProvider.stateBinding, remoteRef)
+  private def distributeRDT[A](
+      signal: Signal[DeltaBufferRDT[A]],
+      deltaEvt: Evt[DottedName[A]]
+  )(binding: Binding[Dotted[A] => Unit, Dotted[A] => Future[Unit]])(implicit
+      dcl: DecomposeLattice[Dotted[A]],
+      bottom: Bottom[Dotted[A]]
+  ): Unit = {
+    registry.bindSbj(binding) { (remoteRef: RemoteRef, deltaState: Dotted[A]) =>
+      deltaEvt.fire(DottedName(remoteRef.toString, deltaState))
+    }
 
-    val currentState = services.stateProvider.state.readValueOnce.state
-    if (currentState != bottom.empty) update(currentState)
+    var observers    = Map[RemoteRef, Disconnectable]()
+    var resendBuffer = Map[RemoteRef, Dotted[A]]()
 
-    val observer = services.stateProvider.state.observe { s =>
-      val deltaStateList = s.deltaBuffer.collect {
-        case DottedName(replicaID, deltaState) if replicaID != remoteRef.toString => deltaState
-      } ++ resendBuffer.get(remoteRef).toList
+    def registerRemote(remoteRef: RemoteRef): Unit = {
+      val remoteUpdate: Dotted[A] => Future[Unit] = registry.lookup(binding, remoteRef)
 
-      val combinedState = deltaStateList.reduceOption(DecomposeLattice[Dotted[LocalRatingState]].merge)
+      // Send full state to initialize remote
+      val currentState = signal.readValueOnce.state
+      if (currentState != bottom.empty) remoteUpdate(currentState)
 
-      combinedState.foreach { s =>
-        val mergedResendBuffer = resendBuffer.updatedWith(remoteRef) {
-          case None => Some(s)
-          case Some(prev) => Some(DecomposeLattice[Dotted[LocalRatingState]].merge(prev, s))
-        }
+      // Whenever the crdt is changed propagate the delta
+      // Praktisch wäre etwas wie crdt.observeDelta
+      val observer = signal.observe { s =>
+        val deltaStateList = s.deltaBuffer.collect {
+          case DottedName(replicaID, deltaState) if replicaID != remoteRef.toString => deltaState
+        } ++ resendBuffer.get(remoteRef).toList
 
-        if (remoteRef.connected) {
-          update(s).onComplete {
-            case Success(_) =>
-              resendBuffer = resendBuffer.removed(remoteRef)
-            case Failure(_) =>
-              resendBuffer = mergedResendBuffer
+        val combinedState = deltaStateList.reduceOption(DecomposeLattice[Dotted[A]].merge)
+
+        combinedState.foreach { s =>
+          val mergedResendBuffer = resendBuffer.updatedWith(remoteRef) {
+            case None       => Some(s)
+            case Some(prev) => Some(DecomposeLattice[Dotted[A]].merge(prev, s))
           }
-        } else {
-          resendBuffer = mergedResendBuffer
+
+          if (remoteRef.connected) {
+            remoteUpdate(s).onComplete {
+              case Success(_) =>
+                resendBuffer = resendBuffer.removed(remoteRef)
+              case Failure(_) =>
+                resendBuffer = mergedResendBuffer
+            }
+          } else {
+            resendBuffer = mergedResendBuffer
+          }
         }
       }
-    }
-    observers += (remoteRef -> observer)
 
-    registry.bindSbj(services.stateProvider.stateBinding) { (remoteRef: RemoteRef, deltaState: Dotted[GrowOnlyCounter]) =>
-      services.stateProvider.deltaDispatcher.fire(DottedName(remoteRef.toString, deltaState))
+      observers += (remoteRef -> observer)
     }
+        
+    registry.remoteJoined.monitor(registerRemote)
+    registry.remotes.foreach(registerRemote)
+    registry.remoteLeft.monitor(observers(_).disconnect())
+  }

@@ -1,6 +1,6 @@
 package webapp
 
-import org.scalajs.dom._
+import org.scalajs.dom.*
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

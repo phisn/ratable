@@ -5,8 +5,8 @@ import org.scalajs.dom
 import java.util.concurrent.ThreadLocalRandom
 import scala.scalajs.js
 
-class DistributionConfig:
-  val replicaId: String = ThreadLocalRandom.current().nextLong().toHexString
+class ApplicationConfig:
+  val replicaID: String = ThreadLocalRandom.current().nextLong().toHexString
 
   val rtcConfig = new dom.RTCConfiguration {
     iceServers = js.Array[dom.RTCIceServer](

@@ -1,17 +1,11 @@
 package webapp.store.aggregates
 
-import kofre.base.{Bottom, DecomposeLattice, Defs}
-import kofre.dotted.{DotFun, Dotted}
-import kofre.decompose.interfaces.LWWRegisterInterface
-import kofre.decompose.interfaces.LWWRegisterInterface.LWWRegister
-import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
+import kofre.base.{Bottom, DecomposeLattice}
 import kofre.datatypes.GrowOnlyCounter
-import kofre.decompose.interfaces.MVRegisterInterface.MVRegisterSyntax
 import kofre.syntax.PermIdMutate.withID
-import kofre.decompose.interfaces.LWWRegisterInterface.LWWRegisterSyntax
-import webapp.store.aggregates.LWW
-import kofre.datatypes.GrowOnlyCounter
-import webapp.store.framework.*
+import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
+import webapp.store.framework.{LWW, given_Bottom_LWW}
+
 import scala.util.Random
 
 case class Rating(

@@ -18,7 +18,7 @@ given JsonKeyCodec[Dot] = new JsonKeyCodec[Dot] :
 given [A](using services: Services, codec: JsonValueCodec[Dotted[A]]): JsonValueCodec[DeltaBufferRDT[A]] = new JsonValueCodec[DeltaBufferRDT[A]]:
   override def decodeValue(in: JsonReader, default: DeltaBufferRDT[A]): DeltaBufferRDT[A] =
     val state = codec.decodeValue(in, default.state)
-    new DeltaBufferRDT[A](state, services.distributionConfig.replicaId, List())
+    new DeltaBufferRDT[A](state, services.config.replicaID, List())
 
   override def encodeValue(x: DeltaBufferRDT[A], out: JsonWriter): Unit =
     codec.encodeValue(x.state, out)
