@@ -1,18 +1,15 @@
 package webapp.store.aggregates.ratings
 
 import kofre.syntax.PermIdMutate.withID
-import kofre.syntax.ArdtOpsContains
+import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 
 import scala.util.Random
 
-type Ratings = Repository[Int, Rating]
+type Ratings = Repository[Long, Rating]
 
-implicit class RatingsSyntax[C](container: C)(using ArdtOpsContains[C, Ratings]) extends RepositorySyntax[C, Int, Rating](container):
-  def rate(value: Int)(using MutationIdP): C =
-    val ratingID = Random.nextInt()
-    mutate(ratingID, rating => rating.rate(value)(using withID(replicaID)))
-
-  def vote(ratingID: Int)(using MutationIdP): C = 
-    mutate(ratingID, rating => rating.vote(using withID(replicaID)))
+implicit class RepositorySyntax[C](container: C)(using ArdtOpsContains[C, Repository[Long, Rating]])
+  extends OpsSyntaxHelper[C, Repository[Long, Rating]](container):
+  def insert(id: Long, ratingValue: Int)(using MutationIdP): C =
+    container.mutate(id, _ => Rating().rate(ratingValue)(using withID(replicaID)))

@@ -8,9 +8,8 @@ import rescala.default.*
 import webapp.components.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.*
-import webapp.store.framework.*
-
-import scala.util.*
+import webapp.store.framework.{given, *}
+import webapp.usecases.ratings.*
 
 object ServicesProduction extends Services:
   lazy val config = new ApplicationConfig()
@@ -23,13 +22,8 @@ def main(): Unit =
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
-  val clickEvent = Evt[Int]()
-
-  clickEvent.observe(ratingValue => 
-    services.stateProvider.ratings(repo => repo.rate(ratingValue))
-  )
-
   div(
-    button(onClick.map(_ => Random.between(0, 10)) --> clickEvent),
+    clickCounter,
+    createRating,
     ratings
   )

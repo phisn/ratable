@@ -4,6 +4,7 @@ import kofre.decompose.containers.DeltaBufferRDT
 import webapp.services.*
 import webapp.store.ApplicationState
 import webapp.store.aggregates.ratings.*
+import webapp.store.framework.given
 
 import scala.reflect.Selectable.*
 
