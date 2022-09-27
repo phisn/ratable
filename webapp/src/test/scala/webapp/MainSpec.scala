@@ -1,10 +1,9 @@
 package webapp
 
-import org.scalajs.dom._
-import outwatch._
-import outwatch.dsl._
-
 import cats.effect.SyncIO
+import org.scalajs.dom.*
+import outwatch.*
+import outwatch.dsl.*
 
 class WebappSpec extends JSDomSpec {
 

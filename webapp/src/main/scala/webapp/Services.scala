@@ -3,4 +3,6 @@ package webapp
 import webapp.services.*
 
 trait Services:
-  lazy val distributionService: DistributionService
+  lazy val config: ApplicationConfig
+  lazy val stateDistribution: StateDistributionService
+  lazy val stateProvider: StateProviderService
