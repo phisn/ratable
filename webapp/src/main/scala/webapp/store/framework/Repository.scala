@@ -3,6 +3,7 @@ package webapp.store.framework
 import kofre.base.{Bottom, DecomposeLattice}
 import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
 
+// Repositories map between aggregates A and ID, allowing easy manipulation of single aggregates
 case class Repository[ID, A](
   inner: Map[ID, A]
 ) derives DecomposeLattice, Bottom:

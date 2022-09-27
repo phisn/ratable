@@ -2,16 +2,17 @@ package webapp.services
 
 import kofre.decompose.containers.DeltaBufferRDT
 import webapp.services.*
-import webapp.store.LocalRatingState
-import webapp.store.aggregates.*
+import webapp.store.ApplicationState
+import webapp.store.aggregates.ratings.*
 
 import scala.reflect.Selectable.*
 
+// Provides access to application state and all its facades
 class StateProviderService(services: {
   val stateDistribution: StateDistributionService
 }):
-  val state = LocalRatingState(
-    services.stateDistribution.registerRepository[Ratings]
+  val state = ApplicationState(
+    services.stateDistribution.registerAggregate[Ratings]
   )
 
   def ratings = state.ratings.changes

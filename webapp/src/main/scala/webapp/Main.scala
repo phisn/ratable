@@ -7,7 +7,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.*
 import webapp.services.*
-import webapp.store.aggregates.*
+import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 
 import scala.util.*
@@ -23,11 +23,13 @@ def main(): Unit =
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
-  val clickEvent = Evt[Unit]()
+  val clickEvent = Evt[Int]()
 
-  clickEvent.observe(_ => services.stateProvider.ratings(repo => repo.rate(Random.between(0, 10))))
+  clickEvent.observe(ratingValue => 
+    services.stateProvider.ratings(repo => repo.rate(ratingValue))
+  )
 
   div(
-    button(onClick.as(()) --> clickEvent),
+    button(onClick.map(_ => Random.between(0, 10)) --> clickEvent),
     ratings
   )

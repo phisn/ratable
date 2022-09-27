@@ -5,7 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.services.*
-import webapp.store.aggregates.*
+import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.Services
 import webapp.given

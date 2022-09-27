@@ -9,23 +9,24 @@ import loci.transmitter.RemoteRef
 import rescala.default.*
 import scribe.Execution.global
 import webapp.services.*
-import webapp.store.LocalRatingState
-import webapp.store.aggregates.*
+import webapp.store.ApplicationState
+import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 
 import scala.concurrent.Future
 import scala.reflect.Selectable.*
 import scala.util.{Failure, Success}
 
+// Creates facades for aggregates and provides distribution for these
 class StateDistributionService(services: {
   val config: ApplicationConfig
   val stateProvider: StateProviderService
 }):
-  def registerRepository[Repository : Bottom : DecomposeLattice]: RepositoryRDT[Repository] =
-    val rdt = DeltaBufferRDT[Repository](services.config.replicaID, Bottom[Repository].empty)
+  def registerAggregate[A : Bottom : DecomposeLattice]: Facade[A] =
+    val rdt = DeltaBufferRDT[A](services.config.replicaID, Bottom[A].empty)
 
-    val deltaEvt = Evt[DottedName[Repository]]()
-    val actions = Evt[DeltaBufferRDT[Repository] => DeltaBufferRDT[Repository]]()
+    val deltaEvt = Evt[DottedName[A]]()
+    val actions = Evt[DeltaBufferRDT[A] => DeltaBufferRDT[A]]()
 
     val rdtSignal = Events.foldAll(rdt)(current =>
       Seq(
@@ -34,13 +35,13 @@ class StateDistributionService(services: {
       )
     )
 
-    RepositoryRDT[Repository](
+    Facade[A](
       actions,
       rdtSignal.map(_.state.store)
     )
 
   private var observers = Map[RemoteRef, Disconnectable]()
-  private var resendBuffer = Map[RemoteRef, Dotted[LocalRatingState]]()
+  private var resendBuffer = Map[RemoteRef, Dotted[ApplicationState]]()
   private val registry = new Registry
 
   private def distributeRDT[A](

@@ -1,8 +1,8 @@
-package webapp.store.aggregates
+package webapp.store.aggregates.ratings
 
 import kofre.syntax.PermIdMutate.withID
 import kofre.syntax.ArdtOpsContains
-import webapp.store.aggregates.*
+import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 
 import scala.util.Random

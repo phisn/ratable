@@ -3,6 +3,7 @@ package webapp.store.framework
 import kofre.base.Bottom
 import kofre.datatypes.TimedVal
 
+// Simple LastWriteWins Register
 type LWW[A] = Option[TimedVal[A]]
 
 given [A]: Bottom[LWW[A]] = new Bottom[LWW[A]] {
