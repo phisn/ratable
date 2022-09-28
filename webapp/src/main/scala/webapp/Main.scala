@@ -27,11 +27,15 @@ def main(): Unit =
 
 def app(using services: Services) =
   div(
+    padding := "10px",
+    connectionInput,
     clickCounter,
     createRating,
     ratings,
-    div(
-      services.stateProvider.state.toSignalDTO.map(dto =>
-        String(writeToArray(dto)))
-    )
+    jsonApplicationState
+  )
+
+def jsonApplicationState(using services: Services) =
+  div(
+    services.stateProvider.state.toSignalDTO.map(dto => writeToString(dto))
   )

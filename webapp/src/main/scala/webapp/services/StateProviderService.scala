@@ -2,7 +2,8 @@ package webapp.services
 
 import kofre.decompose.containers.DeltaBufferRDT
 import webapp.services.*
-import webapp.store.ApplicationState
+import webapp.store.*
+import webapp.store.given
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.given
 
@@ -13,7 +14,7 @@ class StateProviderService(services: {
   val stateDistribution: StateDistributionService
 }):
   val state = ApplicationState(
-    services.stateDistribution.registerAggregate[Ratings]
+    services.stateDistribution.registerAggregate[Ratings]("ratings")
   )
 
   def ratings = state.ratings.changes

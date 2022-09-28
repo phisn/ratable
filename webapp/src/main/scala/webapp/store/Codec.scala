@@ -29,4 +29,5 @@ given [A](using services: Services, codec: JsonValueCodec[Dotted[A]]): JsonValue
 
 given [A]: IdenticallyTransmittable[Dotted[A]] = IdenticallyTransmittable()
 
+given JsonValueCodec[Dotted[Ratings]] = JsonCodecMaker.make
 given JsonValueCodec[ApplicationStateDTO] = JsonCodecMaker.make

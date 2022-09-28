@@ -1,28 +1,32 @@
 package webapp.services
 
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import kofre.base.*
 import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import loci.registry.{Binding, Registry}
+import loci.serializer.jsoniterScala.given
 import loci.transmitter.RemoteRef
 import rescala.default.*
 import scribe.Execution.global
 import webapp.services.*
-import webapp.store.ApplicationState
+import webapp.store.*
+import webapp.store.given
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 
 import scala.concurrent.Future
 import scala.reflect.Selectable.*
 import scala.util.{Failure, Success}
+import webapp.Services
 
 // Creates facades for aggregates and provides distribution for these
 class StateDistributionService(services: {
   val config: ApplicationConfig
   val stateProvider: StateProviderService
 }):
-  def registerAggregate[A : Bottom : DecomposeLattice]: Facade[A] =
+  def registerAggregate[A : Bottom : DecomposeLattice](id: String)(using JsonValueCodec[Dotted[A]]): Facade[A] =
     val rdt = DeltaBufferRDT[A](services.config.replicaID, Bottom[A].empty)
 
     val deltaEvt = Evt[DottedName[A]]()
@@ -35,14 +39,16 @@ class StateDistributionService(services: {
       )
     )
 
+    distributeRDT(rdtSignal, deltaEvt)(
+      Binding[Dotted[A] => Unit](id)
+    )
+
     Facade[A](
       actions,
       rdtSignal.map(_.state.store)
     )
 
-  private var observers = Map[RemoteRef, Disconnectable]()
-  private var resendBuffer = Map[RemoteRef, Dotted[ApplicationState]]()
-  private val registry = new Registry
+  /* private */ val registry = new Registry
 
   private def distributeRDT[A](
       signal: Signal[DeltaBufferRDT[A]],
