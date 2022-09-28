@@ -7,6 +7,8 @@ import kofre.dotted.Dotted
 import kofre.time.Dot
 import loci.transmitter.IdenticallyTransmittable
 import webapp.Services
+import webapp.store.aggregates.ratings.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 given JsonKeyCodec[Dot] = new JsonKeyCodec[Dot] :
   override def decodeKey(in: JsonReader): Dot =
@@ -26,3 +28,5 @@ given [A](using services: Services, codec: JsonValueCodec[Dotted[A]]): JsonValue
   override def nullValue: DeltaBufferRDT[A] = null
 
 given [A]: IdenticallyTransmittable[Dotted[A]] = IdenticallyTransmittable()
+
+given JsonValueCodec[ApplicationStateDTO] = JsonCodecMaker.make

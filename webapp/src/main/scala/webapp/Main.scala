@@ -11,6 +11,10 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.{given, *}
 import webapp.usecases.ratings.*
 
+import webapp.store.given
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+
 object ServicesProduction extends Services:
   lazy val config = new ApplicationConfig()
   lazy val stateDistribution = new StateDistributionService(this)
@@ -25,5 +29,9 @@ def app(using services: Services) =
   div(
     clickCounter,
     createRating,
-    ratings
+    ratings,
+    div(
+      services.stateProvider.state.toSignalDTO.map(dto =>
+        String(writeToArray(dto)))
+    )
   )
