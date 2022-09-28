@@ -12,9 +12,6 @@ provider "azurerm" {
   features {}
 }
 
-provider "azapi" {
-}
-
 resource "azurerm_resource_group" "rg" {
   name     = "rg-localrating"
   location = "westeurope"
@@ -34,8 +31,16 @@ resource "azurerm_service_plan" "plan" {
 // https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/static_site
 resource "azurerm_static_site" "staticsite" {
   name                = "stapp-localrating"
-  resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_web_pubsub" "web_pubsub" {
+  name                = "wps-localrating"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  sku = "Free_F1"
 }
 
 // https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app

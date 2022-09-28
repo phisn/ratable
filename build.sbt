@@ -17,7 +17,7 @@ lazy val scalaJsMacrotaskExecutor = Seq(
   Compile / npmDependencies += "setimmediate"  -> "1.0.5", // polyfill
 )
 
-lazy val webapp = project
+lazy val webapp = (project in file("webapp"))
   .enablePlugins(
     ScalaJSPlugin,
     ScalaJSBundlerPlugin,
@@ -64,6 +64,7 @@ lazy val webapp = project
     fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.prod.js"),
     Test / requireJsDomEnv        := true,
   )
+
 
 addCommandAlias("prod", "fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
