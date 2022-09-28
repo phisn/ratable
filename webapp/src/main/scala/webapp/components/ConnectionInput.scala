@@ -44,14 +44,14 @@ def connectionInput(using services: Services) =
   var pendingServer: Option[PendingConnection] = None
 
   connectTo.observe(_ =>
-    val res = webrtcIntermediate(WebRTC.offer())
+    val res = webrtcIntermediate(WebRTC.offer(services.config.rtcConfig))
     res.session.foreach(s => outputStr.set(writeToString(s)(codec)))
     pendingServer = Some(res)
     services.stateDistribution.registry.connect(res.connector).foreach(_ => outputStr.set(""))
   )
 
   connectFrom.observe(_ =>
-    val res = webrtcIntermediate(WebRTC.answer())
+    val res = webrtcIntermediate(WebRTC.answer(services.config.rtcConfig))
     res.session.foreach(s => outputStr.set(writeToString(s)(codec)))
     services.stateDistribution.registry.connect(res.connector).foreach(_ => outputStr.set(""))
     res.connector.set(readFromString(inputStr.now)(codec))
