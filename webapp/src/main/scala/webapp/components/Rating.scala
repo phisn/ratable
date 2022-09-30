@@ -20,6 +20,7 @@ def rating(id: Long, rating: Rating)(using services: Services) =
     ),
     div(
       marginLeft := "5px",
+      
       rating.value match {
         case Some(register) => register.value
         case None => 0

@@ -24,8 +24,11 @@ lazy val webapp = (project in file("webapp"))
   )
   .settings(scalaJsMacrotaskExecutor)
   .settings(
+    name := "webapp",
     resolvers += "jitpack" at "https://jitpack.io",
     libraryDependencies          ++= Seq(
+      "org.ekrich" %%% "sconfig" % "1.4.9",
+      
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.17.0",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.17.0",
 
@@ -46,7 +49,8 @@ lazy val webapp = (project in file("webapp"))
       "-Xfatal-warnings",
     ), // overwrite option from https://github.com/DavidGregory084/sbt-tpolecat
     scalacOptions ++= Seq(
-      "-scalajs"
+      "-scalajs",
+      "-Dtest=test"
     ),
     useYarn := true, // Makes scalajs-bundler use yarn instead of npm
     scalaJSLinkerConfig ~= (_.withModuleKind(
@@ -65,9 +69,31 @@ lazy val webapp = (project in file("webapp"))
     Test / requireJsDomEnv        := true,
   )
 
+// https://github.com/olivergrabinski/scala-azure-fn
+lazy val functionsBackend = (project in file("functions/backend"))
+  .settings(
+    name := "functions-register",
+    libraryDependencies ++= Seq(
+      "com.microsoft.azure.functions" % "azure-functions-java-library" % "2.0.1" % "provided",
+      "com.azure" % "azure-messaging-webpubsub" % "1.1.6" % "provided"
+    ),
+    assembly / assemblyOutputPath := file(".") / "functions" / "deploy" / "scala-az-backend.jar",
+  )
+
+lazy val functionRun = taskKey[Unit]("Run Azure Function locally")
+functionRun := {
+  import scala.sys.process._
+
+  "func start --java" !
+}
 
 addCommandAlias("prod", "fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
+addCommandAlias("function", "functionBuild; functionRun")
+
+addCommandAlias("functionBuild", "functionsBackend/assembly")
+// addCommandAlias("functionRun", "\"cd functions/backend\"!; \"func start --java\"!")
+
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
 addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack")
 addCommandAlias("devDestroy", "webapp/fastOptJS/stopWebpackDevServer")
