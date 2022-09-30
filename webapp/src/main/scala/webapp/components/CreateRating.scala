@@ -18,10 +18,11 @@ def createRating(using Services) =
   val clickEvent = Evt[Int]()
 
   div(
-    display := "flex",
-    button(onClick.map(_ => Random.between(0, 10)) --> clickEvent),
-    div(
-      marginLeft := "15px",
-      clickEvent.map(ratingsNew).latest(0L)
-    )
+    cls := "flex space-x-4",
+    button(
+      cls := "btn btn-primary",
+      "Create Rating",
+      onClick.map(_ => Random.between(0, 10)) --> clickEvent
+    ),
+    div(clickEvent.map(ratingsNew).latest(0L))
   )

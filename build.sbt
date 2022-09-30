@@ -48,7 +48,7 @@ lazy val webapp = (project in file("webapp"))
       "postcss-loader" -> "^4.0.2",
       "tailwindcss" -> "^3.1.8",
       "autoprefixer" -> "^10.4.8",
-      "daisyui" -> "^2.27.0",
+      "daisyui" -> "^2.31.0",
     ),
     scalacOptions --= Seq(
       "-Xfatal-warnings",

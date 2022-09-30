@@ -13,14 +13,12 @@ import webapp.given
 
 def rating(id: Long, rating: Rating)(using services: Services) =
   div(
-    display := "flex",
+    cls := "flex space-x-4",
     div(
       width := "250px",
       id
     ),
     div(
-      marginLeft := "5px",
-      
       rating.value match {
         case Some(register) => register.value
         case None => 0

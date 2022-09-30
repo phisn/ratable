@@ -6,7 +6,8 @@ module.exports = {
   daisyui: {
     logs: false, // otherwise daisy logs its ui version
     themes: [
-      'light',
+      'cupcake',
+      'autumn',
 //      'dark'
     ]
   },

@@ -65,24 +65,25 @@ def connectionInput(using services: Services) =
   )
   
   div(
+    cls := "space-y-4",
     div(
+      cls := "flex space-x-4",
       input(
         cls := "input input-bordered",
         placeholder := "input",
-        marginLeft := "5px",
         onInput.value --> inputStr
       ),
       input(
+        cls := "input input-bordered",
         placeholder := "output",
-        marginLeft := "5px",
         readOnly := true,
         value <-- outputStr
       )
     ),
     div(
-      display.flex,
-      button("Connect To", onClick.as(()) --> connectTo),
-      button(marginLeft := "5px", "Connect From", onClick.as(()) --> connectFrom),
-      button(marginLeft := "5px", "Accept", onClick.as(()) --> accept),
+      cls := "flex space-x-4",
+      button(cls := "btn btn-secondary", "Connect To", onClick.as(()) --> connectTo),
+      button(cls := "btn btn-secondary", "Connect From", onClick.as(()) --> connectFrom),
+      button(cls := "btn btn-secondary", "Accept", onClick.as(()) --> accept),
     )
   )

@@ -12,14 +12,14 @@ def clickCounter =
   val counter = Var(0)
 
   div(
-    display := "flex",
+    cls := "indicator",
+    span(
+      cls := "indicator-item badge badge-accent", 
+      counter
+    ),
     button(
-      cls := "btn btn-primary",
+      cls := "btn btn-primary rounded-none",
       "Click me now",
       onClick(counter.map(_ + 1)) --> counter
-    ),
-    div(
-      marginLeft := "15px",
-      "You clicked ", counter, " times"
-    ),
+    )
   )

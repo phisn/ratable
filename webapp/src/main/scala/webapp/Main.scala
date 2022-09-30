@@ -18,12 +18,14 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
-//TODO: https://github.com/scalacenter/scalajs-bundler/issues/414
-// js.import("src/main/css/index.css")
-@js.native
-@JSImport("src/main/css/app.css", JSImport.Namespace)
-object Css extends js.Object
-
+// helper to load app.css with tailwind content into scalajs
+// from https://github.com/fun-stack/example
+object LoadTailwindCss:
+  @js.native
+  @JSImport("src/main/css/app.css", JSImport.Namespace)
+  object Css extends js.Object
+  
+  def apply() = Css; ()
 
 object ServicesProduction extends Services:
   lazy val config = new ApplicationConfig()
@@ -32,14 +34,13 @@ object ServicesProduction extends Services:
 
 @main
 def main(): Unit =
+  LoadTailwindCss()
   implicit val services = ServicesProduction
-  Css
-
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
   div(
-    padding := "10px",
+    cls := "p-4 space-y-16",
     connectionInput,
     clickCounter,
     createRating,
