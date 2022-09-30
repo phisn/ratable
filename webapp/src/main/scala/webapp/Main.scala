@@ -32,7 +32,16 @@ def app(using services: Services) =
     clickCounter,
     createRating,
     ratings,
-    jsonApplicationState
+    jsonApplicationState,
+    div(
+      sys.props.map(i => div(i(0), " = ", i(1))).toList
+    ),
+    div(
+      sys.env.map(i => div(i(0), " = ", i(1))).toList
+    ),
+    div(
+      services.config.config
+    )
   )
 
 def jsonApplicationState(using services: Services) =
