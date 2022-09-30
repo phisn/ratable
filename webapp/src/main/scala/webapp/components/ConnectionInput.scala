@@ -67,6 +67,7 @@ def connectionInput(using services: Services) =
   div(
     div(
       input(
+        cls := "input input-bordered",
         placeholder := "input",
         marginLeft := "5px",
         onInput.value --> inputStr

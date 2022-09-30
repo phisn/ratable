@@ -13,7 +13,11 @@ def clickCounter =
 
   div(
     display := "flex",
-    button(onClick(counter.map(_ + 1)) --> counter),
+    button(
+      cls := "btn btn-primary",
+      "Click me now",
+      onClick(counter.map(_ + 1)) --> counter
+    ),
     div(
       marginLeft := "15px",
       "You clicked ", counter, " times"

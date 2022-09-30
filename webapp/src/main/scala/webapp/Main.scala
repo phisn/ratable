@@ -15,6 +15,16 @@ import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
+
+//TODO: https://github.com/scalacenter/scalajs-bundler/issues/414
+// js.import("src/main/css/index.css")
+@js.native
+@JSImport("src/main/css/app.css", JSImport.Namespace)
+object Css extends js.Object
+
+
 object ServicesProduction extends Services:
   lazy val config = new ApplicationConfig()
   lazy val stateDistribution = new StateDistributionService(this)
@@ -23,6 +33,8 @@ object ServicesProduction extends Services:
 @main
 def main(): Unit =
   implicit val services = ServicesProduction
+  Css
+
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =

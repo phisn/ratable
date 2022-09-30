@@ -7,8 +7,30 @@ You should make sure that the following components are pre-installed on your mac
  - JDK 11+
  - sbt
 
-## Working in dev mode
+## Prepare tailwind intellisense
+Guide written for visual studio code with tailwind css support for outwatch. 
 
+Run
+```sh
+npm i
+```
+
+Install vscode plugin `Tailwind CSS IntelliSense` and paste into plugin configuration the following settings
+```json
+"tailwindCSS.includeLanguages": {
+    "scala": "html"
+},
+"[scala]": {  
+    "tailwindCSS.experimental.classRegex": [
+        "\\bcls\\s*:=\\s*\"([^\"]*)\""
+    ],
+},
+"editor.quickSuggestions": {
+    "strings": true
+}
+```
+
+## Working in dev mode
 Run
 
 ```sh

@@ -44,6 +44,11 @@ lazy val webapp = (project in file("webapp"))
     ),
     Compile / npmDevDependencies ++= Seq(
       "@fun-stack/fun-pack" -> versions.funPack, // sane defaults for webpack development and production, see webpack.config.*.js
+      "postcss" -> "^8.4.16",
+      "postcss-loader" -> "^4.0.2",
+      "tailwindcss" -> "^3.1.8",
+      "autoprefixer" -> "^10.4.8",
+      "daisyui" -> "^2.27.0",
     ),
     scalacOptions --= Seq(
       "-Xfatal-warnings",
@@ -83,8 +88,7 @@ lazy val functionsBackend = (project in file("functions/backend"))
 lazy val functionRun = taskKey[Unit]("Run Azure Function locally")
 functionRun := {
   import scala.sys.process._
-
-  "func start --java" !
+  sys.process.Process(Seq("func","start", "--java"), new java.io.File("./functions/deploy")).!
 }
 
 addCommandAlias("prod", "fullOptJS/webpack")
@@ -92,7 +96,6 @@ addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("function", "functionBuild; functionRun")
 
 addCommandAlias("functionBuild", "functionsBackend/assembly")
-// addCommandAlias("functionRun", "\"cd functions/backend\"!; \"func start --java\"!")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
 addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack")
