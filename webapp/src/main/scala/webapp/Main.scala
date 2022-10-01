@@ -30,9 +30,10 @@ object LoadTailwindCss:
     ()
 
 object ServicesProduction extends Services:
-  lazy val config = new ApplicationConfig()
-  lazy val stateDistribution = new StateDistributionService(this)
-  lazy val stateProvider = new StateProviderService(this)
+  lazy val config = ApplicationConfig()
+  lazy val stateDistribution = StateDistributionService(this)
+  lazy val stateProvider = StateProviderService(this)
+  lazy val backendApi = BackendApiService()
 
 @main
 def main(): Unit =
@@ -45,6 +46,7 @@ def app(using services: Services) =
     cls := "p-4 space-y-16",
     connectionInput,
     clickCounter,
+    functionsTest,
     createRating,
     ratings,
     jsonApplicationState,

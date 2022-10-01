@@ -37,7 +37,12 @@ Run
 sbt dev
 ```
 
-Then open `http://localhost:12345` in your browser.
+Run in another terminal in directory `functions/deploy`
+```
+fun start --java --cors *
+```
+
+Then open `http://localhost:12345` in your browser. The backend function w 
 
 This sbt-task will start webpack dev server, compile your code each time it changes and auto-reload the page.  
 Webpack dev server will stop automatically when you stop the `dev` task
