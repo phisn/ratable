@@ -30,12 +30,15 @@ class StateDistributionService(services: {
     val rdt = DeltaBufferRDT[A](services.config.replicaID, Bottom[A].empty)
 
     val deltaEvt = Evt[DottedName[A]]()
-    val actions = Evt[DeltaBufferRDT[A] => DeltaBufferRDT[A]]()
+    val actions = Evt[A => A]()
+
+    // c.applyDelta(DottedName(c.replicaID, Dotted(delta)))
 
     val rdtSignal = Events.foldAll(rdt)(current =>
       Seq(
         deltaEvt.act(delta => current.resetDeltaBuffer().applyDelta(delta)),
-        actions.act(mutator => mutator(current))
+        actions.act(mutator => current.applyDelta(DottedName(current.replicaID, Dotted(mutator(current.state.store)))))
+//        actions.act(mutator => mutator(current))
       )
     )
 

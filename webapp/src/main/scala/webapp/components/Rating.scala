@@ -11,11 +11,11 @@ import webapp.store.framework.*
 import webapp.Services
 import webapp.given
 
-def rating(id: Long, rating: Rating)(using services: Services) =
+def rating(id: String, rating: Rating)(using services: Services) =
   div(
     cls := "flex space-x-4",
     div(
-      width := "250px",
+      cls := "w-96",
       id
     ),
     div(

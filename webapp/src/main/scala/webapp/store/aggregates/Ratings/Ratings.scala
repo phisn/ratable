@@ -7,9 +7,9 @@ import webapp.store.framework.*
 
 import scala.util.Random
 
-type Ratings = Repository[Long, Rating]
+type Ratings = Repository[String, Rating]
 
-implicit class RepositorySyntax[C](container: C)(using ArdtOpsContains[C, Repository[Long, Rating]])
-  extends OpsSyntaxHelper[C, Repository[Long, Rating]](container):
-  def insert(id: Long, ratingValue: Int)(using MutationIdP): C =
-    container.mutate(id, _ => Rating().rate(ratingValue)(using withID(replicaID)))
+extension (repo: Ratings)
+  def create(id: String, ratingValue: Int, replicaID: String) =
+    repo.mutate(id, _.rate(ratingValue, replicaID))
+

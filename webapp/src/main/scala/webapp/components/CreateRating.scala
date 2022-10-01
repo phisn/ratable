@@ -24,5 +24,5 @@ def createRating(using Services) =
       "Create Rating",
       onClick.map(_ => Random.between(0, 10)) --> clickEvent
     ),
-    div(clickEvent.map(ratingsNew).latest(0L))
+    div(clickEvent.map(ratingsNew).latest(""))
   )

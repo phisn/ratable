@@ -25,7 +25,9 @@ object LoadTailwindCss:
   @JSImport("src/main/css/app.css", JSImport.Namespace)
   object Css extends js.Object
   
-  def apply() = Css; ()
+  def apply() = 
+    Css
+    ()
 
 object ServicesProduction extends Services:
   lazy val config = new ApplicationConfig()

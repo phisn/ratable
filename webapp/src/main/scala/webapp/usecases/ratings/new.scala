@@ -7,7 +7,7 @@ import webapp.Services
 import kofre.decompose.containers.DeltaBufferRDT
 import kofre.syntax.ArdtOpsContains
 
-def ratingsNew(ratingValue: Int)(using services: Services): Long =
+def ratingsNew(ratingValue: Int)(using services: Services): String =
   val id = services.stateProvider.ratings.now.uniqueID(services.config.replicaID)
-  services.stateProvider.ratings(_.insert(id, ratingValue))
+  services.stateProvider.ratings(_.create(id, ratingValue, services.config.replicaID))
   id
