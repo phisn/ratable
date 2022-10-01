@@ -23,7 +23,7 @@ jobs:
         cache: 'sbt'
     - name: Build functions
       run: sbt functionsBackend/assembly
-    - name: Azure Functions Action
+    - name: Deploy functions
       uses: Azure/functions-action@v1.4.7
       with:
         app-name: func-backend
@@ -31,7 +31,7 @@ jobs:
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
     - name: Build webapp
       run: sbt prod
-    - name: Deploy
+    - name: Deploy webapp
       uses: Azure/static-web-apps-deploy@v1
       with:
         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APP_TOKEN }}

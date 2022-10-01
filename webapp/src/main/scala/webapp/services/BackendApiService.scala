@@ -7,9 +7,16 @@ import sttp.model.ResponseMetadata
 import sttp.ws.WebSocket
 import rescala.default.*
 
-class BackendApiService:
-    def hello(username: String) = 
-        val response = basicRequest.get(uri"http://localhost:7071/api/hello?name=$username").send(backend)
-        Signals.fromFuture(response).map(_.body.toOption)
+import reflect.Selectable.reflectiveSelectable
+import cats.effect.syntax.async
+import scala.concurrent.Future
+
+class BackendApiService(services: {
+  val config: ApplicationConfig
+}):
+    def hello(username: String) =
+        Signals.fromFuture(
+            basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)
+        ).map(_.body.toOption)
 
     private val backend = FetchBackend()

@@ -15,6 +15,7 @@ import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
@@ -33,7 +34,7 @@ object ServicesProduction extends Services:
   lazy val config = ApplicationConfig()
   lazy val stateDistribution = StateDistributionService(this)
   lazy val stateProvider = StateProviderService(this)
-  lazy val backendApi = BackendApiService()
+  lazy val backendApi = BackendApiService(this)
 
 @main
 def main(): Unit =
@@ -57,7 +58,7 @@ def app(using services: Services) =
       sys.env.map(i => div(i(0), " = ", i(1))).toList
     ),
     div(
-      services.config.config
+      services.config.backendUrl
     )
   )
 
