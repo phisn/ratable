@@ -86,13 +86,6 @@ lazy val functionsBackend = (project in file("functions/backend"))
     assembly / assemblyOutputPath := file(".") / "functions" / "deploy" / "scala-az-backend.jar",
   )
 
-lazy val functionRun = taskKey[Unit]("Run Azure Function locally")
-functionRun := {
-  import scala.sys.process._
-  ("TASKKILL /IM func.exe /T /F"!)
-  (sys.process.Process(Seq("func","start", "--java"), new java.io.File("./functions/deploy"))!)
-}
-
 addCommandAlias("prod", "fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("function", "functionBuild; functionRun")
