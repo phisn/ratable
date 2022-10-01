@@ -5,7 +5,8 @@
         "name": "req",
         "direction": "in",
         "methods": [ "get" ],
-        "route": "hello"
+        "route": "hello",
+        "authLevel": "anonymous"
       },
       {
         "type": "http",

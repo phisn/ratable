@@ -8,8 +8,7 @@ class Function:
   def run(
     @HttpTrigger(
       name = "req",
-      methods = Array(HttpMethod.GET),
-      authLevel = AuthorizationLevel.ANONYMOUS)
+      methods = Array(HttpMethod.GET))
     request: HttpRequestMessage[Optional[String]],
     context: ExecutionContext
   ): HttpResponseMessage =
