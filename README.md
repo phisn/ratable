@@ -56,3 +56,18 @@ terraform apply
 ```
 
 The output `api_key` needs to be added in github actions as a secret named `AZURE_STATIC_WEB_APP_TOKEN`.
+
+## Techstack
+Core
+  - Scala
+  - Rescala
+  - Outwatch
+ 
+Infrastructure
+  - Azure
+  - Terraform
+  - Github Actions
+
+UI
+  - Tailwind
+  - Daisyui
