@@ -37,7 +37,12 @@ Run
 sbt dev
 ```
 
-Then open `http://localhost:12345` in your browser.
+Run in another terminal in directory `functions/deploy`
+```
+fun start --java --cors *
+```
+
+Then open `http://localhost:12345` in your browser. The backend function w 
 
 This sbt-task will start webpack dev server, compile your code each time it changes and auto-reload the page.  
 Webpack dev server will stop automatically when you stop the `dev` task
@@ -55,6 +60,25 @@ Create / update the infrastructure with
 terraform apply
 ```
 
+- Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
+- Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
+
+## Techstack
+Core
+  - Scala
+  - Rescala
+  - Outwatch
+ 
+Infrastructure
+  - Azure
+  - Terraform
+  - Github Actions
+
+UI
+  - Tailwind
+  - Daisyui
+
+<<<<<<< HEAD
 The output `api_key` needs to be added in github actions as a secret named `AZURE_STATIC_WEB_APP_TOKEN`.
 
 ## Techstack
@@ -71,3 +95,7 @@ Infrastructure
 UI
   - Tailwind
   - Daisyui
+=======
+- Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
+- Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
+>>>>>>> origin/feature/basic-cloud

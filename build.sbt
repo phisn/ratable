@@ -28,6 +28,7 @@ lazy val webapp = (project in file("webapp"))
     resolvers += "jitpack" at "https://jitpack.io",
     libraryDependencies          ++= Seq(
       "org.ekrich" %%% "sconfig" % "1.4.9",
+      "com.softwaremill.sttp.client3" %%% "core" % "3.7.6",
       
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.17.0",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.17.0",
@@ -88,15 +89,14 @@ lazy val functionsBackend = (project in file("functions/backend"))
 lazy val functionRun = taskKey[Unit]("Run Azure Function locally")
 functionRun := {
   import scala.sys.process._
-  sys.process.Process(Seq("func","start", "--java"), new java.io.File("./functions/deploy")).!
+  ("TASKKILL /IM func.exe /T /F"!)
+  (sys.process.Process(Seq("func","start", "--java"), new java.io.File("./functions/deploy"))!)
 }
 
 addCommandAlias("prod", "fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("function", "functionBuild; functionRun")
 
-addCommandAlias("functionBuild", "functionsBackend/assembly")
-
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
-addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack")
+addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack; functionsBackend/assembly")
 addCommandAlias("devDestroy", "webapp/fastOptJS/stopWebpackDevServer")

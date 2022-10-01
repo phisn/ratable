@@ -21,7 +21,7 @@ import scala.reflect.Selectable.*
 import scala.util.{Failure, Success}
 import webapp.Services
 
-// Creates facades for aggregates and provides distribution for these
+// Creates facades for aggregates and registers them for distribution
 class StateDistributionService(services: {
   val config: ApplicationConfig
   val stateProvider: StateProviderService
@@ -32,13 +32,11 @@ class StateDistributionService(services: {
     val deltaEvt = Evt[DottedName[A]]()
     val actions = Evt[A => A]()
 
-    // c.applyDelta(DottedName(c.replicaID, Dotted(delta)))
-
+    // current state consists only of all actions by usecases and deltas from other replicas
     val rdtSignal = Events.foldAll(rdt)(current =>
       Seq(
         deltaEvt.act(delta => current.resetDeltaBuffer().applyDelta(delta)),
         actions.act(mutator => current.applyDelta(DottedName(current.replicaID, Dotted(mutator(current.state.store)))))
-//        actions.act(mutator => mutator(current))
       )
     )
 
@@ -46,6 +44,7 @@ class StateDistributionService(services: {
       Binding[Dotted[A] => Unit](id)
     )
 
+    // pack all into a single facade to expose minimal interface
     Facade[A](
       actions,
       rdtSignal.map(_.state.store)
@@ -53,6 +52,8 @@ class StateDistributionService(services: {
 
   /* private */ val registry = new Registry
 
+  // TODO: needs to be rewritten later
+  // thinking about using websocket additionally or as replacement of webrtc
   private def distributeRDT[A](
       signal: Signal[DeltaBufferRDT[A]],
       deltaEvt: Evt[DottedName[A]]

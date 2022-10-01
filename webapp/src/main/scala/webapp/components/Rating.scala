@@ -18,7 +18,7 @@ def rating(id: String, rating: Rating)(using services: Services) =
       cls := "w-96",
       id
     ),
-    div(
+    div( 
       rating.value match {
         case Some(register) => register.value
         case None => 0
