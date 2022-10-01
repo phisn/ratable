@@ -1,4 +1,4 @@
-name: Scala CI
+name: local-rating CI
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'sbt'
-    - name: Build
+    - name: Build webapp
       run: sbt prod
     - name: Deploy
       uses: Azure/static-web-apps-deploy@v1
@@ -30,3 +30,11 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
         app_location: "/webapp/target/scala-3.1.2/scalajs-bundler/main/dist"
+    - name: Build functions
+      run: sbt functionsBackend/assembly
+    - name: Azure Functions Action
+      uses: Azure/functions-action@v1.4.7
+      with:
+        app-name: func-backend
+        package: /functions/deploy
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

@@ -60,4 +60,5 @@ Create / update the infrastructure with
 terraform apply
 ```
 
-The output `api_key` needs to be added in github actions as a secret named `AZURE_STATIC_WEB_APP_TOKEN`.
+- Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
+- Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
