@@ -17,7 +17,16 @@ lazy val scalaJsMacrotaskExecutor = Seq(
   Compile / npmDependencies += "setimmediate"  -> "1.0.5", // polyfill
 )
 
+lazy val core = (project in file("core"))
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"          % "2.17.0" % "provided",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros"        % "2.17.0" % "provided",
+    ),
+  )
+
 lazy val webapp = (project in file("webapp"))
+  .dependsOn(core)
   .enablePlugins(
     ScalaJSPlugin,
     ScalaJSBundlerPlugin,
@@ -30,8 +39,8 @@ lazy val webapp = (project in file("webapp"))
       "org.ekrich" %%% "sconfig" % "1.4.9",
       "com.softwaremill.sttp.client3" %%% "core" % "3.7.6",
       
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.17.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.17.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%  "jsoniter-scala-macros" % "2.17.0",
 
       "io.github.outwatch"                    %%% "outwatch"  % versions.outwatch,
       "org.scalatest"                         %%% "scalatest" % versions.scalaTest % Test,
@@ -52,11 +61,10 @@ lazy val webapp = (project in file("webapp"))
       "daisyui" -> "^2.31.0",
     ),
     scalacOptions --= Seq(
-      "-Xfatal-warnings",
+      "-Xfatal-warnings"
     ), // overwrite option from https://github.com/DavidGregory084/sbt-tpolecat
     scalacOptions ++= Seq(
       "-scalajs",
-      "-Dtest=test"
     ),
     useYarn := true, // Makes scalajs-bundler use yarn instead of npm
     scalaJSLinkerConfig ~= (_.withModuleKind(
@@ -77,11 +85,14 @@ lazy val webapp = (project in file("webapp"))
 
 // https://github.com/olivergrabinski/scala-azure-fn
 lazy val functionsBackend = (project in file("functions/backend"))
+  .dependsOn(core)
   .settings(
     name := "functions-register",
     libraryDependencies ++= Seq(
-      "com.microsoft.azure.functions" % "azure-functions-java-library" % "2.0.1" % "provided",
-      "com.azure" % "azure-messaging-webpubsub" % "1.1.6" % "provided"
+      "com.microsoft.azure.functions"         %  "azure-functions-java-library" % "2.0.1"  % "provided",
+      "com.azure"                             %  "azure-messaging-webpubsub"    % "1.1.6"  % "provided",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"   % "2.17.0" % "provided",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.17.0" % "compile-internal"
     ),
     assembly / assemblyOutputPath := file(".") / "functions" / "deploy" / "scala-az-backend.jar",
   )
