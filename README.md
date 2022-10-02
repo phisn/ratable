@@ -30,7 +30,13 @@ Install vscode plugin `Tailwind CSS IntelliSense` and paste into plugin configur
 }
 ```
 
-## Working in dev mode
+## Working in dev mode (windows)
+Run
+```sh
+./dev.bat
+```
+This will launch azure functions in another cmd window. Stop dev mode by pressing `enter`.
+## Working in dev mode (linux or mac)
 Run
 
 ```sh
@@ -62,3 +68,18 @@ terraform apply
 
 - Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
 - Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
+
+## Techstack
+Core
+  - Scala
+  - Rescala
+  - Outwatch
+ 
+Infrastructure
+  - Azure
+  - Terraform
+  - Github Actions
+
+UI
+  - Tailwind
+  - Daisyui

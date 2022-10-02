@@ -14,7 +14,6 @@ val versions = new {
 lazy val scalaJsMacrotaskExecutor = Seq(
   // https://github.com/scala-js/scala-js-macrotask-executor
   libraryDependencies       += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.0.0",
-  Compile / npmDependencies += "setimmediate"  -> "1.0.5", // polyfill
 )
 
 lazy val core = (project in file("core"))
@@ -96,13 +95,6 @@ lazy val functionsBackend = (project in file("functions/backend"))
     ),
     assembly / assemblyOutputPath := file(".") / "functions" / "deploy" / "scala-az-backend.jar",
   )
-
-lazy val functionRun = taskKey[Unit]("Run Azure Function locally")
-functionRun := {
-  import scala.sys.process._
-  ("TASKKILL /IM func.exe /T /F"!)
-  (sys.process.Process(Seq("func","start", "--java"), new java.io.File("./functions/deploy"))!)
-}
 
 addCommandAlias("prod", "fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
