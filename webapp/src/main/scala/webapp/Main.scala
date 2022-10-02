@@ -15,21 +15,8 @@ import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSImport
-
-// helper to load app.css with tailwind content into scalajs
-// from https://github.com/fun-stack/example
-object LoadTailwindCss:
-  @js.native
-  @JSImport("src/main/css/app.css", JSImport.Namespace)
-  object Css extends js.Object
-  
-  def apply() = 
-    Css
-    ()
-
 object ServicesProduction extends Services:
+  val jsBootstrap = JSBootstrapService()
   lazy val config = ApplicationConfig()
   lazy val stateDistribution = StateDistributionService(this)
   lazy val stateProvider = StateProviderService(this)
@@ -37,7 +24,6 @@ object ServicesProduction extends Services:
 
 @main
 def main(): Unit =
-  LoadTailwindCss()
   implicit val services = ServicesProduction
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
