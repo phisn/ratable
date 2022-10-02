@@ -30,7 +30,13 @@ Install vscode plugin `Tailwind CSS IntelliSense` and paste into plugin configur
 }
 ```
 
-## Working in dev mode
+## Working in dev mode (windows)
+Run
+```sh
+./dev.bat
+```
+This will launch azure functions in another cmd window. Stop dev mode by pressing `enter`.
+## Working in dev mode (linux or mac)
 Run
 
 ```sh
