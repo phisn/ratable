@@ -1,4 +1,4 @@
-name: local-rating CI
+name: local-rating CICD
 
 on:
   workflow_dispatch:

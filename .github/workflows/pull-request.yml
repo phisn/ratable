@@ -1,4 +1,4 @@
-name: local-rating CI
+name: local-rating CI (pull request)
 
 on:
   pull_request:
