@@ -30,7 +30,6 @@ def main(): Unit =
 def app(using services: Services) =
   div(
     cls := "p-4 space-y-16",
-    connectionInput,
     clickCounter,
     functionsTest,
     createRating,

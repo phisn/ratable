@@ -45,11 +45,7 @@ lazy val webapp = (project in file("webapp"))
       "org.scalatest"                         %%% "scalatest" % versions.scalaTest % Test,
       // rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
       "com.github.rescala-lang.rescala"       %%% "rescala" % "6d9019e946",
-     ("com.github.rescala-lang.rescala"       %%% "kofre" % "6d9019e946").cross(CrossVersion.for2_13Use3),
-      // same for loci as above with rescala?
-      "com.github.scala-loci.scala-loci"      %%% "scala-loci-communicator-webrtc" % "609b4c1b58",
-      // do I need this?
-      "com.github.scala-loci.scala-loci"      %%% "scala-loci-serializer-jsoniter-scala" % "609b4c1b58",
+     ("com.github.rescala-lang.rescala"       %%% "kofre" % "6d9019e946").cross(CrossVersion.for2_13Use3)
     ),
     Compile / npmDevDependencies ++= Seq(
       "@fun-stack/fun-pack" -> versions.funPack, // sane defaults for webpack development and production, see webpack.config.*.js

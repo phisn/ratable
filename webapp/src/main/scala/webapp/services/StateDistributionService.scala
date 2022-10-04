@@ -5,11 +5,7 @@ import kofre.base.*
 import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
-import loci.registry.{Binding, Registry}
-import loci.serializer.jsoniterScala.given
-import loci.transmitter.RemoteRef
 import rescala.default.*
-import scribe.Execution.global
 import webapp.services.*
 import webapp.store.*
 import webapp.store.given
@@ -26,41 +22,68 @@ class StateDistributionService(services: {
   val config: ApplicationConfig
   val stateProvider: StateProviderService
 }):
-  def registerAggregate[A : Bottom : DecomposeLattice](id: String)(using JsonValueCodec[Dotted[A]]): Facade[A] =
-    val rdt = DeltaBufferRDT[A](services.config.replicaID, Bottom[A].empty)
+  def deltaSignal[A]: Signal[DottedName[A]] = null
+//  def pushDelta[A](delta: DottedName[A]) = null
+
+  def registerAggregate[A : JsonValueCodec : Bottom : DecomposeLattice](
+    id: String
+  ): Facade[A] =
+    val actions = Evt[A => A]()
+
+    
+
+    val changes = actions.fold(
+      Bottom[A].empty)(
+      (state, action) => DecomposeLattice[A].merge(state, action(state))
+    )
+
+    actions.map(_(changes.now)).observe(pushDelta)
+
+    Facade(
+      actions,
+      changes
+    )
+
+  private def pushDelta[A](delta: A) =
+
+
+
+    /*
+    val rdt = DeltaBufferRDT[A](services.config.replicaID)
 
     val deltaEvt = Evt[DottedName[A]]()
+    val deltaPushedEvt = Evt[Unit]()
+
     val actions = Evt[A => A]()
 
     // current state consists only of all actions by usecases and deltas from other replicas
     val rdtSignal = Events.foldAll(rdt)(current =>
       Seq(
-        deltaEvt.act(delta => current.resetDeltaBuffer().applyDelta(delta)),
+        deltaPushedEvt.act(_ => current.resetDeltaBuffer()),
+        deltaEvt.act(current.applyDelta(_)),
         actions.act(mutator => current.applyDelta(DottedName(current.replicaID, Dotted(mutator(current.state.store)))))
       )
     )
 
-    distributeRDT(rdtSignal, deltaEvt)(
-      Binding[Dotted[A] => Unit](id)
-    )
+    rdtSignal.observe { rdt =>
+      val deltaStateList = rdt.deltaBuffer.collect {
+        case DottedName(replicaID, deltaState) if replicaID == services.config.replicaID => deltaState
+      }
+
+      val combinedState = deltaStateList.reduceOption(DecomposeLattice[Dotted[A]].merge)
+      combinedState.foreach { state =>
+        pushDelta(state)
+      }
+    }
 
     // pack all into a single facade to expose minimal interface
     Facade[A](
       actions,
-      rdtSignal.map(_.state.store)
+      rdStignal.map(_.state.store)
     )
+    */
 
-  /* private */ val registry = new Registry
-
-  // TODO: needs to be rewritten later
-  // thinking about using websocket additionally or as replacement of webrtc
-  private def distributeRDT[A](
-      signal: Signal[DeltaBufferRDT[A]],
-      deltaEvt: Evt[DottedName[A]]
-  )(binding: Binding[Dotted[A] => Unit, Dotted[A] => Future[Unit]])(implicit
-      dcl: DecomposeLattice[Dotted[A]],
-      bottom: Bottom[Dotted[A]]
-  ): Unit = {
+    /*
     registry.bindSbj(binding) { (remoteRef: RemoteRef, deltaState: Dotted[A]) =>
       deltaEvt.fire(DottedName(remoteRef.toString, deltaState))
     }
@@ -109,4 +132,4 @@ class StateDistributionService(services: {
     registry.remoteJoined.monitor(registerRemote)
     registry.remotes.foreach(registerRemote)
     registry.remoteLeft.monitor(observers(_).disconnect())
-  }
+    */
