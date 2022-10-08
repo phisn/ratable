@@ -35,14 +35,16 @@ lazy val webapp = (project in file("webapp"))
     name := "webapp",
     resolvers += "jitpack" at "https://jitpack.io",
     libraryDependencies          ++= Seq(
-      "org.ekrich" %%% "sconfig" % "1.4.9",
-      "com.softwaremill.sttp.client3" %%% "core" % "3.7.6",
+      "org.ekrich"                    %%% "sconfig" % "1.4.9",
+      "com.softwaremill.sttp.client3" %%% "core"    % "3.7.6",
       
+      "io.github.outwatch"                    %%% "outwatch"       % versions.outwatch,
+      "com.github.cornerman"                  %%% "colibri-router" % "0.5.0",
+      "org.scalatest"                         %%% "scalatest"      % versions.scalaTest % Test,
+
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.0",
       "com.github.plokhotnyuk.jsoniter-scala" %%  "jsoniter-scala-macros" % "2.17.0",
 
-      "io.github.outwatch"                    %%% "outwatch"  % versions.outwatch,
-      "org.scalatest"                         %%% "scalatest" % versions.scalaTest % Test,
       // rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
       "com.github.rescala-lang.rescala"       %%% "rescala" % "6d9019e946",
      ("com.github.rescala-lang.rescala"       %%% "kofre" % "6d9019e946").cross(CrossVersion.for2_13Use3)
