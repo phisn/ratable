@@ -1,4 +1,4 @@
-package webapp.components
+package webapp.components.debug
 
 import org.scalajs.dom
 import outwatch.*
@@ -10,19 +10,18 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.Services
 import webapp.given
-import webapp.usecases.ratings.*
 
-import scala.util.*
-
-def createRating(using Services) = 
-  val clickEvent = Evt[Int]()
-
+def rating(id: String, rating: Rating)(using services: Services) =
   div(
     cls := "flex space-x-4",
-    button(
-      cls := "btn btn-primary",
-      "Create Rating",
-      onClick.map(_ => Random.between(0, 10)) --> clickEvent
+    div(
+      cls := "w-96",
+      id
     ),
-    div(clickEvent.map(ratingsNew).latest(""))
+    div( 
+      rating.value match {
+        case Some(register) => register.value
+        case None => 0
+      }
+    )
   )

@@ -30,14 +30,12 @@ class StateDistributionService(services: {
   ): Facade[A] =
     val actions = Evt[A => A]()
 
-    
-
     val changes = actions.fold(
       Bottom[A].empty)(
       (state, action) => DecomposeLattice[A].merge(state, action(state))
     )
 
-    actions.map(_(changes.now)).observe(pushDelta)
+    // actions.map(_(changes.now)).observe(pushDelta)
 
     Facade(
       actions,
@@ -45,7 +43,7 @@ class StateDistributionService(services: {
     )
 
   private def pushDelta[A](delta: A) =
-
+    None
 
 
     /*

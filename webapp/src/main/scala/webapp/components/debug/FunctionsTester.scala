@@ -1,4 +1,4 @@
-package webapp.components
+package webapp.components.debug
 
 import org.scalajs.dom
 import outwatch.*
