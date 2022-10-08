@@ -83,3 +83,6 @@ Infrastructure
 UI
   - Tailwind
   - Daisyui
+
+## Misc
+- For simplicity Tailwind is installed in (in seperate nodejs packages) `webapp/` and in `/`, because vs code `tailwind intellisense` plugin needs tailwind installed in root directory.
