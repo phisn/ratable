@@ -5,6 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.*
+import webapp.components.icons.*
 import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.services.*
@@ -27,9 +28,8 @@ case class SharePage(
           div(
             div(
               cls := "flex justify-center pb-16",
-              img(
-                cls := "w-40",
-                src := "/icons/check-circle-fill.svg"
+              iconCheckCircleFill(
+                cls := "w-40"
               )
             ),
             div(

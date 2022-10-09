@@ -4,6 +4,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.icons.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.given
 import webapp.store.aggregates.ratings.*
@@ -31,9 +32,8 @@ def footerComponent(using services: Services) =
         cls := "transition hover:bg-gray-400 rounded p-2",
         href := "https://github.com/phisn/local-rating",
         target := "_blank",
-        img(
+        iconGithub(
           cls := "w-6 h-6",
-          src := "/icons/github.svg",
         )
       )
     )

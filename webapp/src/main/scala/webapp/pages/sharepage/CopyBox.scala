@@ -4,6 +4,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.icons.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.given
 import webapp.store.aggregates.ratings.*
@@ -37,9 +38,8 @@ def copyBoxComponent(title: String, content: String)(using services: Services) =
         onClick.foreach(_ => 
           dom.window.navigator.clipboard.writeText(content)
         ),
-        img(
-          cls := "w-12 h-6",
-          src := "/icons/copy.svg"
+        iconCopy(
+          cls := "w-12 h-6"
         )
       )
     )
