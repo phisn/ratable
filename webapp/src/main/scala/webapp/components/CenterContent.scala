@@ -10,7 +10,7 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def centerPage(html: HtmlVNode) =
+def centerContent(html: HtmlVNode) =
   div(
     cls := "flex-grow flex justify-center items-center",
     html

@@ -22,15 +22,23 @@ def copyBox(title: String, content: String)(using services: Services) =
     ),
     div(
       cls := "input-group",
-      input(
-        cls := "input read-only w-full text-lg",
+      div(
+        cls := "input flex items-center bg-base-200 text-lg w-full",
         readOnly := true,
-        value := content
+        a(
+          cls := "transition hover:text-secondary",
+          href := content,
+          target := "_blank",
+          content
+        )
       ),
       button(
-        cls := "btn btn-secondary",
-        onClick.foreach(_ => services.routing.to(SharePage("123"))),
+        cls := "btn btn-square btn-primary",
+        onClick.foreach(_ => 
+          dom.window.navigator.clipboard.writeText(content)
+        ),
         img(
+          cls := "w-12 h-6",
           src := "/icons/copy.svg"
         )
       )

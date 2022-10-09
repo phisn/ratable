@@ -4,6 +4,7 @@ import colibri.*
 import colibri.router.*
 import colibri.router.Router
 import org.scalajs.dom.*
+import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
@@ -20,6 +21,7 @@ class RoutingService:
     page.map(_.render)
 
   def to(newPage: Page) =
+    dom.console.log(linkPath(newPage))
     window.history.pushState(null, "", linkPath(newPage))
     page.set(newPage)
 

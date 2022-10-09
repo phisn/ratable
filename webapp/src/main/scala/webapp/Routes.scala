@@ -21,7 +21,7 @@ object Routes:
     case Root / "debug"      => DebugPage()
 
   val toPath: Page => Path =
-    case HomePage()    => Root
+    case HomePage()    => Root / ""
     case SharePage(id) => Root / "share" / id
     case RatePage(id)  => Root / "rate"  / id
 

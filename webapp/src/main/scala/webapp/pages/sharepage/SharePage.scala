@@ -4,7 +4,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.components.*
+import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.given
@@ -16,7 +16,7 @@ case class SharePage(
   ratableId: String
 ) extends Page:
   override def render(using services: Services): HtmlVNode =
-    centerPage(
+    layoutCentered(
       div(
         div(
           // center horizontally

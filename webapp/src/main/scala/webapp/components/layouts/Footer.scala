@@ -1,4 +1,4 @@
-package webapp.components
+package webapp.components.layouts
 
 import org.scalajs.dom
 import outwatch.*
@@ -12,9 +12,9 @@ import webapp.{*, given}
 
 def footerComponent(using services: Services) =
   footer(
-    cls := "footer items-center p-4 bg-base-300 text-base-content",
+    cls := "footer grid-cols-3 bg-base-200 p-2",
     div(
-      cls := "grid-flow-col flex",
+      cls := "col-start-2 flex place-self-center",
       div(
         "made by ",
         a(
@@ -26,10 +26,11 @@ def footerComponent(using services: Services) =
       )
     ),
     div(
-      cls := "grid-flow-col justify-self-end place-self-center",
+      cls := "col-start-3 grid-flow-col justify-self-end",
       a(
         cls := "transition hover:bg-gray-400 rounded p-2",
-        src := "",
+        href := "https://github.com/phisn/local-rating",
+        target := "_blank",
         img(
           cls := "w-6 h-6",
           src := "/icons/github.svg",

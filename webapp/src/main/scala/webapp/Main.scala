@@ -27,14 +27,9 @@ object ServicesProduction extends Services:
 @main
 def main(): Unit =
   implicit val services = ServicesProduction
-  Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
+  Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
-  div(
-    cls := "flex flex-col min-h-screen bg-base-200",
-    div(
-      cls := "flex-grow flex flex-col",
-      services.routing.render
-    ),
-    webapp.components.footerComponent
-  )
+  body(
+    services.routing.render
+  ) 
