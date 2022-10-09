@@ -10,7 +10,7 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def iconCopy =
+def iconCopy(using services: Services) =
   import svg.* 
   svg(
     viewBox := "0 0 21 25",

@@ -19,7 +19,7 @@ object Routes:
     case Root / "share" / id => SharePage(id)
     case Root / "rate"  / id => RatePage(id)
     case Root / "view"  / id => ViewPage(id)
-    
+     
     case Root / "debug"      => DebugPage()
 
   val toPath: Page => Path =

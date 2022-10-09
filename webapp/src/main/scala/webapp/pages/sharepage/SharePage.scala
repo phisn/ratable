@@ -29,7 +29,7 @@ case class SharePage(
             div(
               cls := "flex justify-center pb-16",
               iconCheckCircleFill(
-                cls := "w-40"
+                cls := "w-40 fill-accenfsdt"
               )
             ),
             div(
