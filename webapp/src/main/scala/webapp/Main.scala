@@ -29,10 +29,12 @@ def main(): Unit =
   implicit val services = ServicesProduction
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
-def test(v: Int): Unit = 
-  print(v)
-
 def app(using services: Services) =
   div(
-    services.routing.render
+    cls := "flex flex-col min-h-screen bg-base-200",
+    div(
+      cls := "flex-grow flex flex-col",
+      services.routing.render
+    ),
+    webapp.components.footerComponent
   )

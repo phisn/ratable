@@ -23,14 +23,16 @@ def copyBox(title: String, content: String)(using services: Services) =
     div(
       cls := "input-group",
       input(
-        cls := "input read-only w-full",
+        cls := "input read-only w-full text-lg",
         readOnly := true,
         value := content
       ),
       button(
         cls := "btn btn-secondary",
-        "Create",
-        onClick.foreach(_ => services.routing.to(SharePage("123")))
+        onClick.foreach(_ => services.routing.to(SharePage("123"))),
+        img(
+          src := "/icons/copy.svg"
+        )
       )
     )
   )
