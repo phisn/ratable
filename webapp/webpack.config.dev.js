@@ -3,9 +3,7 @@ const {webDev} = require("@fun-stack/fun-pack");
 // https://github.com/fun-stack/fun-pack
 const config = webDev({
   indexHtml: "src/main/html/index.html",
-  extraWatchDirs: [
-    "assets"
-  ],
+  assetsDir: "assets",
   extraStaticDirs: [
     "src" // for source maps
   ]
