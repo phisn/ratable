@@ -21,34 +21,42 @@ case class ViewPage(
       div(
         cls := "flex-grow flex justify-center p-12",
         div(
-          cls := "flex flex-col space-y-8",
+          cls := "flex flex-col space-y-6",
           width := "36rem",
           
           titleComponent("Rating of this cool chinese restaurant we went to"),
-          
+
           div(
-            cls := "flex flex-col space-y-6",
+            cls := "flex space-x-4",
             div(
-              cls := "flex flex-col space-y-4",
-              ratingWithLabelComponent("Overall", None, true),
-              div(
-                cls := "divider"
-              ),
-              ratingWithLabelComponent("Taste", None, true),
+              cls := "badge badge-outline p-4",
+              "36 Submissions"
             ),
-            ratingWithLabelComponent("Ambiente", None, true),
-            ratingWithLabelComponent("Price", None, true),
+            div(
+              cls := "badge badge-outline p-4",
+              "20 Comments"
+            ),
+            div(
+              cls := "badge badge-outline p-4",
+              "Submission ends in 2 days"
+            )
           ),
 
           div(
-            cls := "space-x-4",
-            button(
-              cls := "btn btn-primary mt-8",
-              "Submit"
-            ),
-            button(
-              cls := "btn btn-outline mt-8",
-              "Cancel and view submissions"
+            cls := "pt-6",
+            
+            div(
+              cls := "flex flex-col space-y-6",
+              div(
+                cls := "flex flex-col space-y-4",
+                ratingWithLabelComponent("Overall", None, true),
+                div(
+                  cls := "divider"
+                ),
+                ratingWithLabelComponent("Taste", None, true),
+              ),
+              ratingWithLabelComponent("Ambiente", None, true),
+              ratingWithLabelComponent("Price", None, true),
             )
           )
         )
