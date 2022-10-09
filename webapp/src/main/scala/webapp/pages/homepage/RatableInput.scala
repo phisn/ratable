@@ -11,7 +11,7 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def ratableInput(using services: Services) = 
+def ratableInputComponent(using services: Services) = 
   div(
     cls := "form-control",
     width := "40rem",

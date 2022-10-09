@@ -4,6 +4,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.*
 import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.services.*
@@ -16,27 +17,37 @@ case class SharePage(
   ratableId: String
 ) extends Page:
   override def render(using services: Services): HtmlVNode =
-    layoutCentered(
+    layoutComponent(
       div(
+        cls := "flex-grow flex flex-col",
         div(
-          // center horizontally
-          cls := "flex justify-center pb-16",
-          img(
-            cls := "w-40",
-            src := "/icons/check-circle-fill.svg"
+          cls := "h-32"
+        ),
+        centerContentComponent(
+          div(
+            div(
+              cls := "flex justify-center pb-16",
+              img(
+                cls := "w-40",
+                src := "/icons/check-circle-fill.svg"
+              )
+            ),
+            div(
+              cls := "text-3xl text-center mb-4",
+              "Done! Now share your ratable with your friends"
+            ),
+            copyBoxComponent(
+              "View link", 
+              services.routing.link(RatePage(ratableId))
+            ),
+            copyBoxComponent(
+              "Edit & Vote link", 
+              services.routing.link(RatePage(ratableId + "-edit"))
+            )
           )
         ),
         div(
-          cls := "text-3xl text-center mb-4",
-          "Done! Now share your ratable with your friends"
-        ),
-        copyBox(
-          "View link", 
-          services.routing.link(RatePage(ratableId))
-        ),
-        copyBox(
-          "Edit & Vote link", 
-          services.routing.link(RatePage(ratableId + "-edit"))
+          cls := "h-32"
         )
       )
     )

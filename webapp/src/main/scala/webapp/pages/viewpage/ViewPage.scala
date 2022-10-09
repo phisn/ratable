@@ -1,4 +1,4 @@
-package webapp.pages.ratepage
+package webapp.pages.viewpage
 
 import org.scalajs.dom
 import outwatch.*
@@ -6,14 +6,14 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.*
 import webapp.components.layouts.*
-import webapp.pages.viewpage.*
+import webapp.pages.ratepage.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.given
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-case class RatePage(
+case class ViewPage(
   ratableId: String
 ) extends Page:
   def render(using services: Services): HtmlVNode =
@@ -28,22 +28,27 @@ case class RatePage(
           
           div(
             cls := "flex flex-col space-y-6",
-            ratingWithLabelComponent("Taste"),
-            ratingWithLabelComponent("Ambiente"),
-            ratingWithLabelComponent("Price"),
+            div(
+              cls := "flex flex-col space-y-4",
+              ratingWithLabelComponent("Overall", None, true),
+              div(
+                cls := "divider"
+              ),
+              ratingWithLabelComponent("Taste", None, true),
+            ),
+            ratingWithLabelComponent("Ambiente", None, true),
+            ratingWithLabelComponent("Price", None, true),
           ),
 
           div(
             cls := "space-x-4",
             button(
               cls := "btn btn-primary mt-8",
-              "Submit",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableId)))
+              "Submit"
             ),
             button(
               cls := "btn btn-outline mt-8",
-              "Cancel and view submissions",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableId)))
+              "Cancel and view submissions"
             )
           )
         )

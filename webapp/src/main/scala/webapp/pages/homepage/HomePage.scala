@@ -13,17 +13,17 @@ import webapp.{*, given}
 
 case class HomePage() extends Page:
   def render(using services: Services): HtmlVNode =
-    layoutCustomHeader(
+    layoutCustomHeaderComponent(
       headerCleanComponent
     )(
-      centerContent(
+      centerContentComponent(
         div(
           cls := "space-y-16",
           h1(
             cls := "text-5xl font-bold text-center",
             "Create your own Ratable"
           ),
-          ratableInput
+          ratableInputComponent
         )
       )
     )

@@ -10,7 +10,7 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def layoutCustomHeader(header: HtmlVNode)(body: HtmlVNode)(using services: Services) =
+def layoutCustomHeaderComponent(header: HtmlVNode)(body: HtmlVNode)(using services: Services) =
   div(
     cls := "flex flex-col min-h-screen bg-base-100",
     header,

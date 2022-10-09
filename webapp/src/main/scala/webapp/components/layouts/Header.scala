@@ -25,11 +25,11 @@ def headerComponent(using services: Services) =
     div(
       cls := "flex-none",
       button(
-        cls := "btn btn-square btn-ghost",
-        img(
-          cls := "w-8 h-8",
-          src := "/icons/search.svg"
-        )
+      cls := "btn btn-square btn-ghost",
+      img(
+        cls := "w-8 h-8",
+        src := "/icons/search.svg"
       )
+    )
     )
   )

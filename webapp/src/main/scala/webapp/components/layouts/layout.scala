@@ -10,5 +10,5 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def layout(body: HtmlVNode)(using services: Services) =
-  layoutCustomHeader(headerComponent)(body)
+def layoutComponent(body: HtmlVNode)(using services: Services) =
+  layoutCustomHeaderComponent(headerComponent)(body)

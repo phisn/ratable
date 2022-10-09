@@ -10,7 +10,7 @@ import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def copyBox(title: String, content: String)(using services: Services) = 
+def copyBoxComponent(title: String, content: String)(using services: Services) = 
   div(
     cls := "form-control",
     label(
