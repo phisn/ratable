@@ -5,7 +5,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.components.debug.*
+import webapp.pages.*
 import webapp.services.*
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.{given, *}
@@ -14,6 +14,7 @@ import webapp.usecases.ratings.*
 import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import colibri.Observer
 
 object ServicesProduction extends Services:
   val jsBootstrap = JSBootstrapService()
@@ -21,32 +22,17 @@ object ServicesProduction extends Services:
   lazy val stateDistribution = StateDistributionService(this)
   lazy val stateProvider = StateProviderService(this)
   lazy val backendApi = BackendApiService(this)
+  lazy val routing = RoutingService()
 
 @main
 def main(): Unit =
   implicit val services = ServicesProduction
   Outwatch.renderInto[SyncIO]("#app", app).unsafeRunSync()
 
+def test(v: Int): Unit = 
+  print(v)
+
 def app(using services: Services) =
   div(
-    cls := "p-4 space-y-16",
-    clickCounter,
-    functionsTest,
-    createRating,
-    ratings,
-    jsonApplicationState,
-    div(
-      sys.props.map(i => div(i(0), " = ", i(1))).toList
-    ),
-    div(
-      sys.env.map(i => div(i(0), " = ", i(1))).toList
-    ),
-    div(
-      services.config.backendUrl
-    )
-  )
-
-def jsonApplicationState(using services: Services) =
-  div(
-    services.stateProvider.state.toSignalDTO.map(dto => writeToString(dto))
+    services.routing.render
   )
