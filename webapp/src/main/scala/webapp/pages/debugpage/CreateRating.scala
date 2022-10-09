@@ -1,18 +1,16 @@
-package webapp.components.debug
+package webapp.pages.debugpage
 
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import scala.util.*
+import webapp.{given, *}
 import webapp.services.*
 import webapp.store.aggregates.ratings.given
 import webapp.store.aggregates.ratings.*
 import webapp.store.framework.*
-import webapp.Services
-import webapp.given
 import webapp.usecases.ratings.*
-
-import scala.util.*
 
 def createRating(using Services) = 
   val clickEvent = Evt[Int]()
