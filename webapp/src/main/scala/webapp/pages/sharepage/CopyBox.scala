@@ -29,7 +29,6 @@ def copyBoxComponent(title: String, content: String)(using services: Services) =
         a(
           cls := "transition hover:text-secondary",
           href := content,
-          target := "_blank",
           content
         )
       ),
