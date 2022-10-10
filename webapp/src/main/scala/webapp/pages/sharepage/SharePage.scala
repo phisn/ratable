@@ -37,7 +37,7 @@ case class SharePage(
               "Done! Now share your ratable with your friends"
             ),
             copyBoxComponent(
-              "View link", 
+              "View link",
               services.routing.link(RatePage(ratableId))
             ),
             copyBoxComponent(
