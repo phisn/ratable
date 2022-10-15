@@ -1,6 +1,6 @@
-package webapp.usecases.ratings
+package webapp.usecases.rating
 
-import webapp.store.aggregates.ratings.*
+import webapp.store.aggregates.rating.*
 import webapp.store.framework.*
 import webapp.store.framework.given
 import webapp.Services

@@ -9,7 +9,7 @@ import rescala.default.*
 import webapp.services.*
 import webapp.store.*
 import webapp.store.given
-import webapp.store.aggregates.ratings.*
+import webapp.store.aggregates.rating.*
 import webapp.store.framework.*
 
 import scala.concurrent.Future
@@ -25,14 +25,14 @@ class StateDistributionService(services: {
   def deltaSignal[A]: Signal[DottedName[A]] = null
 //  def pushDelta[A](delta: DottedName[A]) = null
 
-  def registerAggregate[A : JsonValueCodec : Bottom : DecomposeLattice](
+  def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
     id: String
   ): Facade[A] =
     val actions = Evt[A => A]()
 
     val changes = actions.fold(
       Bottom[A].empty)(
-      (state, action) => DecomposeLattice[A].merge(state, action(state))
+      (state, action) => Lattice[A].merge(state, action(state))
     )
 
     // actions.map(_(changes.now)).observe(pushDelta)

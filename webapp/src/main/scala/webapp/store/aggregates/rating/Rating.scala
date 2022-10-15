@@ -1,4 +1,4 @@
-package webapp.store.aggregates.ratings
+package webapp.store.aggregates.rating
 
 import kofre.base.{Bottom, DecomposeLattice}
 import kofre.datatypes.GrowOnlyCounter
@@ -9,7 +9,7 @@ import webapp.store.framework.{*, given}
 import scala.util.Random
 
 case class Rating(
-  value: LWW[Int] = LWW.empty,
+  ratableId: 
 ) derives DecomposeLattice, Bottom:
   def rate(ratingValue: Int, replicaID: String): Rating =
     Rating(value = LWW.apply(ratingValue, replicaID))
