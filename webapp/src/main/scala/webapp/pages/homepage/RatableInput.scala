@@ -21,7 +21,7 @@ def ratableInputComponent(using services: Services) =
       customInputClass.set("border-red-500 border-2")
     else
       val id = createRatable(value, List("Taste", "Ambiente", "Price"))
-      services.routing.to(SharePage(id))
+      services.routing.to(SharePage(id), true)
   }
 
   div(

@@ -31,12 +31,12 @@ case class RatePage(
             button(
               cls := "btn btn-primary",
               "Submit",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableID)))
+              onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
             ),
             button(
               cls := "btn btn-outline",
               "Cancel and view submissions",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableID)))
+              onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
             )
           )
         )

@@ -14,9 +14,9 @@ import scala.concurrent.Future
 class BackendApiService(services: {
   val config: ApplicationConfig
 }):
-    def hello(username: String) =
-        Signals.fromFuture(
-            basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)
-        ).map(_.body.toOption)
+  def hello(username: String) =
+    Signals.fromFuture(
+      basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)
+    ).map(_.body.toOption)
 
-    private val backend = FetchBackend()
+  private val backend = FetchBackend()
