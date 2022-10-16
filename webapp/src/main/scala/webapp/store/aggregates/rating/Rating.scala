@@ -8,8 +8,9 @@ import webapp.store.framework.{*, given}
 
 import scala.util.Random
 
+
 case class Rating(
-  ratableId: 
+  value: LWW[Int] = LWW.empty,
 ) derives DecomposeLattice, Bottom:
   def rate(ratingValue: Int, replicaID: String): Rating =
     Rating(value = LWW.apply(ratingValue, replicaID))

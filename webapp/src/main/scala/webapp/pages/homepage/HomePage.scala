@@ -7,7 +7,7 @@ import rescala.default.*
 import webapp.components.*
 import webapp.components.layouts.*
 import webapp.services.*
-import webapp.store.aggregates.ratings.{*, given}
+import webapp.store.aggregates.rating.{*, given}
 import webapp.store.framework.*
 import webapp.{*, given}
 
@@ -18,12 +18,14 @@ case class HomePage() extends Page:
     )(
       centerContentComponent(
         div(
-          cls := "space-y-16",
-          h1(
-            cls := "text-5xl font-bold text-center",
-            "Create your own Ratable"
-          ),
-          ratableInputComponent
+          div(
+            cls := "space-y-8 md:space-y-16 p-4",
+            h1(
+              cls := "text-5xl font-bold text-center",
+              "Create your own Ratable"
+            ),
+            ratableInputComponent
+          )
         )
       )
     )

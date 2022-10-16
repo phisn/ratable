@@ -9,8 +9,7 @@ import webapp.components.icons.*
 import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.services.*
-import webapp.store.aggregates.ratings.given
-import webapp.store.aggregates.ratings.*
+import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
@@ -21,11 +20,9 @@ case class SharePage(
     layoutComponent(
       div(
         cls := "flex-grow flex flex-col",
-        div(
-          cls := "h-32"
-        ),
         centerContentComponent(
           div(
+            cls := "p-4",
             div(
               cls := "flex justify-center pb-16",
               iconCheckCircleFill(
@@ -45,9 +42,6 @@ case class SharePage(
               services.routing.link(RatePage(ratableId + "-edit"))
             )
           )
-        ),
-        div(
-          cls := "h-32"
         )
       )
     )

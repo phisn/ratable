@@ -9,11 +9,11 @@ import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def iconBase(invert: Boolean = false)(using services: Services) =
+def iconBase(using services: Services) =
   import svg.* 
   svg(
     services.config.darkMode.map( darkMode => 
-      if darkMode != invert then      
+      if darkMode then      
         style := "filter: invert(1)"
       else
         style := ""

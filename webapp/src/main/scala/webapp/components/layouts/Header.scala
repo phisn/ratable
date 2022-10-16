@@ -7,14 +7,13 @@ import rescala.default.*
 import webapp.components.icons.*
 import webapp.pages.homepage.*
 import webapp.services.*
-import webapp.store.aggregates.ratings.given
-import webapp.store.aggregates.ratings.*
+import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
 def headerComponent(using services: Services) =
   div(
-    cls := "navbar bg-base-200 p-4",
+    cls := "navbar bg-base-200",
     div(
       cls := "flex-1",
       a(
