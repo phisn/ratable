@@ -12,7 +12,7 @@ import webapp.{*, given}
 
 def headerCleanComponent(using services: Services) =
   div(
-    cls := "navbar p-4",
+    cls := "navbar",
     div(
       cls := "flex-1",
     ),
