@@ -7,9 +7,7 @@ import rescala.default.*
 import scala.util.*
 import webapp.{given, *}
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
-import webapp.usecases.rating.*
 
 def createRating(using Services) = 
   val clickEvent = Evt[Int]()
@@ -20,6 +18,5 @@ def createRating(using Services) =
       cls := "btn btn-primary",
       "Create Rating",
       onClick.map(_ => Random.between(0, 10)) --> clickEvent
-    ),
-    div(clickEvent.map(ratingsNew).latest(""))
+    )
   )

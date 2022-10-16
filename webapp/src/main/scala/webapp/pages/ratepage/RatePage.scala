@@ -6,38 +6,37 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.*
 import webapp.components.layouts.*
+import webapp.pages.homepage.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
-import webapp.store.framework.*
-import webapp.{*, given}
+import webapp.store.framework.{given, *}
+import webapp.{given, *}
 
 case class RatePage(
-  ratableId: String
+  ratableID: String
 ) extends Page:
   def render(using services: Services): HtmlVNode =
-    layoutComponent(
+    layoutSingleRatable(ratableID)(ratable =>
       div(
-        cls := "flex-grow flex justify-center p-4 mt:p-12",
+        cls := "flex-grow flex justify-center p-4 md:p-12",
         div(
-          cls := "flex flex-col space-y-8",
-          width := "36rem",
+          cls := "flex flex-col space-y-8 w-[40rem]",
+
+          titleComponent(ratable.title.map(_.value).getOrElse("")),
           
-          titleComponent("Rating of this cool chinese restaurant we went to"),
-          
-          ratingsInputComponent,
+          ratingsInputComponent(ratable),
 
           div(
             cls := "flex flex-col md:flex-row pt-4 space-y-4 md:space-y-0 md:space-x-4",
             button(
               cls := "btn btn-primary",
               "Submit",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableId)))
+              onClick.foreach(_ => services.routing.to(ViewPage(ratableID)))
             ),
             button(
               cls := "btn btn-outline",
               "Cancel and view submissions",
-              onClick.foreach(_ => services.routing.to(ViewPage(ratableId)))
+              onClick.foreach(_ => services.routing.to(ViewPage(ratableID)))
             )
           )
         )

@@ -4,52 +4,40 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.{given, *}
 import webapp.pages.sharepage.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
-import webapp.{*, given}
+import webapp.usecases.ratable.*
 
 def ratableInputComponent(using services: Services) = 
-  val onInput = Evt[String]()
+  val customInputClass = Var("")
 
-  onInput.observe { value => 
-    services.routing.to(SharePage(value))
+  val inputSignal = Var("")
+  val inputEvt = Evt[String]()
+
+  inputEvt.observe { value =>
+    if value.isEmpty() then
+      customInputClass.set("border-red-500 border-2")
+    else
+      val id = createRatable(value, List("Taste", "Ambiente", "Price"))
+      services.routing.to(SharePage(id))
   }
 
   div(
-    desktopRatableInputComponent(onInput),
-    mobileRatableInputComponent(onInput)
-  )
-
-private def desktopRatableInputComponent(onInput: Evt[String]) =
-  div(
-    cls := "hidden md:block form-control",
-    width := "40rem",
+    cls := "form-control md:w-[40rem]",
     div(
-      cls := "input-group",
+      cls := "flex flex-col md:flex-row items-end md:input-group space-y-4 md:space-y-0",
       input(
+        customInputClass.map(cls := _),
         cls := "input bg-base-200 w-full",
-        placeholder := "Rating of this great chinese food place"
+        placeholder := "Rating of this great chinese food place",
+        onInput.value --> inputSignal
       ),
       button(
         cls := "btn btn-primary",
         "Create",
-        onClick.foreach(_ => onInput.fire("123"))
+        onClick.foreach(_ => inputEvt.fire(inputSignal.now))
       )
-    )
-  )
-
-private def mobileRatableInputComponent(onInput: Evt[String]) =
-  div(
-    cls := "visible md:hidden flex flex-col items-end space-y-4",
-    input(
-      cls := "input bg-base-200 w-full",
-      placeholder := "Rating of this great chinese food place"
-    ),
-    button(
-      cls := "btn btn-primary w-min",
-      "Create",
-        onClick.foreach(_ => onInput.fire("123"))
     )
   )

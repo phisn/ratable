@@ -7,9 +7,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.pages.*
 import webapp.services.*
-import webapp.store.aggregates.rating.*
 import webapp.store.framework.{given, *}
-import webapp.usecases.rating.*
 
 import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*

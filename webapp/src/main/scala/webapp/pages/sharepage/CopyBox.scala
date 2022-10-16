@@ -4,15 +4,23 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.*
 import webapp.components.icons.*
+import webapp.components.layouts.*
+import webapp.pages.ratepage.*
+import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def copyBoxComponent(title: String, content: String)(using services: Services) = 
-  val displayValue = content.stripPrefix("https://").stripPrefix("http://")
-  val displayValueMaxLength = 25
+def copyBoxComponent(title: String, page: Page)(using services: Services) = 
+  val link = services.routing.link(page)
+  val displayValue = link.stripPrefix("https://").stripPrefix("http://")
+  val clickEvt = Evt[Unit]()
+
+  clickEvt.observe { _ =>
+    services.routing.to(page)
+  }
 
   div(
     cls := "form-control",
@@ -25,25 +33,35 @@ def copyBoxComponent(title: String, content: String)(using services: Services) =
     ),
     div(
       cls := "input-group",
-      div(
-        cls := "input flex items-center bg-base-200 text-lg w-full",
-        readOnly := true,
-        a(
-          cls := "transition hover:text-secondary",
-          href := content,
-          displayValue.size > displayValueMaxLength match
-            case true  => displayValue.take(displayValueMaxLength) + "..."
-            case false => displayValue
-        )
-      ),
+      linkComponent(displayValue, clickEvt),
       button(
         cls := "btn btn-square btn-primary",
         onClick.foreach(_ => 
-          dom.window.navigator.clipboard.writeText(content)
+          dom.window.navigator.clipboard.writeText(link)
         ),
         iconCopy(
           cls := "w-12 h-6"
         )
       )
+    )
+  )
+
+def linkComponent(label: String, clickEvt: Evt[Unit]) =
+  val labelMaxLength = 25
+
+  div(
+    cls := "input flex items-center bg-base-200 text-lg w-full",
+    readOnly := true,
+    a(
+      cls := "transition hover:text-secondary hover:cursor-pointer md:hidden",
+      label.size > labelMaxLength match
+        case true  => label.take(labelMaxLength) + "..."
+        case false => label,
+      onClick.as(()) --> clickEvt
+    ),
+    a(
+      cls := "transition hover:text-secondary hover:cursor-pointer hidden md:block",
+      label,
+      onClick.as(()) --> clickEvt
     )
   )

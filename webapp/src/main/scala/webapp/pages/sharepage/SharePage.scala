@@ -7,17 +7,18 @@ import rescala.default.*
 import webapp.components.*
 import webapp.components.icons.*
 import webapp.components.layouts.*
+import webapp.pages.homepage.*
 import webapp.pages.ratepage.*
+import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
 case class SharePage(
-  ratableId: String
+  ratableID: String
 ) extends Page:
   override def render(using services: Services): HtmlVNode =
-    layoutComponent(
+    layoutSingleRatable(ratableID)(ratable =>
       div(
         cls := "flex-grow flex flex-col",
         centerContentComponent(
@@ -35,11 +36,11 @@ case class SharePage(
             ),
             copyBoxComponent(
               "View link",
-              services.routing.link(RatePage(ratableId))
+              ViewPage(ratableID)
             ),
             copyBoxComponent(
               "Edit & Vote link", 
-              services.routing.link(RatePage(ratableId + "-edit"))
+              RatePage(ratableID)
             )
           )
         )

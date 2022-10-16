@@ -6,24 +6,23 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.*
 import webapp.components.layouts.*
+import webapp.pages.homepage.*
 import webapp.pages.ratepage.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
 case class ViewPage(
-  ratableId: String
+  ratableID: String
 ) extends Page:
   def render(using services: Services): HtmlVNode =
-    layoutComponent(
+    layoutSingleRatable(ratableID)(ratable =>
       div(
         cls := "flex-grow flex justify-center p-4 md:p-12",
         div(
-          cls := "flex flex-col space-y-6",
-          width := "40rem",
+          cls := "flex flex-col space-y-6 w-[40rem]",
           
-          titleComponent("Rating of this cool chinese restaurant we went to"),
+          titleComponent(ratable.title.map(_.value).getOrElse("")),
           badgesComponent,
           viewRatingsComponent(
             cls := "md:pt-6"

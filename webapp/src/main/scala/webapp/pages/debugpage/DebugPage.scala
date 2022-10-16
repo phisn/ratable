@@ -7,9 +7,7 @@ import rescala.default.*
 import scala.util.*
 import webapp.{given, *}
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
-import webapp.usecases.rating.*
 
 import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*

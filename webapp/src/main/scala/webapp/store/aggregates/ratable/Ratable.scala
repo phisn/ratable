@@ -5,51 +5,31 @@ import kofre.datatypes.*
 import kofre.syntax.*
 import webapp.store.framework.{*, given}
 
-/*
-case class RatableInfo(
-  val title: String,
-  val categories: Map[Int, String]
-)
+case class Category(
+  val title: LWW[String] = LWW.empty,
 
-case class Submission(
-  val replicaID: String,
-  val ratings: Map[Int, Int],
-)
+) derives DecomposeLattice, Bottom
 
-case class RatableView(
-  val overallScoreAcc: Int,
-  val ratingsAcc: Map[Int, Int],
-  val submissionCount: Int
-)
+case class Rating(
+  val ratingForCategory: Map[Int, LWW[Int]] = Map.empty,
 
-object RatableView:
-  def apply(info: RatableInfo, submissions: Set[Submission]) =
-    val ratingsAcc = submissions
-      .flatMap(_.ratings)
-      .groupBy(_._1)
-      .map((k, v) => (k, v.map(_._2).sum))
-
-    new RatableView(
-      ratingsAcc.values.sum / ratingsAcc.size,
-      ratingsAcc,
-      submissions.size
-    )
+) derives DecomposeLattice, Bottom
 
 case class Ratable(
-  val info: RatableInfo,
-  val view: RatableView,
-  val submissions: Set[Submission],
-) extends Lattice[Ratable]:
-  def merge(left: Ratable, right: Ratable): Ratable =
-    // submissions without replicaid duplicates
-    val submissions = left.submissions ++ right.submissions
-      .filterNot(s => left.submissions.exists(_.replicaID == s.replicaID))
-      
-    Ratable(
-      left.info,
-      RatableView(info, submissions),
-      submissions
-    ) 
-*/
+  val title: LWW[String] = LWW.empty,
+  val categories: Map[Int, Category] = Map.empty,
+  val ratings: Map[String, Rating] = Map.empty,
 
-case class Ratable() derives DecomposeLattice, Bottom
+) derives DecomposeLattice, Bottom:
+  def rate(ratingForCategory: Map[Int, Int], replicaID: String) =
+    Ratable(ratings = Map(
+      replicaID -> Rating(
+        ratingForCategory.map((k, v) => (k, LWW.apply(v, replicaID)))
+      )
+    ))
+
+  def plainRatings = 
+    ratings
+      .values
+      .map(_.ratingForCategory.map((a, b) => (a, b.map(_.value).getOrElse(0)) ))
+      .toList

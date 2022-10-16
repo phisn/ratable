@@ -9,7 +9,6 @@ import rescala.default.*
 import webapp.services.*
 import webapp.store.*
 import webapp.store.given
-import webapp.store.aggregates.rating.*
 import webapp.store.framework.*
 
 import scala.concurrent.Future

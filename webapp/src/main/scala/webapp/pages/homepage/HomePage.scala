@@ -7,7 +7,6 @@ import rescala.default.*
 import webapp.components.*
 import webapp.components.layouts.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{*, given}
 import webapp.store.framework.*
 import webapp.{*, given}
 

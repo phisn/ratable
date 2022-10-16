@@ -17,7 +17,13 @@ case class Repository[ID, A](
 
   def mutate(id: ID, f: A => A)(using Bottom[A]) =
     Repository(Map(id -> f(getOrBottom(id))))
+  
+  def mutate(id: ID, aggregate: A)(using Bottom[A]) =
+    Repository(Map(id -> aggregate))
 
+  def get(id: ID) =
+    inner.get(id)
+  
 extension [A](repo: Repository[String, A])
   def uniqueID(replicaID: Defs.Id) =  
     Iterator.from(1)

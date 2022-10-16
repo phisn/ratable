@@ -6,7 +6,6 @@ import outwatch.dsl.*
 import rescala.default.*
 import scala.util.*
 import webapp.services.*
-import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
@@ -28,7 +27,12 @@ private def starComponent(isChecked: Boolean) =
       cls := ""
   )
 
-def ratingWithLabelComponent(label: String, defaultValue: Option[Int] = None, isReadOnly: Boolean = false, stars: Int = 5) =
+def ratingWithLabelComponent(
+  label: String, 
+  defaultValue: Option[Int] = None, 
+  isReadOnly: Boolean = false, 
+  stars: Int = 5
+) =
   val name = Random.alphanumeric.take(16).mkString
   val defaultIndex: Int = defaultValue match {
     case None => (math.ceil(stars / 2.0) - 1).toInt
