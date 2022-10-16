@@ -18,14 +18,12 @@ case class HomePage() extends Page:
     )(
       centerContentComponent(
         div(
-          div(
-            cls := "space-y-8 md:space-y-16 p-4",
-            h1(
-              cls := "text-5xl font-bold text-center",
-              "Create your own Ratable"
-            ),
-            ratableInputComponent
-          )
+          cls := "space-y-8 md:space-y-16 p-4",
+          h1(
+            cls := "text-5xl font-bold text-center",
+            "Create your own Ratable"
+          ),
+          ratableInputComponent
         )
       )
     )

@@ -21,8 +21,8 @@ case class SharePage(
       div(
         cls := "flex-grow flex flex-col",
         centerContentComponent(
+          cls := "p-4",
           div(
-            cls := "p-4",
             div(
               cls := "flex justify-center pb-16",
               iconCheckCircleFill(

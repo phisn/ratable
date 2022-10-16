@@ -25,12 +25,7 @@ case class RatePage(
           
           titleComponent("Rating of this cool chinese restaurant we went to"),
           
-          div(
-            cls := "flex flex-col space-y-6 items-center md:items-start",
-            ratingWithLabelComponent("Taste"),
-            ratingWithLabelComponent("Ambiente"),
-            ratingWithLabelComponent("Price"),
-          ),
+          ratingsInputComponent,
 
           div(
             cls := "flex flex-col md:flex-row pt-4 space-y-4 md:space-y-0 md:space-x-4",

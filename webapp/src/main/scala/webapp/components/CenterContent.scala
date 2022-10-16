@@ -9,8 +9,7 @@ import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def centerContentComponent(html: HtmlVNode) =
+def centerContentComponent =
   div(
-    cls := "flex-grow flex justify-center items-center",
-    html
+    cls := "flex-grow flex flex-col justify-center items-center"
   )
