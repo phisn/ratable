@@ -12,11 +12,21 @@ import webapp.store.aggregates.ratable.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def ratingsInputComponent(ratable: Ratable) =
+def ratingsInputComponent(ratable: Ratable, ratingForCategorySignal: Var[Map[Int, Int]]) =
   div(
     cls := "flex flex-col space-y-6 items-center md:items-start",
     ratable.categories.toList.sortBy(_._1)
       .map((index, category) =>
-        ratingWithLabelComponent(category.title.map(_.value).getOrElse(""))
+        val ratingSignal = Var(3)
+
+        ratingSignal.observe { rating =>
+          ratingForCategorySignal.set(ratingForCategorySignal.now.updated(index, rating))
+        }
+
+        ratingWithLabelComponent(
+          category.title.map(_.value).getOrElse(""),
+          None, false, 5,
+          ratingSignal
+        )
       )
   )

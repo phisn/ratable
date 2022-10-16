@@ -28,8 +28,23 @@ case class Ratable(
       )
     ))
 
-  def plainRatings = 
-    ratings
-      .values
-      .map(_.ratingForCategory.map((a, b) => (a, b.map(_.value).getOrElse(0)) ))
-      .toList
+  def categoriesWithRating: Map[Int, (Category, Int)] = 
+    if ratings.size == 0 then
+      return Map()
+
+    categories
+      .map((index, category) =>
+        (
+          index,
+          (
+            category,
+            ratings
+              .map(_._2.ratingForCategory.getOrElse(index, LWW.empty[Int]))
+              .filter(!_.isEmpty)
+              .map(_.map(_.value).getOrElse(0))
+              .sum / ratings.size
+          )
+        )
+      )
+      .toMap
+      

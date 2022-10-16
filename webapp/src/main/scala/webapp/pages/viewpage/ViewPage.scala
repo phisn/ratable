@@ -24,7 +24,7 @@ case class ViewPage(
           
           titleComponent(ratable.title.map(_.value).getOrElse("")),
           badgesComponent,
-          viewRatingsComponent(
+          viewRatingsComponent(ratable)(
             cls := "md:pt-6"
           )
         )
