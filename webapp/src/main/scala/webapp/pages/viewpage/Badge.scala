@@ -1,18 +1,18 @@
-package webapp.components
+package webapp.pages.viewpage
 
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.components.*
+import webapp.components.layouts.*
+import webapp.pages.ratepage.*
 import webapp.services.*
 import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def titleComponent(title: String) =
+def badgeComponent(using services: Services) =
   div(
-    cls := "text-2xl md:text-4xl",
-    h1(
-      title
-    )
+    cls := "badge badge-outline p-3 md:p-4",
   )

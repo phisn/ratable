@@ -21,41 +21,12 @@ case class ViewPage(
         cls := "flex-grow flex justify-center p-4 md:p-12",
         div(
           cls := "flex flex-col space-y-6",
-          width := "36rem",
+          width := "40rem",
           
           titleComponent("Rating of this cool chinese restaurant we went to"),
-
-          div(
-            cls := "flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4",
-            div(
-              cls := "badge badge-outline w-full md:w-auto p-4",
-              "36 Submissions"
-            ),
-            div(
-              cls := "badge badge-outline w-full md:w-auto p-4",
-              "20 Comments"
-            ),
-            div(
-              cls := "badge badge-outline w-full md:w-auto p-4",
-              "Submission ends in 2 days"
-            )
-          ),
-
-          div(
-            cls := "pt-6",
-            div(
-              cls := "flex flex-col space-y-6 items-center md:items-start",
-              div(
-                cls := "flex flex-col space-y-4 items-center md:items-start",
-                ratingWithLabelComponent("Overall", None, true),
-                div(
-                  cls := "divider"
-                ),
-                ratingWithLabelComponent("Taste", None, true),
-              ),
-              ratingWithLabelComponent("Ambiente", None, true),
-              ratingWithLabelComponent("Price", None, true),
-            )
+          badgesComponent,
+          viewRatingsComponent(
+            cls := "md:pt-6"
           )
         )
       )

@@ -31,5 +31,6 @@ def main(): Unit =
 
 def app(using services: Services) =
   body(
+    cls := "min-h-screen",
     services.routing.render
   ) 

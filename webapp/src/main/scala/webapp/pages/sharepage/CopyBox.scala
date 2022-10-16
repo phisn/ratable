@@ -11,6 +11,9 @@ import webapp.store.framework.*
 import webapp.{*, given}
 
 def copyBoxComponent(title: String, content: String)(using services: Services) = 
+  val displayValue = content.stripPrefix("https://").stripPrefix("http://")
+  val displayValueMaxLength = 25
+
   div(
     cls := "form-control",
     label(
@@ -28,7 +31,9 @@ def copyBoxComponent(title: String, content: String)(using services: Services) =
         a(
           cls := "transition hover:text-secondary",
           href := content,
-          content.stripPrefix("https://").stripPrefix("http://")
+          displayValue.size > displayValueMaxLength match
+            case true  => displayValue.take(displayValueMaxLength) + "..."
+            case false => displayValue
         )
       ),
       button(
