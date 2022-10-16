@@ -5,12 +5,11 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.services.*
-import webapp.store.aggregates.ratings.given
-import webapp.store.aggregates.ratings.*
+import webapp.store.aggregates.rating.{given, *}
 import webapp.store.framework.*
 import webapp.Services
 import webapp.given
-import webapp.usecases.ratings.*
+import webapp.usecases.rating.*
 
 import scala.util.*
 
