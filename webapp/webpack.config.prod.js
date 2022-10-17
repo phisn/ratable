@@ -14,7 +14,9 @@ config.output.publicPath = "/";
 // example: https://gist.github.com/jeffposnick/fc761c06856fa10dbf93e62ce7c4bd57
 config.plugins = config.plugins.concat([
   new InjectManifest({
-    exclude: /routes[.]js/,
+    exclude: [ 
+      /routes[.]js/ 
+    ],
     swSrc: './service-worker.js',
     swDest: 'sw.js',
   })
