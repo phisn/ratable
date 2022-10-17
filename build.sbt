@@ -50,12 +50,13 @@ lazy val webapp = (project in file("webapp"))
      ("com.github.rescala-lang.rescala"       %%% "kofre" % "6d9019e946").cross(CrossVersion.for2_13Use3)
     ),
     Compile / npmDevDependencies ++= Seq(
-      "@fun-stack/fun-pack" -> versions.funPack, // sane defaults for webpack development and production, see webpack.config.*.js
-      "postcss" -> "^8.4.16",
-      "postcss-loader" -> "^4.0.2",
-      "tailwindcss" -> "^3.1.8",
-      "autoprefixer" -> "^10.4.8",
-      "daisyui" -> "^2.31.0",
+      "@fun-stack/fun-pack"    -> versions.funPack, // sane defaults for webpack development and production, see webpack.config.*.js
+      "postcss"                -> "^8.4.16",
+      "postcss-loader"         -> "^4.0.2",
+      "tailwindcss"            -> "^3.1.8",
+      "autoprefixer"           -> "^10.4.8",
+      "daisyui"                -> "^2.31.0",
+      "workbox-webpack-plugin" -> "^6.5.4",
     ),
     scalacOptions --= Seq(
       "-Xfatal-warnings"
