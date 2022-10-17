@@ -1,7 +1,8 @@
 import { clientsClaim } from 'workbox-core';
 import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
-import { setDefaultHandler, registerRoute } from 'workbox-routing';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+import { offlineFallback, staticResourceCache } from 'workbox-recipes';
 
 clientsClaim();
 
@@ -19,20 +20,19 @@ self.skipWaiting();
  */
 precacheAndRoute(self.__WB_MANIFEST);
 
-/** 
- * @see https://developers.google.com/web/tools/workbox/guides/common-recipes#cache_css_and_javascript_files 
+/**
+ * @see https://developer.chrome.com/docs/workbox/modules/workbox-strategies/#stale-while-revalidate
  */
 registerRoute(
-  ({request}) => 
-    request.destination === 'script' ||
-    request.destination === 'style',
+  /.*/,
   new StaleWhileRevalidate({
     cacheName: 'static-resources',
   })
 );
 
 /**
- * Route all other requests to the root index.html 
- * @see https://developer.chrome.com/docs/workbox/modules/workbox-routing/#set-a-default-handler
- */ 
-setDefaultHandler(createHandlerBoundToURL('/index.html'));
+ * @see https://developer.chrome.com/docs/workbox/reference/workbox-recipes/
+ */
+offlineFallback({
+  pageFallback: '/index.html',
+});
