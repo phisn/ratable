@@ -14,7 +14,9 @@ config.output.publicPath = "/";
 // example: https://gist.github.com/jeffposnick/fc761c06856fa10dbf93e62ce7c4bd57
 config.plugins = config.plugins.concat([
   new InjectManifest({
-    exclude: [ 
+    exclude: [
+      // Exclude routes.json (used by azure static webapp) from precaching
+      // because it is inaccessable and results in worker service crash -> offline mode not working
       /routes[.]js/ 
     ],
     swSrc: './service-worker.js',
