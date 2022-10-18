@@ -14,6 +14,8 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import colibri.Observer
 
+import core.messages.*
+
 object ServicesProduction extends Services:
   val jsBootstrap = JSBootstrapService()
   lazy val config = ApplicationConfig()
@@ -28,7 +30,12 @@ def main(): Unit =
   Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
+  val k = NewUserMessage("test")
+ 
   body(
     cls := "min-h-screen",
-    services.routing.render
+    services.routing.render,
+    div(
+      k.connectionString
+    )
   ) 

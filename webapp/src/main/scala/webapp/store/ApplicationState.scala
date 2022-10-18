@@ -1,6 +1,6 @@
 package webapp.store
 
-import webapp.store.aggregates.ratable.*
+import core.store.aggregates.ratable.*
 import webapp.store.framework.*
 import rescala.default.*
 

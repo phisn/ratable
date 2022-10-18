@@ -61,7 +61,9 @@ def linkComponent(label: String, clickEvt: Evt[Unit]) =
     ),
     a(
       cls := "transition hover:text-secondary hover:cursor-pointer hidden md:block",
-      label,
+      label.size > labelMaxLength match
+        case true  => label.take(labelMaxLength * 2) + "..."
+        case false => label,
       onClick.as(()) --> clickEvt
     )
   )

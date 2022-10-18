@@ -1,5 +1,6 @@
 package webapp.pages.ratepage
 
+import core.store.aggregates.ratable.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -8,7 +9,6 @@ import webapp.components.*
 import webapp.components.layouts.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.aggregates.ratable.*
 import webapp.store.framework.*
 import webapp.{*, given}
 

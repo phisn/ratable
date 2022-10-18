@@ -1,9 +1,9 @@
-package webapp.store.aggregates.ratable
+package core.store.aggregates.ratable
 
+import core.store.framework.{*, given}
 import kofre.base.*
 import kofre.datatypes.*
 import kofre.syntax.*
-import webapp.store.framework.{*, given}
 
 case class Category(
   val title: LWW[String] = LWW.empty,
@@ -16,20 +16,22 @@ case class Rating(
 ) derives DecomposeLattice, Bottom
 
 case class Ratable(
-  val title: LWW[String] = LWW.empty,
+  _title: LWW[String] = LWW.empty,
   val categories: Map[Int, Category] = Map.empty,
-  val ratings: Map[String, Rating] = Map.empty,
+  _ratings: Map[String, Rating] = Map.empty,
 
 ) derives DecomposeLattice, Bottom:
+  def title = _title.read.getOrElse("")
+
   def rate(ratingForCategory: Map[Int, Int], replicaID: String) =
-    Ratable(ratings = Map(
+    Ratable(_ratings = Map(
       replicaID -> Rating(
         ratingForCategory.map((k, v) => (k, LWW.apply(v, replicaID)))
       )
     ))
 
   def categoriesWithRating: Map[Int, (Category, Int)] = 
-    if ratings.size == 0 then
+    if _ratings.size == 0 then
       return Map()
 
     categories
@@ -38,11 +40,11 @@ case class Ratable(
           index,
           (
             category,
-            ratings
+            _ratings
               .map(_._2.ratingForCategory.getOrElse(index, LWW.empty[Int]))
               .filter(!_.isEmpty)
               .map(_.map(_.value).getOrElse(0))
-              .sum / ratings.size
+              .sum / _ratings.size
           )
         )
       )

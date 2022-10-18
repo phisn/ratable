@@ -22,7 +22,7 @@ case class ViewPage(
         div(
           cls := "flex flex-col space-y-6 w-[40rem]",
           
-          titleComponent(ratable.title.map(_.value).getOrElse("")),
+          titleComponent(ratable.title),
           badgesComponent,
           viewRatingsComponent(ratable)(
             cls := "md:pt-6"

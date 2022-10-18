@@ -1,6 +1,6 @@
 package backend
 
-import core.{given, *}
+import core.messages.{given, *}
 import com.azure.messaging.webpubsub.*
 import com.azure.messaging.webpubsub.models.*
 import com.microsoft.azure.functions.*

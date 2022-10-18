@@ -933,10 +933,10 @@
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
-"@fun-stack/fun-pack@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@fun-stack/fun-pack/-/fun-pack-0.2.0.tgz#c7c0777327c03ccfced0eb904e16392105aa88ac"
-  integrity sha512-5ahmtGzS2EK78L4WvVkMYCvvMTT2JYWgljdUDGXKZaiNUNv078e1cYEEF8k/YopRSRjbIEMJsCVQm/OVKUmfGw==
+"@fun-stack/fun-pack@^0.2.0":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@fun-stack/fun-pack/-/fun-pack-0.2.6.tgz#79d8f87b0f88c46157b2a85320e31d0fbecfbcd2"
+  integrity sha512-hxz3wJ+8HZ5fgJRvGJ6cF+DvGgTEOKywkZpFsgu6260qyTILY+1SRS5TRL3Z6SZvz8HyT0t4QAJ8gx2HrvBNmw==
   dependencies:
     "@fun-stack/source-map-loader-no-warn" "^1.1.4"
     clean-webpack-plugin "^4.0.0"

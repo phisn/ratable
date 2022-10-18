@@ -25,7 +25,7 @@ case class RatePage(
         div(
           cls := "flex flex-col space-y-8 w-[40rem]",
 
-          titleComponent(ratable.title.map(_.value).getOrElse("")),
+          titleComponent(ratable.title),
           ratingsInputComponent(ratable, ratingForCategorySignal),
 
           div(

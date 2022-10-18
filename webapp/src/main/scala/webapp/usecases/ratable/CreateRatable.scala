@@ -1,8 +1,9 @@
 package webapp.usecases.ratable
 
+import core.store.aggregates.ratable.*
+import core.store.framework.{given, *}
 import webapp.*
 import webapp.store.framework.{given, *}
-import webapp.store.aggregates.ratable.create
 
 def createRatable(title: String, categories: List[String])(using services: Services) =
   val id = services.stateProvider.ratables.now.uniqueID(services.config.replicaID)
