@@ -102,7 +102,7 @@ lazy val functionsBackend = (project in file("functions/backend"))
     assembly / assemblyOutputPath := file(".") / "functions" / "deploy" / "scala-az-backend.jar",
   )
 
-addCommandAlias("prod", "fullOptJS/webpack")
+addCommandAlias("prod", "webapp/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("function", "functionBuild; functionRun")
 
