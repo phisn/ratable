@@ -3,11 +3,14 @@ package backend
 import core.messages.{given, *}
 import com.azure.messaging.webpubsub.*
 import com.azure.messaging.webpubsub.models.*
+
 import com.microsoft.azure.functions.*
 import com.microsoft.azure.functions.annotation.*
 import com.github.plokhotnyuk.jsoniter_scala.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+
+import backend.extensions.*
 
 import java.util.Optional
 
@@ -16,7 +19,8 @@ class Function:
   def run(
     @com.microsoft.azure.functions.annotation.HttpTrigger(
       name = "register",
-      methods = Array(HttpMethod.GET))
+      methods = Array(HttpMethod.GET)
+    )
     request: HttpRequestMessage[Optional[String]],
     context: ExecutionContext
   ): HttpResponseMessage =
@@ -26,6 +30,8 @@ class Function:
       .connectionString(sys.env("AzureWebPubSubConnectionString"))
       .hub("users")
       .buildClient()
+
+      val k = backend.extensions.Test()
 
     /*
     val name = Option(request.getQueryParameters.get("name"))

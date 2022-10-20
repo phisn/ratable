@@ -90,7 +90,7 @@ lazy val functionsBackend = (project in file("functions/backend"))
   .settings(coreProjectDependencySettings)
   .settings(
     resolvers += "jitpack" at "https://jitpack.io",
-    name := "functions-register",
+    compileOrder := CompileOrder.JavaThenScala,
     libraryDependencies ++= Seq(
       "com.microsoft.azure.functions"         %  "azure-functions-java-library" % "2.0.1"  % "provided",
       "com.azure"                             %  "azure-messaging-webpubsub"    % "1.1.6"  % "provided",

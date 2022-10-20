@@ -37,6 +37,7 @@ def ratableInputComponent(using services: Services) =
       button(
         cls := "btn btn-primary",
         "Create",
+        // TODO: Make button enter pressable
         onClick.foreach(_ => inputEvt.fire(inputSignal.now))
       )
     )
