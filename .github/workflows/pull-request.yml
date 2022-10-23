@@ -18,7 +18,7 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'sbt'
-    - name: Build functions
-      run: sbt functionsBackend/assembly
+#    - name: Build functions
+#      run: sbt functionsBackend/assembly
     - name: Build webapp
       run: sbt prod

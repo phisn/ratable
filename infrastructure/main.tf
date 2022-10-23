@@ -79,3 +79,8 @@ output "hostname" {
 output "api_hostname" {
   value = azurerm_windows_function_app.backend.default_hostname
 }
+
+output "webpubsub_connection_string" {
+  sensitive = true
+  value = azurerm_web_pubsub.web_pubsub.primary_connection_string
+}

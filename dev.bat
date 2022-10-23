@@ -1,7 +1,7 @@
 @echo off
 
 if "%~1" neq "_start_" (
-    cd functions/deploy
+    cd functions/app
     start "az-functions-service" func start --java --cors *
     cd ../..
     sbt dev    

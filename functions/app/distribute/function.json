@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "type": "webPubSubTrigger",
+      "direction": "in",
+      "name": "data",
+      "dataType": "binary",
+      "hub": "distribution",
+      "eventName": "message",
+      "eventType": "user"
+    },
+    {
+      "type": "webPubSub",
+      "name": "actions",
+      "hub": "distribution",
+      "direction": "out"
+    }
+  ]
+}

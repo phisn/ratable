@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "type": "webPubSubTrigger",
+      "name": "request",
+      "direction": "in",
+      "hub": "distribution",
+      "eventName": "connect",
+      "eventType": "system"
+    }
+  ]
+}

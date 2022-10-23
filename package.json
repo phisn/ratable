@@ -1,9 +1,9 @@
 {
   "devDependencies": {
-    "tailwindcss": "^3.1.8"
+    "tailwindcss": "^3.2.1"
   },
   "dependencies": {
     "console": "^0.7.2",
-    "daisyui": "^2.31.0"
+    "daisyui": "^2.33.0"
   }
 }

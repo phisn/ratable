@@ -1,0 +1,19 @@
+{
+  "disabled": false,
+  "bindings": [
+    {
+      "type": "webPubSubTrigger",
+      "direction": "in",
+      "name": "request",
+      "hub": "distribution",
+      "eventName": "connected",
+      "eventType": "system"
+    },
+    {
+      "type": "webPubSub",
+      "name": "actions",
+      "hub": "distribution",
+      "direction": "out"
+    }
+  ]
+}

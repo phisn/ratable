@@ -30,22 +30,36 @@ Install vscode plugin `Tailwind CSS IntelliSense` and paste into plugin configur
 }
 ```
 
+## Provide Azure services for local azure functions
+See [Link](https://github.com/Azure/azure-webpubsub/tree/main/samples/functions/js/simplechat) for more information.
+
+- Install `npm install -g localtunnel`
+- Run `lt --port 7071 --print-requests` output needed later as `tunnel_link`
+
+To run the functions locally we need access to some Azure services. Currently no custom dev infrastructure exist, so we use the infrastructure from [Deployment](#Deployment). Rename `template-local.settings.json` in `functions/app` to `local.settings.json` and fill the following connection strings.
+
+- Fill connectionstring from `terraform output -raw webpubsub_connection_string` in `WebPubSubConnectionString`
+- We need to register a upstream webhook
+  - Go to azure portal `webpubsub -> settings -> +add`
+  - Hub name `distribution`
+  - Add Event handler with URL `{tunnel_link}/runtime/webhooks/webpubsub` with system events `connect, connected, disconnected` and user events `all`
+
 ## Working in dev mode (windows)
 Run
 ```sh
 ./dev.bat
 ```
 This will launch azure functions in another cmd window. Stop dev mode by pressing `enter`.
-## Working in dev mode (linux or mac)
+## Working in dev mode (linux or mac or manual windows)
 Run
 
 ```sh
 sbt dev
 ```
 
-Run in another terminal in directory `functions/deploy`
+Run in another terminal in directory `functions/app`
 ```
-fun start --java --cors *
+fun start
 ```
 
 Then open `http://localhost:12345` in your browser. The backend function w 

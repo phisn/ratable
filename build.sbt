@@ -4,8 +4,6 @@ Global / onChangedBuildSource := IgnoreSourceChanges
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.1.2"
 
-val webappPort = 12345;
-
 val versions = new {
   val outwatch  = "1.0.0-RC8"
   val scalaTest = "3.2.13"
@@ -31,6 +29,7 @@ lazy val commonSettings = Seq(
   // configure Scala.js to emit a JavaScript module instead of a top-level script
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
 
+  webpack / version                 := "4.46.0",
   // Makes scalajs-bundler use yarn instead of npm
   useYarn := true,
 
@@ -39,8 +38,6 @@ lazy val commonSettings = Seq(
   
   fastOptJS / webpackEmitSourceMaps := false,
   fullOptJS / webpackEmitSourceMaps := false,
-  
-  webpack / version                 := "4.46.0",
  
   // We do not use code sharing by project, because this causes linking issues with scalajs and is difficult
   // integrating with scala jvm. Instead we have a shared source directory `core`.
@@ -65,21 +62,25 @@ lazy val webapp = project
 
     Compile / npmDevDependencies ++= Seq(
       // sane defaults for webpack development and production, see webpack.config.*.js
-      "@fun-stack/fun-pack"    -> "^0.2.0",
-      
+      "@fun-stack/fun-pack"    -> "0.2.6",
+      // "@fun-stack/fun-pack"    -> "file:C:/Users/Phisn/Repos/fun-pack/fun-stack-fun-pack-0.2.7.tgz",
+
       // ui libraries
       "postcss"                -> "^8.4.16",
       "postcss-loader"         -> "^4.0.2",
       "tailwindcss"            -> "^3.1.8",
       "autoprefixer"           -> "^10.4.8",
       "daisyui"                -> "^2.31.0",
+      
       // pwa support
       "workbox-webpack-plugin" -> "^6.5.4",
     ),
 
     startWebpackDevServer / version   := "3.11.3",
+    // For Webpack v5
+    // webpackCliVersion                 := "4.10.0",
 
-    webpackDevServerPort              := webappPort,
+    webpackDevServerPort              := 12345,
     webpackDevServerExtraArgs         := Seq("--color"),
 
     fastOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.dev.js"),
@@ -94,9 +95,8 @@ lazy val functions = project
   )
 
 addCommandAlias("prod", "webapp/fullOptJS/webpack")
-addCommandAlias("functionsprod", "functions/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
-addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack;")
+addCommandAlias("devWatchAll", "~; functions/fullOptJS/webpack; webapp/fastOptJS/webpack;")
 addCommandAlias("devDestroy", "webapp/fastOptJS/stopWebpackDevServer")
