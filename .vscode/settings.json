@@ -1,0 +1,9 @@
+{
+    "files.watcherExclude": {
+        "**/target": true
+    },
+    "azureFunctions.deploySubpath": "functions\\assets",
+    "azureFunctions.projectLanguage": "JavaScript",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen"
+}
