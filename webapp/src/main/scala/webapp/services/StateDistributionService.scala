@@ -18,20 +18,19 @@ import webapp.Services
 
 // Creates facades for aggregates and registers them for distribution
 class StateDistributionService(services: {
+  val backendApi: BackendApiService
   val config: ApplicationConfig
-  val stateProvider: StateProviderService
+  val statePersistence: StatePersistenceService
 }):
-  def deltaSignal[A]: Signal[DottedName[A]] = null
-//  def pushDelta[A](delta: DottedName[A]) = null
-
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
     id: String
   ): Facade[A] =
     val actions = Evt[A => A]()
-
-    val changes = actions.fold(
-      Bottom[A].empty)(
-      (state, action) => Lattice[A].merge(state, action(state))
+    
+    val changes = services.statePersistence.storeAggregateSignal[A](id, init => 
+      actions.fold(init)(
+        (state, action) => Lattice[A].merge(state, action(state))
+      )
     )
 
     // actions.map(_(changes.now)).observe(pushDelta)

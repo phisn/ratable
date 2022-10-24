@@ -17,11 +17,15 @@ import colibri.Observer
 import core.messages.*
 
 object ServicesProduction extends Services:
-  val jsBootstrap = JSBootstrapService()
-  lazy val config = ApplicationConfig()
-  lazy val stateDistribution = StateDistributionService(this)
-  lazy val stateProvider = StateProviderService(this)
   lazy val backendApi = BackendApiService(this)
+  lazy val config = ApplicationConfig()
+
+  val jsBootstrap = JSBootstrapService()
+
+  lazy val stateDistribution = StateDistributionService(this)
+  lazy val statePersistence = StatePersistenceService(this)
+  lazy val stateProvider = StateProviderService(this)
+
   lazy val routing = RoutingService()
 
 @main

@@ -17,11 +17,11 @@ lazy val commonSettings = Seq(
     "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.0",
     
     "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.0",
-    "com.github.plokhotnyuk.jsoniter-scala" %%  "jsoniter-scala-macros" % "2.17.0",
+    "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.17.0",
 
     // rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
     "com.github.rescala-lang.rescala"       %%% "rescala" % versions.rescala,
-    ("com.github.rescala-lang.rescala"       %%% "kofre"   % versions.rescala).cross(CrossVersion.for2_13Use3)
+    ("com.github.rescala-lang.rescala"      %%% "kofre"   % versions.rescala).cross(CrossVersion.for2_13Use3)
   ),
   
   scalacOptions += "-scalajs",
@@ -98,5 +98,5 @@ addCommandAlias("prod", "webapp/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
-addCommandAlias("devWatchAll", "~; functions/fullOptJS/webpack; webapp/fastOptJS/webpack;")
+addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack;")
 addCommandAlias("devDestroy", "webapp/fastOptJS/stopWebpackDevServer")
