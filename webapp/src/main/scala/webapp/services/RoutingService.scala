@@ -13,7 +13,7 @@ import webapp.*
 import webapp.pages.*
 
 trait Page:
-  def render(using services: Services): HtmlVNode
+  def render(using services: Services): VNode
 
 class RoutingState(
   // if canReturn is true then the page will show in mobile mode
@@ -25,7 +25,7 @@ class RoutingState(
 class RoutingService:
   private val page = Var[Page](Routes.fromPath(Path(window.location.pathname)))
 
-  def render(using services: Services): Signal[HtmlVNode] =
+  def render(using services: Services): Signal[VNode] =
     page.map(_.render)
 
   def to(newPage: Page, preventReturn: Boolean = false) =

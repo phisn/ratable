@@ -11,7 +11,7 @@ import webapp.store.framework.*
 import webapp.{*, given}
 
 case class HomePage() extends Page:
-  def render(using services: Services): HtmlVNode =
+  def render(using services: Services): VNode =
     layoutCustomHeaderComponent(
       headerCleanComponent
     )(

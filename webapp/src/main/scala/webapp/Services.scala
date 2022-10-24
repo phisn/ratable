@@ -3,7 +3,7 @@ package webapp
 import webapp.services.*
 
 trait Services:
-  lazy val backendApi: BackendApiService
+  lazy val backendApi: BackendApiServiceInterface
   lazy val config: ApplicationConfig
   
   // Service bootstraps in constructor and wont be accessed
@@ -11,7 +11,7 @@ trait Services:
   val jsBootstrap: JSBootstrapService
 
   lazy val stateDistribution: StateDistributionService
-  lazy val statePersistence: StatePersistenceService
+  lazy val statePersistence: StatePersistanceServiceInterface
   lazy val stateProvider: StateProviderService
   
   lazy val routing: RoutingService

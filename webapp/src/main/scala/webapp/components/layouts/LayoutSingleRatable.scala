@@ -13,7 +13,7 @@ import webapp.services.*
 import webapp.store.framework.{given, *}
 import webapp.{given, *}
 
-def layoutSingleRatable(ratableID: String)(body: Ratable => HtmlVNode)(using services: Services) =
+def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: Services) =
   val ratableSignal = services.stateProvider.ratables.map(_.get(ratableID))
   
   // invalid id handling currently not implemented

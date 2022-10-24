@@ -2,11 +2,11 @@
 Global / onChangedBuildSource := IgnoreSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "3.1.2"
+ThisBuild / scalaVersion := "3.2.0"
 
 val versions = new {
-  val outwatch  = "1.0.0-RC8"
-  val scalaTest = "3.2.13"
+  val outwatch  = "1.0.0-RC10"
+  val colibri   = "0.7.1"
   val rescala   = "6d9019e946"
   val jsoniter  = "2.17.0"
 }
@@ -21,9 +21,9 @@ lazy val commonSettings = Seq(
 
     // rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
     "com.github.rescala-lang.rescala"       %%% "rescala" % versions.rescala,
-    ("com.github.rescala-lang.rescala"      %%% "kofre"   % versions.rescala).cross(CrossVersion.for2_13Use3)
+    ("com.github.rescala-lang.rescala"      %%% "kofre"   % versions.rescala).cross(CrossVersion.for2_13Use3),
   ),
-  
+
   scalacOptions += "-scalajs",
 
   // configure Scala.js to emit a JavaScript module instead of a top-level script
@@ -56,15 +56,17 @@ lazy val webapp = project
       "com.softwaremill.sttp.client3" %%% "core"    % "3.7.6",
       
       "io.github.outwatch"            %%% "outwatch"       % versions.outwatch,
-      "com.github.cornerman"          %%% "colibri-router" % "0.5.0",
-      "org.scalatest"                 %%% "scalatest"      % versions.scalaTest % Test
+      "com.github.cornerman"          %%% "colibri-router" % versions.colibri,
+
+     ("org.scalamock"                 %%  "scalamock"      % "5.2.0"  % Test).cross(CrossVersion.for3Use2_13),
+      "org.scalatest"                 %%% "scalatest"      % "3.2.14" % Test
     ),
 
     Compile / npmDevDependencies ++= Seq(
       // sane defaults for webpack development and production, see webpack.config.*.js
       "@fun-stack/fun-pack"    -> "0.2.6",
       // "@fun-stack/fun-pack"    -> "file:C:/Users/Phisn/Repos/fun-pack/fun-stack-fun-pack-0.2.7.tgz",
-
+      
       // ui libraries
       "postcss"                -> "^8.4.16",
       "postcss-loader"         -> "^4.0.2",

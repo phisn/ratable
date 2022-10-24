@@ -18,9 +18,9 @@ import webapp.Services
 
 // Creates facades for aggregates and registers them for distribution
 class StateDistributionService(services: {
-  val backendApi: BackendApiService
+  val backendApi: BackendApiServiceInterface
   val config: ApplicationConfig
-  val statePersistence: StatePersistenceService
+  val statePersistence: StatePersistanceServiceInterface
 }):
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
     id: String

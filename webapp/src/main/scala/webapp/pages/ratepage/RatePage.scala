@@ -16,7 +16,7 @@ import webapp.{given, *}
 case class RatePage(
   ratableID: String
 ) extends Page:
-  def render(using services: Services): HtmlVNode =
+  def render(using services: Services): VNode =
     val ratingForCategorySignal = Var(Map[Int, Int]())
 
     layoutSingleRatable(ratableID)(ratable =>

@@ -9,7 +9,7 @@ import webapp.services.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def layoutCenteredComponent(body: HtmlVNode)(using services: Services) =
+def layoutCenteredComponent(body: VNode)(using services: Services) =
   layoutComponent(
     centerContentComponent(body)
   )

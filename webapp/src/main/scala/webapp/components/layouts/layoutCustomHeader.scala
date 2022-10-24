@@ -8,7 +8,7 @@ import webapp.services.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def layoutCustomHeaderComponent(header: HtmlVNode)(body: HtmlVNode)(using services: Services) =
+def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Services) =
   div(
     cls := "flex flex-col min-h-screen bg-base-100",
     header,

@@ -8,5 +8,5 @@ import webapp.services.*
 import webapp.store.framework.*
 import webapp.{*, given}
 
-def layoutComponent(body: HtmlVNode)(using services: Services) =
+def layoutComponent(body: VNode)(using services: Services) =
   layoutCustomHeaderComponent(headerComponent)(body)

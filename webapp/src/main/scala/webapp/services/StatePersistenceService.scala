@@ -1,15 +1,14 @@
 package webapp.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
 import org.scalajs.dom
 import scala.reflect.Selectable.*
 import rescala.default.*
 
 class StatePersistenceService(services: {
-}):
-  def storeAggregateSignal[A : JsonValueCodec : Bottom : Lattice](id: String, factory: A => Signal[A]) =
+}) extends StatePersistanceServiceInterface:
+  def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]) =
     val sig = factory(aggregateFromStorageOrBottom(id))
     
     sig.observe(

@@ -17,7 +17,7 @@ import webapp.{*, given}
 case class SharePage(
   ratableID: String
 ) extends Page:
-  override def render(using services: Services): HtmlVNode =
+  override def render(using services: Services): VNode =
     layoutSingleRatable(ratableID)(ratable =>
       div(
         cls := "flex-grow flex flex-col",

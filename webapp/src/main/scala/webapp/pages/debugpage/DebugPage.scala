@@ -14,7 +14,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 case class DebugPage() extends Page:
-  def render(using services: Services): HtmlVNode =
+  def render(using services: Services): VNode =
     div(
       cls := "p-4 space-y-16",
       clickCounter,

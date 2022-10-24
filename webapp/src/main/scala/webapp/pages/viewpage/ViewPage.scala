@@ -15,7 +15,7 @@ import webapp.{*, given}
 case class ViewPage(
   ratableID: String
 ) extends Page:
-  def render(using services: Services): HtmlVNode =
+  def render(using services: Services): VNode =
     layoutSingleRatable(ratableID)(ratable =>
       div(
         cls := "flex-grow flex justify-center p-4 md:p-12",

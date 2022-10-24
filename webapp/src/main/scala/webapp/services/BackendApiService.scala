@@ -13,7 +13,7 @@ import scala.concurrent.Future
 
 class BackendApiService(services: {
   val config: ApplicationConfig
-}):
+}) extends BackendApiServiceInterface:
   def hello(username: String) =
     Signals.fromFuture(
       basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)
