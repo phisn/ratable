@@ -6,29 +6,37 @@ import kofre.datatypes.*
 import kofre.syntax.*
 
 case class Category(
-  val title: LWW[String] = LWW.empty,
+  val title: LWW[String],
 
 ) derives DecomposeLattice, Bottom
+
+object Category:
+  def empty = Category(LWW.empty)
 
 case class Rating(
-  val ratingForCategory: Map[Int, LWW[Int]] = Map.empty,
+  val ratingForCategory: Map[Int, LWW[Int]],
 
 ) derives DecomposeLattice, Bottom
 
+object Rating:
+  def empty = Rating(Map.empty)
+
 case class Ratable(
-  _title: LWW[String] = LWW.empty,
-  val categories: Map[Int, Category] = Map.empty,
-  _ratings: Map[String, Rating] = Map.empty,
+  _title: LWW[String],
+  val categories: Map[Int, Category],
+  _ratings: Map[String, Rating],
 
 ) derives DecomposeLattice, Bottom:
   def title = _title.read.getOrElse("")
 
   def rate(ratingForCategory: Map[Int, Int], replicaID: String) =
-    Ratable(_ratings = Map(
-      replicaID -> Rating(
-        ratingForCategory.map((k, v) => (k, LWW.apply(v, replicaID)))
+    Ratable.empty.copy(
+      _ratings = Map(
+        replicaID -> Rating(
+          ratingForCategory.map((k, v) => (k, LWW.apply(v, replicaID)))
+        )
       )
-    ))
+    )
 
   def categoriesWithRating: Map[Int, (Category, Int)] = 
     if _ratings.size == 0 then
@@ -49,4 +57,21 @@ case class Ratable(
         )
       )
       .toMap
+
+object Ratable:
+  def empty: Ratable = 
+    Ratable(LWW.empty, Map.empty, Map.empty)
+
+  def apply(title: String, categories: List[String], replicaID: String) =
+    empty.copy(
+      _title = LWW.apply(title, replicaID),
+      categories = categories
+        .zipWithIndex
+        .map((title, index) => 
+          (
+            index, 
+            Category(LWW.apply(title, replicaID))
+          ))
+        .toMap
+    )
       
