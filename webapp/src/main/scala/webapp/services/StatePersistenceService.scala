@@ -7,27 +7,6 @@ import org.scalajs.dom
 import scala.reflect.Selectable.*
 import rescala.default.*
 
-import core.store.framework.{*, given}
-import kofre.base.*
-import kofre.datatypes.*
-import kofre.syntax.*
-
-case class Category(
-  val title: LWW[String] = LWW.empty,
-
-) derives DecomposeLattice, Bottom
-
-case class Rating(
-  val ratingForCategory: Map[Int, LWW[Int]],
-
-) derives DecomposeLattice, Bottom
-
-case class Test(
-  val categories: Map[Int, String]
-)
-
-given c: JsonValueCodec[Test] = JsonCodecMaker.make
-
 class StatePersistenceService(services: {
 }):
   def storeAggregateSignal[A : JsonValueCodec : Bottom : Lattice](id: String, factory: A => Signal[A]) =
