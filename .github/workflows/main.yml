@@ -27,6 +27,8 @@ jobs:
 #        app-name: func-backend
 #        package: "./functions/deploy/"
 #        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+    - name: Test webapp
+      run: sbt test
     - name: Build webapp
       run: sbt prod
     - name: Deploy webapp

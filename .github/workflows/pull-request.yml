@@ -20,5 +20,7 @@ jobs:
         cache: 'sbt'
 #    - name: Build functions
 #      run: sbt functionsBackend/assembly
+    - name: Test webapp
+      run: sbt test
     - name: Build webapp
       run: sbt prod
