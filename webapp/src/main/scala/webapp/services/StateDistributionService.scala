@@ -7,14 +7,17 @@ import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import rescala.default.*
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.reflect.Selectable.*
+import webapp.*
 import webapp.services.*
 import webapp.store.{*, given}
 import webapp.store.framework.{*, given}
 
-import scala.concurrent.Future
-import scala.reflect.Selectable.*
-import scala.util.{Failure, Success}
-import webapp.Services
+import core.messages.*
+import sttp.client3.*
+import sttp.client3.jsoniter.*
+import org.scalajs.dom.*
 
 // Creates facades for aggregates and registers them for distribution
 class StateDistributionService(services: {
@@ -25,6 +28,17 @@ class StateDistributionService(services: {
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
     id: String
   ): Facade[A] =
+    /**
+      * Maybe better Idea:
+      *       Rename StateDistributionService to StateFactoryService and 
+      *       create a seperate StateDistributionService that handles the
+      *       distribution of the state to the different replicas
+      * 
+      * Other idea:
+      *       Move the distribution logic to the StateProviderService and
+      *       implement real distribution here
+      */
+
     val actionsEvt = Evt[A => A]()
     val deltaEvt = Evt[A]()
 
@@ -34,6 +48,31 @@ class StateDistributionService(services: {
         deltaEvt.act(delta => state.applyDelta(delta))
       ))
     ).map(_.inner)
+
+    /*
+    val backend = FetchBackend()
+
+    val request = basicRequest.get(uri"${services.config.backendUrl}/api/aggregate/$id")
+      .response(asJson[WebPubSubConnectionMessage])
+      .send(backend)
+      .map(_.body match
+        case Left(error) => throw error
+        case Right(value) => value
+      )
+      .map(message => new WebSocket(message.url))
+      .foreach(ws =>
+        ws.onmessage = event =>
+          val message = readFromString(event.data.toString)
+      )
+    */
+    
+    /*
+      .map(_.)
+      .foreach {
+        case Right(delta) => deltaEvt.fire(delta.delta)
+        case Left(error) => println(s"Error fetching aggregate $id: $error")
+      }
+    */
 
     // actions.map(_(changes.now)).observe(pushDelta)
 

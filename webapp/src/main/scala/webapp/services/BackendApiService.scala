@@ -16,7 +16,6 @@ import scala.concurrent.Future
 class BackendApiService(services: {
   val config: ApplicationConfigInterface
 }) extends BackendApiServiceInterface:
-  
 
   def hello(username: String) =
     Signals.fromFuture(
