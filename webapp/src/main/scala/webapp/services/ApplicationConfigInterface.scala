@@ -1,5 +1,8 @@
 package webapp.services
 
-trait ApplicationConfigInterface {
-  
-}
+import rescala.default.*
+
+trait ApplicationConfigInterface:
+  def backendUrl: String
+  def darkMode: Var[Boolean]
+  def replicaID: String

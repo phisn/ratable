@@ -12,7 +12,7 @@ import cats.effect.syntax.async
 import scala.concurrent.Future
 
 class BackendApiService(services: {
-  val config: ApplicationConfig
+  val config: ApplicationConfigInterface
 }) extends BackendApiServiceInterface:
   def hello(username: String) =
     Signals.fromFuture(

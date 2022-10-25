@@ -1,71 +1,72 @@
 package webapp
 
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.store.framework.{*, given}
-import kofre.base.*
-
 import org.scalatest.*
 import org.scalatest.flatspec.*
-
-import org.scalamock.scalatest.*
-import org.scalamock.scalatest.MockFactory
-
-import rescala.default.*
-import webapp.services.*
-import webapp.store.framework.{*, given}
-
-// http://scalamock.org/
-// https://www.scalatest.org/user_guide/testing_with_mock_objects
-
-case class TestAggregate(
-  id: LWW[Int]
-) derives Bottom, DecomposeLattice:
-  def equals(other: TestAggregate): Boolean =
-    id match {
-      case None => other.id == None
-      case Some(id) => other.id match {
-        case None => false
-        case Some(otherId) => id.value == otherId.value 
-                           && id.replicaID == otherId.replicaID
-      }
-    }
-
-given JsonValueCodec[TestAggregate] = JsonCodecMaker.make
+import org.scalatest.matchers.should.Matchers.*
+import kofre.base.*
+import webapp.aggregates.*
+import webapp.mocks.*
 
 class StateDistributionServiceSepc extends AnyFlatSpec:
-  val initialAggregate = TestAggregate(LWW.apply(123, "replicaID"))
   val aggregateID = "aggregateID"
 
-  object _statePersistence extends StatePersistanceServiceInterface:
+  val applicationConfigMock = ApplicationConfigMock()
+  val initialAggregate = TestAggregate(123, applicationConfigMock.replicaID)
+
+  val statePersistenceService = StatePersistenceServiceMock(aggregateID, Some(initialAggregate))
+  val mockServices: Services = ServicesMock(
+    _statePersistence = statePersistenceService,
+    _config = applicationConfigMock
+  )
+
+  "StateDistributionService" should "load initial aggregate from StatePersistenceService" in {
+    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
     
-    override def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]): Signal[A] =
-      assert(id == aggregateID)
-      factory(initialAggregate.asInstanceOf[A])
-
-  val _config = ApplicationConfig()
-
-  val _backendApi = BackendApiService(new {
-    val config = _config
-  })
-
-  val stateDistribution = StateDistributionService(new {
-    val backendApi = _backendApi
-    val config = _config
-    val statePersistence = _statePersistence
-  })
-
-  "StateDistributionService" should "load initial aggregaate from StatePersistenceService" in {
-    val facade = stateDistribution.registerAggregate[TestAggregate](aggregateID)
-    assert(facade.changes.now equals initialAggregate)
+    facade.changes.now shouldEqual initialAggregate
   }
 
   it should "show deltas as changes" in {
-    val facade = stateDistribution.registerAggregate[TestAggregate](aggregateID)
-    val delta = TestAggregate(LWW.apply(456, "otherReplicaID"))
+    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+    val delta = TestAggregate(456, "otherReplicaID")
     
     facade.actions.fire(_ => delta)
-    assert(facade.changes.now equals delta)
+
+    facade.changes.now shouldEqual delta
   }
 
+  it should "merge deltas together" in {
+    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
 
+    val delta1 = TestAggregate(456, "otherReplicaID", Set(1, 2))
+    val delta2 = TestAggregate(789, "otherReplicaID", Set(3, 4))
+    val merged = Lattice[TestAggregate].merge(delta1, delta2)
+    
+    facade.actions.fire(_ => delta1)
+    facade.actions.fire(_ => delta2)
+
+    facade.changes.now shouldEqual merged
+    
+    val delta3 = TestAggregate(456, "otherReplicaID")
+    facade.actions.fire(_ => delta3)
+
+    facade.changes.now shouldEqual Lattice[TestAggregate].merge(merged, delta3)
+  }
+
+  it should "save changes to StatePersistenceService" in {
+    statePersistenceService.changes.clear()
+    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+
+    val delta1 = initialAggregate
+    val delta2 = TestAggregate(456, "otherReplicaID")
+    
+    facade.actions.fire(_ => delta1)
+    facade.actions.fire(_ => delta2)
+
+    statePersistenceService.changes.toList match
+      case (a: TestAggregate) :: (b: TestAggregate) :: tail => 
+        a shouldEqual delta1
+        b shouldEqual delta2
+        tail.isEmpty shouldEqual true
+      case _ => fail("StatePersistenceService did not receive the correct changes")
+  }

@@ -15,13 +15,13 @@ import org.scalajs.dom.*
 
 import rescala.default._
 
-class ApplicationConfig:
-  def darkMode = Var(false)
-
+class ApplicationConfig extends ApplicationConfigInterface:
   // should use a config library but was unable to get it working with scalajs
   def backendUrl = if dom.window.location.hostname.contains("localhost") then
     "http://localhost:7071/api/"
   else
     "https://func-localrating-backend.azurewebsites.net/api/"
+
+  def darkMode = Var(false)
 
   def replicaID: String = ThreadLocalRandom.current().nextLong().toHexString
