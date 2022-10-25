@@ -7,6 +7,8 @@ import sttp.model.ResponseMetadata
 import sttp.ws.WebSocket
 import rescala.default.*
 
+import webapp.store.framework.*
+
 import reflect.Selectable.reflectiveSelectable
 import cats.effect.syntax.async
 import scala.concurrent.Future
@@ -14,6 +16,8 @@ import scala.concurrent.Future
 class BackendApiService(services: {
   val config: ApplicationConfigInterface
 }) extends BackendApiServiceInterface:
+  
+
   def hello(username: String) =
     Signals.fromFuture(
       basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)

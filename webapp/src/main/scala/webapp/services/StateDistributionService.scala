@@ -1,15 +1,15 @@
 package webapp.services
 
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
 import kofre.decompose.containers.DeltaBufferRDT
 import kofre.dotted.Dotted
 import kofre.syntax.DottedName
 import rescala.default.*
 import webapp.services.*
-import webapp.store.*
-import webapp.store.given
-import webapp.store.framework.*
+import webapp.store.{*, given}
+import webapp.store.framework.{*, given}
 
 import scala.concurrent.Future
 import scala.reflect.Selectable.*
@@ -25,19 +25,21 @@ class StateDistributionService(services: {
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
     id: String
   ): Facade[A] =
-    val actions = Evt[A => A]()
-    
-    val changes = services.statePersistence.storeAggregateSignal[A](id, init => 
-      actions.fold(init)(
-        (state, action) => Lattice[A].merge(state, action(state))
-      )
-    )
+    val actionsEvt = Evt[A => A]()
+    val deltaEvt = Evt[A]()
+
+    val changes = services.statePersistence.storeAggregateSignal[DeltaContainer[A]](id, init =>
+      Events.foldAll(init)(state => Seq(
+        actionsEvt.act(action => state.mutate(action)),
+        deltaEvt.act(delta => state.applyDelta(delta))
+      ))
+    ).map(_.inner)
 
     // actions.map(_(changes.now)).observe(pushDelta)
 
     Facade(
-      actions,
-      changes
+      actionsEvt,
+      changes,
     )
 
   private def pushDelta[A](delta: A) =

@@ -16,8 +16,8 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.0",
     
-    "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.0",
-    "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.17.0",
+    "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.6",
+    "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.17.6",
 
     // rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
     "com.github.rescala-lang.rescala"       %%% "rescala" % versions.rescala,
@@ -99,6 +99,7 @@ lazy val functions = project
 addCommandAlias("prod", "webapp/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("test", "webapp/test")
+addCommandAlias("devtest", "~; webapp/test")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
 addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack;")

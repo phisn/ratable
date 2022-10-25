@@ -1,5 +1,7 @@
 package webapp.store
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.store.aggregates.ratable.*
 import webapp.store.framework.*
 import rescala.default.*
@@ -20,3 +22,6 @@ case class ApplicationState(
 case class ApplicationStateDTO(
   ratables: RatableRepository
 )
+
+object ApplicationStateDTO:
+  given JsonValueCodec[ApplicationStateDTO] = JsonCodecMaker.make

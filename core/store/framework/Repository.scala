@@ -1,5 +1,7 @@
 package core.store.framework
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
 import kofre.syntax.{ArdtOpsContains, OpsSyntaxHelper}
 import kofre.base.DecomposeLattice
@@ -33,7 +35,11 @@ extension [A](repo: Repository[String, A])
       .get
 
 object Repository:
+  given C1[A : JsonValueCodec]: JsonValueCodec[Repository[Int, A]] = JsonCodecMaker.make
+  given C2[A : JsonValueCodec]: JsonValueCodec[Repository[String, A]] = JsonCodecMaker.make
+
   given [ID, A]: Bottom[Repository[ID, A]] = Bottom.derived
   given [ID, A : DecomposeLattice]: DecomposeLattice[Repository[ID, A]] = DecomposeLattice.derived
+  
+  implicit def repositoryToMap[ID, A](repo: Repository[ID, A]): Map[ID, A] = repo.inner
 
-implicit def repositoryToMap[ID, A](repo: Repository[ID, A]): Map[ID, A] = repo.inner

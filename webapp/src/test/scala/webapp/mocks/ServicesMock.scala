@@ -1,6 +1,7 @@
 package webapp.mocks
 
 import core.store.aggregates.ratable.*
+import core.store.framework.*
 import webapp.*
 import webapp.mocks.*
 import webapp.services.*

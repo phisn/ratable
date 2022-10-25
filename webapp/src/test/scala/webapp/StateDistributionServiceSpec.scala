@@ -54,6 +54,7 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
   }
 
   it should "save changes to StatePersistenceService" in {
+    println("critical")
     statePersistenceService.changes.clear()
     val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
 
@@ -69,4 +70,5 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
         b shouldEqual delta2
         tail.isEmpty shouldEqual true
       case _ => fail("StatePersistenceService did not receive the correct changes")
+    println("criticalend")
   }

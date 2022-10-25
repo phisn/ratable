@@ -1,10 +1,8 @@
 package webapp.services
 
-import core.store.aggregates.ratable.*
-import kofre.decompose.containers.DeltaBufferRDT
+import core.store.aggregates.ratable.{*, given}
 import webapp.services.*
-import webapp.store.*
-import webapp.store.given
+import webapp.store.{*, given}
 
 import scala.reflect.Selectable.*
 
