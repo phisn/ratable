@@ -53,7 +53,8 @@ lazy val webapp = project
     scalaJSUseMainModuleInitializer   := true,
 
     libraryDependencies          ++= Seq(
-      "com.softwaremill.sttp.client3" %%% "core"    % "3.7.6",
+      "com.softwaremill.sttp.client3" %%% "core"           % "3.8.3",
+      "com.softwaremill.sttp.client3" %%% "jsoniter"       % "3.8.3", 
       
       "io.github.outwatch"            %%% "outwatch"       % versions.outwatch,
       "com.github.cornerman"          %%% "colibri-router" % versions.colibri,
