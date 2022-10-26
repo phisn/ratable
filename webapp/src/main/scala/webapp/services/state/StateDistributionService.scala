@@ -1,53 +1,25 @@
-package webapp.services
+package webapp.services.state
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import kofre.base.*
-import kofre.decompose.containers.DeltaBufferRDT
-import kofre.dotted.Dotted
-import kofre.syntax.DottedName
-import rescala.default.*
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.reflect.Selectable.*
-import webapp.*
-import webapp.services.*
-import webapp.store.{*, given}
-import webapp.store.framework.{*, given}
-
 import core.messages.*
+import org.scalajs.dom.WebSocket
+import scala.collection.mutable.Map
 import sttp.client3.*
 import sttp.client3.jsoniter.*
-import org.scalajs.dom.*
+import rescala.default.*
 
-// Creates facades for aggregates and registers them for distribution
-class StateDistributionService(services: {
-  val backendApi: BackendApiServiceInterface
-  val config: ApplicationConfigInterface
-  val statePersistence: StatePersistanceServiceInterface
-}):
-  def registerAggregate[A : JsonValueCodec : Bottom : Lattice](
-    id: String
-  ): Facade[A] =
-    /**
-      * Maybe better Idea:
-      *       Rename StateDistributionService to StateFactoryService and 
-      *       create a seperate StateDistributionService that handles the
-      *       distribution of the state to the different replicas
-      * 
-      * Other idea:
-      *       Move the distribution logic to the StateProviderService and
-      *       implement real distribution here
-      */
+trait StateDistributionServiceInterface
 
-    val actionsEvt = Evt[A => A]()
-    val deltaEvt = Evt[A]()
+class StateDistributionService extends StateDistributionServiceInterface:
+  private val deltaRouter = Map[String, Evt[String]]()
 
-    val changes = services.statePersistence.storeAggregateSignal[DeltaContainer[A]](id, init =>
-      Events.foldAll(init)(state => Seq(
-        actionsEvt.act(action => state.mutate(action)),
-        deltaEvt.act(delta => state.applyDelta(delta))
-      ))
-    ).map(_.inner)
+  def deltaEventFor[A : JsonValueCodec](id: String): Event[A] =
+    val evt = Evt[String]()
+    deltaRouter += id -> evt
+    evt.map(readFromString[A](_))
+
+  // def pushDelta()
 
     /*
     val backend = FetchBackend()
@@ -76,13 +48,7 @@ class StateDistributionService(services: {
 
     // actions.map(_(changes.now)).observe(pushDelta)
 
-    Facade(
-      actionsEvt,
-      changes,
-    )
-
-  private def pushDelta[A](delta: A) =
-    None
+    
 
 
     /*

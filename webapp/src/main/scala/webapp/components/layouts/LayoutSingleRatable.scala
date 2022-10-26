@@ -14,7 +14,7 @@ import webapp.store.framework.{given, *}
 import webapp.{given, *}
 
 def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: Services) =
-  val ratableSignal = services.stateProvider.ratables.map(_.get(ratableID))
+  val ratableSignal = services.state.ratables.map(_.get(ratableID))
   
   // invalid id handling currently not implemented
   ratableSignal.changed.filter(_.isEmpty).observe(_ => services.routing.to(HomePage()))

@@ -1,6 +1,7 @@
 package webapp
 
 import webapp.services.*
+import webapp.services.state.*
 
 trait Services:
   lazy val backendApi: BackendApiServiceInterface
@@ -10,8 +11,9 @@ trait Services:
   // so it needs to be non lazy to force execution
   val jsBootstrap: JSBootstrapServiceInterface
 
-  lazy val stateDistribution: StateDistributionService
+  lazy val facadeFactory: FacadeFactory
+  lazy val stateDistribution: StateDistributionServiceInterface
   lazy val statePersistence: StatePersistanceServiceInterface
-  lazy val stateProvider: StateProviderService
+  lazy val state: StateProvider
   
   lazy val routing: RoutingService

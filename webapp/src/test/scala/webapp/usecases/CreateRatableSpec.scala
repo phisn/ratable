@@ -14,7 +14,7 @@ class CreateRatableSpec extends AnyFlatSpec:
     val categories = List("category1", "category2")
 
     val id = createRatable(title, categories)
-    val ratable = services.stateProvider.ratables.map(_.get(id)).now match {
+    val ratable = services.state.ratables.map(_.get(id)).now match {
       case Some(ratable) => ratable
       case None => fail("Ratable not found after creation")
     }

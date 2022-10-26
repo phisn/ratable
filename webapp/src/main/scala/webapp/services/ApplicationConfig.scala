@@ -15,6 +15,12 @@ import org.scalajs.dom.*
 
 import rescala.default._
 
+trait ApplicationConfigInterface:
+  def backendUrl: String
+  def darkMode: Var[Boolean]
+  def replicaID: String
+
+// TODO: Rename services.config to services.application?
 class ApplicationConfig extends ApplicationConfigInterface:
   // should use a config library but was unable to get it working with scalajs
   def backendUrl = if dom.window.location.hostname.contains("localhost") then

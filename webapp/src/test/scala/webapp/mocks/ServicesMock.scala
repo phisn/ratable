@@ -5,6 +5,7 @@ import core.store.framework.*
 import webapp.*
 import webapp.mocks.*
 import webapp.services.*
+import webapp.services.state.*
 import webapp.store.{*, given}
 
 case class ServicesMock(
@@ -16,9 +17,11 @@ case class ServicesMock(
   lazy val backendApi = _backendApi
   lazy val config = _config
   val jsBootstrap = _jsBootstrap
-  lazy val statePersistence = _statePersistence
 
   // Services that are not mocked
-  lazy val stateDistribution = StateDistributionService(this)
-  lazy val stateProvider = StateProviderService(this)
+  lazy val facadeFactory = FacadeFactory(this)
+  lazy val statePersistence = _statePersistence
+  lazy val stateDistribution = StateDistributionService()
+  lazy val state = StateProvider(this)
+
   lazy val routing = RoutingService()

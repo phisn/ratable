@@ -1,3 +1,0 @@
-package webapp.services
-
-trait JSBootstrapServiceInterface

@@ -13,6 +13,9 @@ import reflect.Selectable.reflectiveSelectable
 import cats.effect.syntax.async
 import scala.concurrent.Future
 
+trait BackendApiServiceInterface:
+  def hello(username: String): Signal[Option[String]]
+
 class BackendApiService(services: {
   val config: ApplicationConfigInterface
 }) extends BackendApiServiceInterface:

@@ -9,6 +9,8 @@ import scala.scalajs.js.annotation.JSImport
 @JSImport("src/main/css/app.css", JSImport.Namespace)
 private object Css extends js.Object
 
+trait JSBootstrapServiceInterface
+
 class JSBootstrapService extends JSBootstrapServiceInterface:
   // fancy scalajs magic to load css. Service needs to be not lazy
   Css

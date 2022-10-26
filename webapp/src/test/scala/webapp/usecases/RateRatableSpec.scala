@@ -85,7 +85,7 @@ class RateRatableSpec extends AnyFlatSpec:
     (id, internalFindRatable(id))
 
   private def internalFindRatable(id: String): Ratable =
-    services.stateProvider.ratables.map(_.get(id)).now match {
+    services.state.ratables.map(_.get(id)).now match {
       case Some(ratable) => ratable
       case None => fail("Ratable not found after creation")
     }

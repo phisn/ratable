@@ -74,7 +74,7 @@ lazy val webapp = project
       "tailwindcss"            -> "^3.1.8",
       "autoprefixer"           -> "^10.4.8",
       "daisyui"                -> "^2.31.0",
-      
+
       // pwa support
       "workbox-webpack-plugin" -> "^6.5.4",
     ),
@@ -99,9 +99,10 @@ lazy val functions = project
 
 addCommandAlias("prod", "webapp/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
+addCommandAlias("devtest", "devInit; devTestWatchAll; devDestroy")
 addCommandAlias("test", "webapp/test")
-addCommandAlias("devtest", "~; webapp/test")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
-addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack;")
+addCommandAlias("devWatchAll", "~; webapp/fastOptJS/webpack")
+addCommandAlias("devTestWatchAll", "~; webapp/fastOptJS/webpack; webapp/test")
 addCommandAlias("devDestroy", "webapp/fastOptJS/stopWebpackDevServer")

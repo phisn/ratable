@@ -5,6 +5,7 @@ import kofre.base.*
 import org.scalajs.dom
 import rescala.default.*
 import scala.collection.mutable.*
+import scala.collection.immutable.Set
 import webapp.services.*
 import webapp.store.framework.*
 
@@ -16,7 +17,7 @@ class StatePersistenceServiceMock[I : JsonValueCodec : Bottom](initialID: String
       val signal = factory(
         DeltaContainer[I](
           inner = initial.getOrElse(Bottom[I].empty),
-          delta = Bottom[I].empty
+          deltas = Set[TaggedDelta[I]]()
         ).asInstanceOf[A]
       )
 

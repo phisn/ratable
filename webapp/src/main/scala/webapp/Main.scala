@@ -7,6 +7,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.pages.*
 import webapp.services.*
+import webapp.services.state.*
 import webapp.store.framework.{given, *}
 
 import webapp.store.given
@@ -22,9 +23,10 @@ object ServicesProduction extends Services:
 
   val jsBootstrap = JSBootstrapService()
 
-  lazy val stateDistribution = StateDistributionService(this)
+  lazy val facadeFactory = FacadeFactory(this)
+  lazy val stateDistribution = StateDistributionService()
   lazy val statePersistence = StatePersistenceService(this)
-  lazy val stateProvider = StateProviderService(this)
+  lazy val state = StateProvider(this)
 
   lazy val routing = RoutingService()
 

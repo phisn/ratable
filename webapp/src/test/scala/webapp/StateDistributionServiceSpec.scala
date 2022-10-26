@@ -21,13 +21,13 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
   )
 
   "StateDistributionService" should "load initial aggregate from StatePersistenceService" in {
-    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+    val facade = mockServices.facadeFactory.registerAggregate[TestAggregate](aggregateID)
     
     facade.changes.now shouldEqual initialAggregate
   }
 
   it should "show deltas as changes" in {
-    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+    val facade = mockServices.facadeFactory.registerAggregate[TestAggregate](aggregateID)
     val delta = TestAggregate(456, "otherReplicaID")
     
     facade.actions.fire(_ => delta)
@@ -36,7 +36,7 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
   }
 
   it should "merge deltas together" in {
-    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+    val facade = mockServices.facadeFactory.registerAggregate[TestAggregate](aggregateID)
 
     val delta1 = TestAggregate(456, "otherReplicaID", Set(1, 2))
     val delta2 = TestAggregate(789, "otherReplicaID", Set(3, 4))
@@ -54,9 +54,8 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
   }
 
   it should "save changes to StatePersistenceService" in {
-    println("critical")
     statePersistenceService.changes.clear()
-    val facade = mockServices.stateDistribution.registerAggregate[TestAggregate](aggregateID)
+    val facade = mockServices.facadeFactory.registerAggregate[TestAggregate](aggregateID)
 
     val delta1 = initialAggregate
     val delta2 = TestAggregate(456, "otherReplicaID")
@@ -70,5 +69,4 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
         b shouldEqual delta2
         tail.isEmpty shouldEqual true
       case _ => fail("StatePersistenceService did not receive the correct changes")
-    println("criticalend")
   }
