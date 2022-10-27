@@ -109,6 +109,7 @@ lazy val functions = project
 addCommandAlias("prod", "webapp/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("devtest", "devInit; devTestWatchAll; devDestroy")
+addCommandAlias("functions", "~; functions/fullOptJS/webpack")
 addCommandAlias("test", "webapp/test")
 
 addCommandAlias("devInit", "; webapp/fastOptJS/startWebpackDevServer")
