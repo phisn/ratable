@@ -12,6 +12,7 @@ case class ServicesMock(
   _backendApi: BackendApiServiceInterface = BackendApiServiceMock(),
   _config: ApplicationConfigInterface = ApplicationConfigMock(),
   _jsBootstrap: JSBootstrapServiceInterface = new JSBootstrapServiceInterface {},
+  _stateDistribution: StateDistributionServiceInterface = StateDistributionServiceMock(),
   _statePersistence: StatePersistanceServiceInterface = StatePersistenceServiceMock[RatableRepository](),
 ) extends Services:
   lazy val backendApi = _backendApi
@@ -20,8 +21,8 @@ case class ServicesMock(
 
   // Services that are not mocked
   lazy val facadeFactory = FacadeFactory(this)
+  lazy val stateDistribution = _stateDistribution
   lazy val statePersistence = _statePersistence
-  lazy val stateDistribution = StateDistributionService()
   lazy val state = StateProvider(this)
 
   lazy val routing = RoutingService()

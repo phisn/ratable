@@ -1,6 +1,7 @@
 package webapp.mocks
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.store.framework.*
 import kofre.base.*
 import org.scalajs.dom
 import rescala.default.*

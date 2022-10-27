@@ -1,6 +1,10 @@
 package webapp
 
 import cats.effect.SyncIO
+import colibri.Observer
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.messages.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -8,14 +12,8 @@ import rescala.default.*
 import webapp.pages.*
 import webapp.services.*
 import webapp.services.state.*
-import webapp.store.framework.{given, *}
-
 import webapp.store.given
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import colibri.Observer
-
-import core.messages.*
+import webapp.store.framework.{given, *}
 
 object ServicesProduction extends Services:
   lazy val backendApi = BackendApiService(this)
@@ -24,7 +22,7 @@ object ServicesProduction extends Services:
   val jsBootstrap = JSBootstrapService()
 
   lazy val facadeFactory = FacadeFactory(this)
-  lazy val stateDistribution = StateDistributionService()
+  lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)
   lazy val state = StateProvider(this)
 
@@ -36,12 +34,7 @@ def main(): Unit =
   Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
-  val k = NewUserMessage("test")
- 
   body(
     cls := "min-h-screen",
-    services.routing.render,
-    div(
-      k.connectionString
-    )
+    services.routing.render
   ) 

@@ -2,29 +2,52 @@ package webapp.services.state
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import concurrent.ExecutionContext.Implicits.global
 import core.messages.*
+import core.store.framework.*
 import org.scalajs.dom.WebSocket
 import scala.collection.mutable.Map
+import scala.reflect.Selectable.*
 import sttp.client3.*
 import sttp.client3.jsoniter.*
 import rescala.default.*
+import webapp.services.*
 
-trait StateDistributionServiceInterface
+trait StateDistributionServiceInterface:
+  def aggregateEventsFor[A : JsonValueCodec](id: String): (Event[A], Evt[Tag])
+  def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]): Unit
 
-class StateDistributionService extends StateDistributionServiceInterface:
-  private val deltaRouter = Map[String, Evt[String]]()
+class StateDistributionService(services: {
+  val config: ApplicationConfigInterface
+}) extends StateDistributionServiceInterface:
+  private val eventRouter = Map[String, EventRouterEntry]()
+  private val pushDeltaEvent = Evt[DeltaMessage]()
 
-  def deltaEventFor[A : JsonValueCodec](id: String): Event[A] =
-    val evt = Evt[String]()
-    deltaRouter += id -> evt
-    evt.map(readFromString[A](_))
+  case class EventRouterEntry(
+    deltaEvent: Evt[String],
+    deltaAckEvent: Evt[Tag]
+  )
 
-  // def pushDelta()
+  def aggregateEventsFor[A : JsonValueCodec](id: String): (Event[A], Evt[Tag]) =
+    val entry = EventRouterEntry(
+      deltaEvent = Evt[String](),
+      deltaAckEvent = Evt[Tag]()
+    )
 
-    /*
+    eventRouter(id) = entry
+    
+    (
+      entry.deltaEvent.map(readFromString[A](_)),
+      entry.deltaAckEvent
+    )
+
+  def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]) =
+    pushDeltaEvent.fire(DeltaMessage(id, writeToString(delta)))
+
+  try {
     val backend = FetchBackend()
 
-    val request = basicRequest.get(uri"${services.config.backendUrl}/api/aggregate/$id")
+    val request = basicRequest.get(uri"${services.config.backendUrl}login?userid=${services.config.replicaID}")
       .response(asJson[WebPubSubConnectionMessage])
       .send(backend)
       .map(_.body match
@@ -33,10 +56,21 @@ class StateDistributionService extends StateDistributionServiceInterface:
       )
       .map(message => new WebSocket(message.url))
       .foreach(ws =>
-        ws.onmessage = event =>
-          val message = readFromString(event.data.toString)
+        ws.onmessage = event => 
+          val message = readFromString[DeltaMessage](event.data.toString)
+          eventRouter(message.aggregateId).deltaEvent.fire(message.delta)
+
+        pushDeltaEvent.observe { message =>
+          ws.send(writeToString(message))
+        }
       )
-    */
+  }
+  catch {
+    case cause: Throwable =>
+      println(s"Could not connect to backend: $cause")
+      cause.printStackTrace()
+  }
+
     
     /*
       .map(_.)

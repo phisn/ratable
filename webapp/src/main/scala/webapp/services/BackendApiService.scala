@@ -21,8 +21,11 @@ class BackendApiService(services: {
 }) extends BackendApiServiceInterface:
 
   def hello(username: String) =
+    Signal(Some("Hello " + username))
+  /*
     Signals.fromFuture(
       basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)
     ).map(_.body.toOption)
 
   private val backend = FetchBackend()
+  */
