@@ -4,10 +4,16 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import concurrent.ExecutionContext.Implicits.global
 import core.messages.*
+import core.messages.client.*
+import core.messages.delta_message.*
+import core.messages.server.*
 import core.store.framework.*
 import org.scalajs.dom.WebSocket
+import org.scalajs.dom.MessageEvent
 import scala.collection.mutable.Map
 import scala.reflect.Selectable.*
+import scala.scalajs.js.typedarray.*
+import scala.util.*
 import sttp.client3.*
 import sttp.client3.jsoniter.*
 import rescala.default.*
@@ -35,7 +41,10 @@ class StateDistributionService(services: {
     )
 
     eventRouter(id) = entry
-    
+
+    entry.deltaEvent
+      .map(d => s"Received message")
+      .observe(println)
     (
       entry.deltaEvent.map(readFromString[A](_)),
       entry.deltaAckEvent
@@ -43,6 +52,36 @@ class StateDistributionService(services: {
 
   def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]) =
     pushDeltaEvent.fire(DeltaMessage(id, writeToString(delta)))
+
+  private def handleWebsocketConnection(ws: WebSocket) =
+    ws.onmessage = event => handleWebsocketMessage(event)
+
+    pushDeltaEvent.observe { message =>
+      println(s"Send message")
+      ws.send(message.toByteArray.toTypedArray.buffer)
+    }
+
+  private def handleWebsocketMessage(event: MessageEvent): Unit =
+    ServerMessage.validate(
+      new Int8Array(event.data.asInstanceOf[ArrayBuffer]).toArray
+    ) match
+      case Success(value) => 
+        handleServerMessage(value)
+        
+      case Failure(exception) => 
+        println(s"Could not parse server message: $exception")
+        exception.printStackTrace()
+
+  private def handleServerMessage(value: ServerMessage): Unit =
+    value.message match
+      case ServerMessage.Message.DeltaMessage(message) =>
+        eventRouter(message.aggregateId).deltaEvent.fire(message.deltaJson)
+      
+      case ServerMessage.Message.AcknowledgeDeltaMessage(message) =>
+        eventRouter(message.aggregateId).deltaAckEvent.fire(message.tag)
+
+      case _ =>
+        println(s"Unknown message: $value")
 
   try {
     val backend = FetchBackend()
@@ -55,15 +94,7 @@ class StateDistributionService(services: {
         case Right(value) => value
       )
       .map(message => new WebSocket(message.url))
-      .foreach(ws =>
-        ws.onmessage = event => 
-          val message = readFromString[DeltaMessage](event.data.toString)
-          eventRouter(message.aggregateId).deltaEvent.fire(message.delta)
-
-        pushDeltaEvent.observe { message =>
-          ws.send(writeToString(message))
-        }
-      )
+      .foreach(handleWebsocketConnection)
   }
   catch {
     case cause: Throwable =>

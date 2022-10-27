@@ -1,0 +1,66 @@
+{
+    "invocationId": "5f2bc3b6-3bb8-430a-b220-",
+    "traceContext": {
+        "traceparent": "",
+        "tracestate": "",
+        "attributes": {}
+    },
+    "executionContext": {
+        "invocationId": "5f2bc3b6-3bb8-430a-b220-",
+        "functionName": "distribute",
+        "functionDirectory": "",
+        "retryContext": null
+    },
+    "bindings": {
+        "data": {
+            "type": "Buffer",
+            "data": [123, 34, 97, 103, ... ]
+        }
+    },
+    "bindingData": {
+        "invocationId": "5f2bc3b6-3bb8-430a-b220-",
+        "connectionContext": {
+            "eventType": "User",
+            "eventName": "message",
+            "hub": "distribution",
+            "connectionId": "",
+            "userId": "",
+            "signature": "sha256=, sha256=",
+            "origin": "",
+            "states": {},
+            "headers": {
+                "connection": ["close"],
+                "host": [""],
+                "ce-id": ["4"],
+                "ce-signature": ["sha256=, sha256="],
+                "ce-userid": [""],
+                "webhook-request-origin": [""],
+                "ce-eventname": ["message"],
+                "ce-hub": ["distribution"],
+                "ce-connectionid": [""],
+                "ce-time": ["2022-10-27T11:23:32Z"],
+                "ce-source": ["/hubs/distribution/client/"],
+                "ce-type": [""],
+                "ce-awpsversion": ["1.0"],
+                "ce-specversion": ["1.0"],
+                "x-forwarded-port": ["443"],
+                "x-forwarded-ssl": ["on"],
+                "x-forwarded-proto": ["https"],
+                "x-forwarded-for": [""],
+                "x-real-ip": [""],
+                "x-forwarded-host": [""]
+            }
+        },
+        "data": "{\"aggregateId\":\"ratables\",\"delta\":\"{\\\"tag\\\":7,\\\"delta\\\":{\\\"inner\\\":{\\\"df-26a0a42f-0f35-47ec-8baf-962ef8f45d9c\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"f292e86c821afed9\\\",\\\"nanoTime\\\":47639500000,\\\"timestamp\\\":1666869492550},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"f292e86c821afed9\\\",\\\"nanoTime\\\":47639500000,\\\"timestamp\\\":1666869492550}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"f292e86c821afed9\\\",\\\"nanoTime\\\":47639500000,\\\"timestamp\\\":1666869492550}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"f292e86c821afed9\\\",\\\"nanoTime\\\":47639500000,\\\"timestamp\\\":1666869492550}}}},\\\"cf-aa2399e2-9cc7-46fd-8099-4d027736a68f\\\":{\\\"_title\\\":{\\\"value\\\":\\\"This ratable is from Firefox\\\",\\\"replicaID\\\":\\\"bf1e9fe3e0e022dc\\\",\\\"nanoTime\\\":24806000000,\\\"timestamp\\\":1666868246911},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"bf1e9fe3e0e022dc\\\",\\\"nanoTime\\\":24806000000,\\\"timestamp\\\":1666868246911}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"bf1e9fe3e0e022dc\\\",\\\"nanoTime\\\":24806000000,\\\"timestamp\\\":1666868246911}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"bf1e9fe3e0e022dc\\\",\\\"nanoTime\\\":24806000000,\\\"timestamp\\\":1666868246911}}},\\\"_ratings\\\":{\\\"a47026721396ed49\\\":{\\\"ratingForCategory\\\":{\\\"0\\\":{\\\"value\\\":1,\\\"replicaID\\\":\\\"a47026721396ed49\\\",\\\"nanoTime\\\":3551700000,\\\"timestamp\\\":1666868259712},\\\"1\\\":{\\\"value\\\":1,\\\"replicaID\\\":\\\"a47026721396ed49\\\",\\\"nanoTime\\\":3551700000,\\\"timestamp\\\":1666868259712},\\\"2\\\":{\\\"value\\\":1,\\\"replicaID\\\":\\\"a47026721396ed49\\\",\\\"nanoTime\\\":3551700000,\\\"timestamp\\\":1666868259712}}},\\\"600530894ac51ea9\\\":{\\\"ratingForCategory\\\":{\\\"0\\\":{\\\"value\\\":5,\\\"replicaID\\\":\\\"600530894ac51ea9\\\",\\\"nanoTime\\\":46837000000,\\\"timestamp\\\":1666868268942},\\\"1\\\":{\\\"value\\\":3,\\\"replicaID\\\":\\\"600530894ac51ea9\\\",\\\"nanoTime\\\":46837000000,\\\"timestamp\\\":1666868268943},\\\"2\\\":{\\\"value\\\":1,\\\"replicaID\\\":\\\"600530894ac51ea9\\\",\\\"nanoTime\\\":46837000000,\\\"timestamp\\\":1666868268943}}}}},\\\"28-b8e59768-66a8-476e-98ca-805001f879d1\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"88245eec22b84c57\\\",\\\"nanoTime\\\":16442199999,\\\"timestamp\\\":1666869684746},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"88245eec22b84c57\\\",\\\"nanoTime\\\":16442299999,\\\"timestamp\\\":1666869684746}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"88245eec22b84c57\\\",\\\"nanoTime\\\":16442299999,\\\"timestamp\\\":1666869684746}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"88245eec22b84c57\\\",\\\"nanoTime\\\":16442299999,\\\"timestamp\\\":1666869684746}}}},\\\"d9-bc7205e0-183f-46c1-b40f-eb228b38beb9\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"b6833143f3402913\\\",\\\"nanoTime\\\":11831299999,\\\"timestamp\\\":1666869598101},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"b6833143f3402913\\\",\\\"nanoTime\\\":11831299999,\\\"timestamp\\\":1666869598101}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"b6833143f3402913\\\",\\\"nanoTime\\\":11831299999,\\\"timestamp\\\":1666869598101}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"b6833143f3402913\\\",\\\"nanoTime\\\":11831299999,\\\"timestamp\\\":1666869598101}}}},\\\"2c-f9b9cf0c-74c9-4f2b-b42c-0ed31dc97a12\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"880a34f79c95971c\\\",\\\"nanoTime\\\":3223600000,\\\"timestamp\\\":1666868938917},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"880a34f79c95971c\\\",\\\"nanoTime\\\":3223699999,\\\"timestamp\\\":1666868938917}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"880a34f79c95971c\\\",\\\"nanoTime\\\":3223699999,\\\"timestamp\\\":1666868938917}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"880a34f79c95971c\\\",\\\"nanoTime\\\":3223699999,\\\"timestamp\\\":1666868938917}}}},\\\"22-2b46e152-60e8-4287-906c-60bd76859a0a\\\":{\\\"_title\\\":{\\\"value\\\":\\\"TEst\\\",\\\"replicaID\\\":\\\"d8fe46c756381299\\\",\\\"nanoTime\\\":146008000000,\\\"timestamp\\\":1666869814312},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"d8fe46c756381299\\\",\\\"nanoTime\\\":146008000000,\\\"timestamp\\\":1666869814312}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"d8fe46c756381299\\\",\\\"nanoTime\\\":146008000000,\\\"timestamp\\\":1666869814312}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"d8fe46c756381299\\\",\\\"nanoTime\\\":146008000000,\\\"timestamp\\\":1666869814312}}}},\\\"25-1fbb37af-f36a-49bd-a451-49fe63fef127\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"c0ac3cbf94739eb0\\\",\\\"nanoTime\\\":30080299999,\\\"timestamp\\\":1666869616350},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"c0ac3cbf94739eb0\\\",\\\"nanoTime\\\":30080299999,\\\"timestamp\\\":1666869616350}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"c0ac3cbf94739eb0\\\",\\\"nanoTime\\\":30080299999,\\\"timestamp\\\":1666869616350}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"c0ac3cbf94739eb0\\\",\\\"nanoTime\\\":30080299999,\\\"timestamp\\\":1666869616350}}}},\\\"73-f191baab-ba76-48f4-b5c0-1f8ae7595916\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"8f4bfe1f102827f3\\\",\\\"nanoTime\\\":14164500000,\\\"timestamp\\\":1666869459075},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"8f4bfe1f102827f3\\\",\\\"nanoTime\\\":14164600000,\\\"timestamp\\\":1666869459075}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"8f4bfe1f102827f3\\\",\\\"nanoTime\\\":14164600000,\\\"timestamp\\\":1666869459075}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"8f4bfe1f102827f3\\\",\\\"nanoTime\\\":14164600000,\\\"timestamp\\\":1666869459075}}}},\\\"ce-6477b7d5-f837-4700-81a1-64d17603fb51\\\":{\\\"_title\\\":{\\\"value\\\":\\\"Test\\\",\\\"replicaID\\\":\\\"ec4fa7bb2b2d09cb\\\",\\\"nanoTime\\\":3849799999,\\\"timestamp\\\":1666869672154},\\\"categories\\\":{\\\"0\\\":{\\\"title\\\":{\\\"value\\\":\\\"Taste\\\",\\\"replicaID\\\":\\\"ec4fa7bb2b2d09cb\\\",\\\"nanoTime\\\":3850000000,\\\"timestamp\\\":1666869672154}},\\\"1\\\":{\\\"title\\\":{\\\"value\\\":\\\"Ambiente\\\",\\\"replicaID\\\":\\\"ec4fa7bb2b2d09cb\\\",\\\"nanoTime\\\":3850000000,\\\"timestamp\\\":1666869672154}},\\\"2\\\":{\\\"title\\\":{\\\"value\\\":\\\"Price\\\",\\\"replicaID\\\":\\\"ec4fa7bb2b2d09cb\\\",\\\"nanoTime\\\":3850000000,\\\"timestamp\\\":1666869672154}}}}}}}\"}",
+        "dataType": "Text"
+    },
+    "bindingDefinitions": [{
+        "name": "data",
+        "type": "webPubSubTrigger",
+        "direction": "in"
+    }, {
+        "name": "actions",
+        "type": "webPubSub",
+        "direction": "out"
+    }]
+}

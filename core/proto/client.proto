@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package core.messages;
+
+import "delta_message.proto";
+
+message ClientMessage {
+  oneof message {
+    DeltaMessage deltaMessage = 1;
+  }
+}

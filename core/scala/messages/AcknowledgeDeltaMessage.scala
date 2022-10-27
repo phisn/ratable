@@ -5,7 +5,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.store.framework.*
 
 case class AcknowledgeDeltaMessage(
-  id: String,
+  aggregateId: String,
   tag: Tag
 )
 

@@ -13,9 +13,11 @@ val versions = new {
 
 lazy val commonSettings = Seq(
   resolvers += "jitpack" at "https://jitpack.io",
+  
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.0",
     
+    "com.thesamet.scalapb"                  %%% "scalapb-runtime"       % scalapb.compiler.Version.scalapbVersion,
     "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.6",
     "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.17.6",
 
@@ -38,10 +40,17 @@ lazy val commonSettings = Seq(
   
   fastOptJS / webpackEmitSourceMaps := false,
   fullOptJS / webpackEmitSourceMaps := false,
- 
+  
+  // Enable protobuf compilation
+  Compile / PB.targets := Seq(
+    scalapb.gen(grpc = false) -> (Compile / sourceManaged).value
+  ),
+  
+  Compile / PB.protoSources += (root / baseDirectory).value / "core" / "proto",
+
   // We do not use code sharing by project, because this causes linking issues with scalajs and is difficult
   // integrating with scala jvm. Instead we have a shared source directory `core`.
-  Compile / unmanagedSourceDirectories += (root / baseDirectory).value / "core"
+  Compile / unmanagedSourceDirectories += (root / baseDirectory).value / "core" / "scala",
 )
 
 lazy val root = project in file(".")

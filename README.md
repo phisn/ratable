@@ -84,19 +84,12 @@ terraform apply
 - Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
 
 ## Techstack
-Core
-  - Scala
-  - Rescala
-  - Outwatch
- 
-Infrastructure
-  - Azure
-  - Terraform
-  - Github Actions
-
-UI
-  - Tailwind
-  - Daisyui
+### Core
+`Scala, Scalajs, Rescala, Protobuf, Outwatch, Webpack, Azure Functions, Workbox`
+### UI
+`Tailwind, Daisyui`
+### Infrastructure
+`Azure, Terraform, Github Actions`
 
 ## Misc
 - For simplicity Tailwind is installed in (in seperate nodejs packages) `webapp/` and in `/`, because vs code `tailwind intellisense` plugin needs tailwind installed in root directory.

@@ -24,7 +24,7 @@ object ServicesProduction extends Services:
   lazy val facadeFactory = FacadeFactory(this)
   lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)
-  lazy val state = StateProvider(this)
+  val state = StateProvider(this)
 
   lazy val routing = RoutingService()
 

@@ -23,6 +23,6 @@ case class ServicesMock(
   lazy val facadeFactory = FacadeFactory(this)
   lazy val stateDistribution = _stateDistribution
   lazy val statePersistence = _statePersistence
-  lazy val state = StateProvider(this)
+  val state = StateProvider(this)
 
   lazy val routing = RoutingService()

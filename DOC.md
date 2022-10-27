@@ -10,3 +10,16 @@ Each action done by a client creates a delta with an associated tag and stores i
 - Case two 'The client did make actions and sent successfully a new merged delta': The client now removes all deltas with a tag equal to or below the response tag. The server will get duplicate tags but this will not cause not any issues because the handling is idempotent.
 
 - Case three 'The client did make actions and failed to send a new merged delta': The client now removes all deltas with a tag equal to or below the response tag and will resend the remaining deltas in future.
+
+# Deployment
+For easier deployment of the azure resources, we use a infrastructure as a code tool terraform. The creation and update of infrastructure itself has to be created manually. The deployment of the application is done by github actions. After every push to the master branch, the application is directly deployed to the azure.
+
+# Azure functions
+## Binding with scala
+Because WebPubSubs are currently not supported in typescript nor java, we have to use the javascript azure functions. The scala backend is compiled into a single lib.js, that is accessed and called by each azure function.  
+
+# Testing
+The application has unit tests for core services and an test for each usecase. Because Scala 3 does not currently have an mocking framework, every service has a custom mock implementation. 
+
+# Communication and persistence
+All deltas are first converted to json for further use. For persisting on the client they are simply stored in localstorage. For communication with the azure function we have decided to use protobuf because often messages contain other messages. For example a server message would contain a delta message which would contain a json delta. This or even deeper nesting would result in a lot of overhead when using json. Protobuf is a binary format which is much more efficient and has native support for these types of oneof relationships (ex. server message contains oneof type of a message).
