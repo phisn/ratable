@@ -57,8 +57,14 @@ class StateDistributionService(services: {
     ws.onmessage = event => handleWebsocketMessage(event)
 
     pushDeltaEvent.observe { message =>
-      println(s"Send message")
-      ws.send(message.toByteArray.toTypedArray.buffer)
+      val clientMessage = ClientMessage(
+        ClientMessage.Message.DeltaMessage(message)
+      )
+
+      val clientMessageEncoded = clientMessage.toByteArray.toTypedArray.buffer
+      ws.send(clientMessageEncoded)
+
+      println(s"Send delta message: L${clientMessageEncoded.byteLength}")
     }
 
   private def handleWebsocketMessage(event: MessageEvent): Unit =
