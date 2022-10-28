@@ -21,7 +21,7 @@ def deltaMessageHandler(message: DeltaMessage)(using services: Services) =
   ))
 
 def processDelta(aggregateId: String, deltaJson: String)(using services: Services): Tag =
-  services.logger.trace(s"DeltaMessage ${aggregateId}: ${deltaJson}")
+  // services.logger.trace(s"DeltaMessage ${aggregateId}: ${deltaJson}")
 
   def routeTo[A: JsonValueCodec](processor: A => Unit): Tag =
     val tagged = readFromString[TaggedDelta[A]](deltaJson)

@@ -25,6 +25,7 @@ trait StateDistributionServiceInterface:
 
 class StateDistributionService(services: {
   val config: ApplicationConfigInterface
+  val logger: LoggerServiceInterface
 }) extends StateDistributionServiceInterface:
   private val eventRouter = Map[String, EventRouterEntry]()
   private val pushDeltaEvent = Evt[DeltaMessage]()
@@ -61,7 +62,7 @@ class StateDistributionService(services: {
       val clientMessageEncoded = clientMessage.toByteArray.toTypedArray.buffer
       ws.send(clientMessageEncoded)
 
-      println(s"Send delta message: L${clientMessageEncoded.byteLength}")
+      services.logger.trace(s"Send delta message: L${clientMessageEncoded.byteLength}")
     }
 
   private def handleWebsocketMessage(event: MessageEvent): Unit =
@@ -72,21 +73,21 @@ class StateDistributionService(services: {
         handleServerMessage(value)
         
       case Failure(exception) => 
-        println(s"Could not parse server message: $exception")
+        services.logger.error(s"Could not parse server message: $exception")
         exception.printStackTrace()
 
   private def handleServerMessage(value: ServerMessage): Unit =
     value.message match
       case ServerMessage.Message.DeltaMessage(message) =>
-        println(s"Received delta message")
+        services.logger.log(s"Received delta message")
         eventRouter(message.aggregateId).deltaEvent.fire(message.deltaJson)
       
       case ServerMessage.Message.AcknowledgeDeltaMessage(message) =>
-        println(s"Received ack for ${message.aggregateId} with tag ${message.tag}")
+        services.logger.log(s"Received ack for ${message.aggregateId} with tag ${message.tag}")
         eventRouter(message.aggregateId).deltaAckEvent.fire(message.tag)
 
       case _ =>
-        println(s"Unknown message: $value")
+        services.logger.error(s"Unknown message: $value")
 
   try {
     val backend = FetchBackend()
@@ -107,7 +108,7 @@ class StateDistributionService(services: {
   }
   catch {
     case cause: Throwable =>
-      println(s"Could not connect to backend: $cause")
+      services.logger.error(s"Could not connect to backend: $cause")
       cause.printStackTrace()
   }
 

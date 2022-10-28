@@ -6,6 +6,7 @@ import webapp.services.state.*
 trait Services:
   lazy val backendApi: BackendApiServiceInterface
   lazy val config: ApplicationConfigInterface
+  lazy val logger: LoggerServiceInterface
   
   // Service bootstraps in constructor and wont be accessed
   // so it needs to be non lazy to force execution

@@ -17,16 +17,17 @@ import webapp.store.framework.{given, *}
 
 object ServicesProduction extends Services:
   lazy val backendApi = BackendApiService(this)
-  lazy val config = ApplicationConfig()
+  lazy val config = ApplicationConfig(this)
+  lazy val logger = LoggerService(this)
 
-  val jsBootstrap = JSBootstrapService()
+  val jsBootstrap = JSBootstrapService(this)
 
   lazy val facadeFactory = FacadeFactory(this)
   lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)
   val state = StateProvider(this)
 
-  lazy val routing = RoutingService()
+  lazy val routing = RoutingService(this)
 
 @main
 def main(): Unit =

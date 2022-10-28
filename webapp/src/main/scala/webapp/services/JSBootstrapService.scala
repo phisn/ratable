@@ -11,6 +11,6 @@ private object Css extends js.Object
 
 trait JSBootstrapServiceInterface
 
-class JSBootstrapService extends JSBootstrapServiceInterface:
+class JSBootstrapService(services: {}) extends JSBootstrapServiceInterface:
   // fancy scalajs magic to load css. Service needs to be not lazy
   Css

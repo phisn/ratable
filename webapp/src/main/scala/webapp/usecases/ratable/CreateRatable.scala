@@ -6,6 +6,8 @@ import webapp.*
 import webapp.store.framework.{given, *}
 
 def createRatable(title: String, categories: List[String])(using services: Services) =
+  services.logger.log(s"Creating ratable with title: $title")
+
   val id = services.state.ratables.now.uniqueID(services.config.replicaID)
   services.state.ratables(_.create(id, title, categories, services.config.replicaID))
   id

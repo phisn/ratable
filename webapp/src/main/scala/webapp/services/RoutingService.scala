@@ -22,7 +22,7 @@ class RoutingState(
 
 ) extends js.Object
 
-class RoutingService:
+class RoutingService(services: {}):
   private val page = Var[Page](Routes.fromPath(Path(window.location.pathname)))
 
   def render(using services: Services): Signal[VNode] =
