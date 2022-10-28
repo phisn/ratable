@@ -26,14 +26,16 @@ case class DeltaContainer[A](
     )
 
   // Prepares merged delta for sending to the server
-  def mergedDeltas(using Lattice[A]) =
+  def mergedDeltas(using Lattice[A], Bottom[A]) =
+    println(s"Merged delta is n: ${deltas.count(_ => true)} ${uniqueTag}")
     TaggedDelta(
       deltas.map(_.tag).maxOption.getOrElse(0L),
-      deltas.foldLeft(inner)((acc, delta) => Lattice[A].merge(acc, delta.delta))
+      deltas.foldLeft(Bottom[A].empty)((acc, delta) => Lattice[A].merge(acc, delta.delta))
     )
 
   // Acknowledges delta received from the server
   def acknowledge(tag: Tag) =
+    println(s"acknowledge $tag")
     DeltaContainer(
       inner = inner,
       deltas = deltas.filter(_.tag > tag)
