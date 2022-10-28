@@ -35,4 +35,4 @@ jobs:
         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APP_TOKEN }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
-        app_location: "/webapp/target/scala-3.1.2/scalajs-bundler/main/dist"
+        app_location: "/webapp/target/scala-3.2.0/scalajs-bundler/main/dist"
