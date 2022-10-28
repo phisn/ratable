@@ -1,5 +1,5 @@
 {
-  "comment": "Rename to local.settings.json and fill <connection string>'s",
+  "_comment": "Rename to local.settings.json and fill <connection string>'s",
 
   "IsEncrypted": false,
   "Values": {

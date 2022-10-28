@@ -44,29 +44,32 @@ To run the functions locally we need access to some Azure services. Currently no
   - Hub name `distribution`
   - Add Event handler with URL `{tunnel_link}/runtime/webhooks/webpubsub` with system events `connect, connected, disconnected` and user events `all`
 
-## Working in dev mode (windows)
-Run
-```sh
-./dev.bat
-```
-This will launch azure functions in another cmd window. Stop dev mode by pressing `enter`.
-## Working in dev mode (linux or mac or manual windows)
-Run
+## Working in dev mode
+While developing all the following commands should be run in parallel in different terminals.
 
+For webapp building and testing run
 ```sh
-sbt dev
+sbt devtest
 ```
 
-Run in another terminal in directory `functions/app`
+For functions building and testing run
+```sh
+sbt functions
 ```
+
+For running functions run  in directory `functions/app`
+```sh
 fun start
 ```
 
-Then open `http://localhost:12345` in your browser. The backend function w 
+For allowing the webpubsub to access the functions run with the subdomain from [`tunnel_link`](#Provide-Azure-services-for-local-azure-functions)
+```sh
+lt --port 7071 --print-requests
+lt --subdomain {sub_domain} --port 7071 --print-requests
+```
+The domain has to be registered as a eventhandler in the azure portal in the webpubsub.
 
-This sbt-task will start webpack dev server, compile your code each time it changes and auto-reload the page.  
-Webpack dev server will stop automatically when you stop the `dev` task
-(e.g by hitting `Enter` in the sbt shell while you are in `dev` watch mode).
+Then open `localhost:12345` in your browser. 
 
 # Deployment
 For the deployment `Terraform` needs to be installed. 

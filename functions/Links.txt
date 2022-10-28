@@ -1,0 +1,2 @@
+Cosmos DB: https://learn.microsoft.com/en-us/azure/cosmos-db/
+Cosmos DB Example: https://learn.microsoft.com/en-us/azure/azure-functions/functions-add-output-binding-cosmos-db-vs-code?tabs=in-process&pivots=programming-language-javascript
