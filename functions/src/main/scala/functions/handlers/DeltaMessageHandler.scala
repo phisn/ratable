@@ -36,7 +36,9 @@ def processRatableDelta(delta: RatableRepository)(using services: Services) =
     services.logger.log(s"Processing Ratable $id with title: ${ratable._title.read.getOrElse("<empty>")}")
   )
 
+  services.webPubSub.sendToAll(ServerMessage.Message.DeltaMessage(
+    DeltaMessage(AggregateId.Ratable.toString(), writeToString(delta))
+  ))
+
 def handleAcknowledgment(aggregateId: String, tag: Tag)(using services: Services) =
   services.logger.trace(s"Sending acknowledgment for aggregateId=${aggregateId} tag=${tag}")
-
-  
