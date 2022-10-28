@@ -106,7 +106,7 @@ lazy val functions = project
     webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
   )
 
-addCommandAlias("prod", "webapp/fullOptJS/webpack")
+addCommandAlias("prod", "webapp/fullOptJS/webpack; functions/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")
 addCommandAlias("devtest", "devInit; devTestWatchAll; devDestroy")
 addCommandAlias("functions", "~; functions/fullOptJS/webpack")
