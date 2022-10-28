@@ -42,9 +42,6 @@ class StateDistributionService(services: {
 
     eventRouter(id) = entry
 
-    entry.deltaEvent
-      .map(d => s"Received message")
-      .observe(println)
     (
       entry.deltaEvent.map(readFromString[A](_)),
       entry.deltaAckEvent
@@ -81,9 +78,11 @@ class StateDistributionService(services: {
   private def handleServerMessage(value: ServerMessage): Unit =
     value.message match
       case ServerMessage.Message.DeltaMessage(message) =>
+        println(s"Received delta message")
         eventRouter(message.aggregateId).deltaEvent.fire(message.deltaJson)
       
       case ServerMessage.Message.AcknowledgeDeltaMessage(message) =>
+        println(s"Received ack for ${message.aggregateId} with tag ${message.tag}")
         eventRouter(message.aggregateId).deltaAckEvent.fire(message.tag)
 
       case _ =>
@@ -99,7 +98,11 @@ class StateDistributionService(services: {
         case Left(error) => throw error
         case Right(value) => value
       )
-      .map(message => new WebSocket(message.url))
+      .map(message => 
+        val socket = new WebSocket(message.url)
+        socket.binaryType = "arraybuffer";
+        socket
+      )
       .foreach(handleWebsocketConnection)
   }
   catch {
