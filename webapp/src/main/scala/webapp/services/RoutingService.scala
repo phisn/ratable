@@ -8,6 +8,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import scala.reflect.Selectable.*
 import scala.scalajs.js
 import webapp.*
 import webapp.pages.*
@@ -22,18 +23,21 @@ class RoutingState(
 
 ) extends js.Object
 
-class RoutingService(services: {}):
+class RoutingService(services: {
+  val logger: LoggerServiceInterface
+}):
   private val page = Var[Page](Routes.fromPath(Path(window.location.pathname)))
 
   def render(using services: Services): Signal[VNode] =
     page.map(_.render)
 
   def to(newPage: Page, preventReturn: Boolean = false) =
-    dom.console.log(linkPath(newPage))
+    services.logger.trace(s"Routing to ${linkPath(newPage)}")
     window.history.pushState(RoutingState(!preventReturn), "", linkPath(newPage))
     page.set(newPage)
 
   def toReplace(newPage: Page, preventReturn: Boolean = false) =
+    services.logger.trace(s"Routing replace to ${linkPath(newPage)}")
     window.history.replaceState(RoutingState(!preventReturn), "", linkPath(newPage))
     page.set(newPage)
 
@@ -44,10 +48,13 @@ class RoutingService(services: {}):
     Routes.toPath(newPage).pathString
 
   def back =
+    services.logger.trace(s"Routing back")
     window.history.back()
 
   def state =
     window.history.state.asInstanceOf[RoutingState]
+
+  services.logger.trace(s"Routing initial from ${window.location.pathname} to ${linkPath(page.now)}")
 
   // Ensure initial path is correctly set
   // Example: for path "/counter" and pattern "counter/{number=0}" the

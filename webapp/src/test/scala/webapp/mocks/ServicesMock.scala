@@ -18,11 +18,10 @@ case class ServicesMock(
   lazy val backendApi = _backendApi
   lazy val config = _config
   val jsBootstrap = _jsBootstrap
-
-  // Services that are not mocked
-  lazy val facadeFactory = FacadeFactory(this)
   lazy val stateDistribution = _stateDistribution
   lazy val statePersistence = _statePersistence
-  val state = StateProvider(this)
 
-  lazy val routing = RoutingService()
+  lazy val facadeFactory = FacadeFactory(this)
+  val state = StateProvider(this)
+  lazy val routing = RoutingService(this)
+  lazy val logger = LoggerService(this)
