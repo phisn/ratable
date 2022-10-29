@@ -38,7 +38,7 @@ See [Link](https://github.com/Azure/azure-webpubsub/tree/main/samples/functions/
 
 To run the functions locally we need access to some Azure services. Currently no custom dev infrastructure exist, so we use the infrastructure from [Deployment](#Deployment). Rename `template-local.settings.json` in `functions/app` to `local.settings.json` and fill the following connection strings.
 
-- Fill connectionstring from `terraform output -raw webpubsub_connection_string` in `WebPubSubConnectionString`
+- Fill connectionstring from `terraform output -raw webpubsub_test_connection_string` in `WebPubSubConnectionString`
 - We need to register a upstream webhook
   - Go to azure portal `webpubsub -> settings -> +add`
   - Hub name `distribution`
@@ -84,7 +84,7 @@ terraform apply
 ```
 
 - Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
-- Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-backend -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
+- Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-ratable-core -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
 
 ## Techstack
 ### Core

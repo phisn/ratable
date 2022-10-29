@@ -1,0 +1,1 @@
+curl -u "${username}:{password}" https://{functions_name}.scm.azurewebsites.net/api/logstream

@@ -1,0 +1,1 @@
+curl -u "$func-localrating-backend:BJDvwXqeQXy2rHtM5wsE6glJo2Xe8Pl4dyHNvAwWZGL6cgcGNNp5iKFv9nqq" https://func-localrating-backend.scm.azurewebsites.net/api/logstream

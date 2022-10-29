@@ -7,6 +7,7 @@ import kofre.base.*
 
 case class DeltaContainer[A](
   inner: A,
+  // TODO: When we have no internet
   deltas: Set[TaggedDelta[A]]
 ):
   // Mutation by client

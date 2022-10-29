@@ -5,14 +5,14 @@
       "direction": "in",
       "name": "data",
       "dataType": "binary",
-      "hub": "distribution",
+      "hub": "socket",
       "eventName": "message",
       "eventType": "user"
     },
     {
       "type": "webPubSub",
       "name": "actions",
-      "hub": "distribution",
+      "hub": "socket",
       "direction": "out"
     }
   ]
