@@ -1,11 +1,12 @@
-package webapp.services
+package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import kofre.base.*
 import org.scalajs.dom
-import scala.reflect.Selectable.*
 import rescala.default.*
 import webapp.services.*
+
+import scala.reflect.Selectable.*
 
 trait StatePersistanceServiceInterface:
   def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]): Signal[A]

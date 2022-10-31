@@ -10,6 +10,7 @@ trait LoggerServiceInterface:
   def warning(message: String) = log(message, LogLevel.Warning)
   def trace(message: String) = log(message, LogLevel.Trace)
 
-class LoggerService(services: {}) extends LoggerServiceInterface:
+class LoggerService(services: {}, logLevel: LogLevel = LogLevel.Trace) extends LoggerServiceInterface:
   def log(message: String, logLevel: LogLevel) =
-    println(s"[$logLevel] $message")
+    if logLevel.ordinal >= this.logLevel.ordinal then
+      println(s"[$logLevel] $message")

@@ -5,16 +5,16 @@ import core.state.framework.*
 import webapp.*
 import webapp.mocks.*
 import webapp.services.*
-import webapp.services.state.*
 import webapp.state.{*, given}
+import webapp.state.services.*
 
 case class ServicesMock(
-  _backendApi: BackendApiServiceInterface = BackendApiServiceMock(),
+  _backendApi: BackendApiInterface = BackendApiMock(),
   _config: ApplicationConfigInterface = ApplicationConfigMock(),
   _jsBootstrap: JSBootstrapServiceInterface = new JSBootstrapServiceInterface {},
   _stateDistribution: StateDistributionServiceInterface = StateDistributionServiceMock(),
   _statePersistence: StatePersistanceServiceInterface = StatePersistenceServiceMock[RatableRepository](),
-) extends Services:
+) extends Services, StateServices:
   lazy val backendApi = _backendApi
   lazy val config = _config
   val jsBootstrap = _jsBootstrap
@@ -24,4 +24,4 @@ case class ServicesMock(
   lazy val facadeFactory = FacadeFactory(this)
   val state = StateProvider(this)
   lazy val routing = RoutingService(this)
-  lazy val logger = LoggerService(this)
+  lazy val logger = LoggerService(this, LogLevel.None)

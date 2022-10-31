@@ -5,10 +5,12 @@ import core.state.framework.*
 import kofre.base.*
 import org.scalajs.dom
 import rescala.default.*
+
 import scala.collection.mutable.*
 import scala.collection.immutable.Set
 import webapp.services.*
 import webapp.state.framework.*
+import webapp.state.services.StatePersistanceServiceInterface
 
 class StatePersistenceServiceMock[I : JsonValueCodec : Bottom](initialID: String = "<not-used>", initial: Option[I] = None) extends StatePersistanceServiceInterface:
   val changes = ListBuffer[I]()

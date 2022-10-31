@@ -3,9 +3,10 @@ package webapp.mocks
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.state.framework.*
 import rescala.default.*
+
 import scala.collection.mutable.Map
 import webapp.*
-import webapp.services.state.*
+import webapp.state.services.StateDistributionServiceInterface
 
 class StateDistributionServiceMock extends StateDistributionServiceInterface:
   val eventRouter = Map[String, EventRouterEntry]()

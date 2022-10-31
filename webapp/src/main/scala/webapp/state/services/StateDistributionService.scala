@@ -1,23 +1,23 @@
-package webapp.services.state
+package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import concurrent.ExecutionContext.Implicits.global
 import core.messages.*
 import core.messages.client.*
 import core.messages.delta_message.*
 import core.messages.server.*
 import core.state.framework.*
-import org.scalajs.dom.WebSocket
-import org.scalajs.dom.MessageEvent
+import org.scalajs.dom.{MessageEvent, WebSocket}
+import rescala.default.*
+import sttp.client3.*
+import sttp.client3.jsoniter.*
+import webapp.services.*
+
 import scala.collection.mutable.Map
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
 import scala.scalajs.js.typedarray.*
 import scala.util.*
-import sttp.client3.*
-import sttp.client3.jsoniter.*
-import rescala.default.*
-import webapp.services.*
 
 trait StateDistributionServiceInterface:
   def aggregateEventsFor[A : JsonValueCodec](id: String): (Event[A], Evt[Tag])

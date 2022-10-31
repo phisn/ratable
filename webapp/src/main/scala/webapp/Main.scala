@@ -11,30 +11,17 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.pages.*
 import webapp.services.*
-import webapp.services.state.*
 import webapp.state.framework.{given, *}
-
-object ServicesProduction extends Services:
-  lazy val backendApi = BackendApiService(this)
-  lazy val config = ApplicationConfig(this)
-  lazy val logger = LoggerService(this)
-
-  val jsBootstrap = JSBootstrapService(this)
-
-  lazy val facadeFactory = FacadeFactory(this)
-  lazy val stateDistribution = StateDistributionService(this)
-  lazy val statePersistence = StatePersistenceService(this)
-  val state = StateProvider(this)
-
-  lazy val routing = RoutingService(this)
 
 @main
 def main(): Unit =
-  implicit val services = ServicesProduction
+  implicit val services = ServicesDefault
   Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: Services) =
+  // Need body wrapper because renderReplace can not directly 
+  // take (or I do not know how) a colibri.Source / rescala.Signal
   body(
     cls := "min-h-screen",
     services.routing.render
-  ) 
+  )

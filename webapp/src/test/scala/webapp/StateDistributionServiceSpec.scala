@@ -15,7 +15,7 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
   val initialAggregate = TestAggregate(123, applicationConfigMock.replicaID)
 
   val statePersistenceService = StatePersistenceServiceMock(aggregateID, Some(initialAggregate))
-  val mockServices: Services = ServicesMock(
+  val mockServices = ServicesMock(
     _statePersistence = statePersistenceService,
     _config = applicationConfigMock
   )

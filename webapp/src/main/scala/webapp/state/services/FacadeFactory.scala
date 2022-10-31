@@ -1,18 +1,18 @@
-package webapp.services
+package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
 import kofre.decompose.containers.*
 import rescala.default.*
-import scala.reflect.Selectable.*
 import webapp.services.*
-import webapp.services.state.*
-import webapp.state.{*, given}
 import webapp.state.framework.{*, given}
+import webapp.state.{*, given}
+
+import scala.reflect.Selectable.*
 
 // Creates facades for aggregates and registers them for distribution and persistence
-class FacadeFactory(services: {
+class FacadeFactory(stateServices: {
   val stateDistribution: StateDistributionServiceInterface
   val statePersistence: StatePersistanceServiceInterface
 }):
@@ -25,9 +25,9 @@ class FacadeFactory(services: {
     val (
       deltaEvt,
       deltaAckEvt
-    ) = services.stateDistribution.aggregateEventsFor[A](id)
+    ) = stateServices.stateDistribution.aggregateEventsFor[A](id)
 
-    val changes = services.statePersistence.storeAggregateSignal[DeltaContainer[A]](id, init =>
+    val changes = stateServices.statePersistence.storeAggregateSignal[DeltaContainer[A]](id, init =>
       Events.foldAll(init)(state => Seq(
         // Actions received from the client are applied directly to the state
         actionsEvt.act(action => state.mutate(action)),
@@ -42,7 +42,7 @@ class FacadeFactory(services: {
 
     // When the state changes by an action, send the delta to the server
     actionsEvt.zip(changes.changed).observe { _ =>
-      services.stateDistribution.pushDelta(id, changes.now.mergedDeltas)
+      stateServices.stateDistribution.pushDelta(id, changes.now.mergedDeltas)
     }
 
     Facade(
