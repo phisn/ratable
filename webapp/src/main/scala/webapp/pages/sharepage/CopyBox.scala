@@ -10,7 +10,7 @@ import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def copyBoxComponent(title: String, page: Page)(using services: Services) = 

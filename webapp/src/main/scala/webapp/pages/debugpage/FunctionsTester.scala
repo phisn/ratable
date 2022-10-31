@@ -4,10 +4,10 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.services.*
-import webapp.store.framework.*
-import webapp.Services
 import webapp.given
+import webapp.services.*
+import webapp.state.framework.*
+import webapp.Services
 
 import scala.util.*
 

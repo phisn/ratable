@@ -12,8 +12,7 @@ import rescala.default.*
 import webapp.pages.*
 import webapp.services.*
 import webapp.services.state.*
-import webapp.store.given
-import webapp.store.framework.{given, *}
+import webapp.state.framework.{given, *}
 
 object ServicesProduction extends Services:
   lazy val backendApi = BackendApiService(this)

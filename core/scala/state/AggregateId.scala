@@ -1,4 +1,4 @@
-package core.store
+package core.state
 
 enum AggregateId:
   case Ratable

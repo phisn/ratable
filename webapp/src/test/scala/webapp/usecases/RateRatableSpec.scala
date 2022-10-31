@@ -5,7 +5,7 @@ import org.scalatest.matchers.should.Matchers.*
 import webapp.*
 import webapp.mocks.*
 import webapp.usecases.ratable.*
-import core.store.aggregates.ratable.Ratable
+import core.state.aggregates.ratable.Ratable
 
 class RateRatableSpec extends AnyFlatSpec:
   val applicationConfigMock = ApplicationConfigMock()

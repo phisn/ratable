@@ -1,9 +1,9 @@
-package webapp.store
+package webapp.state
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.store.aggregates.ratable.*
-import webapp.store.framework.*
+import core.state.aggregates.ratable.*
+import webapp.state.framework.*
 import rescala.default.*
 
 // Boundles access to all aggregates as facades in one central application state

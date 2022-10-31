@@ -5,9 +5,8 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.Services
-import webapp.given
 
 def ratings(using services: Services) =
   div(

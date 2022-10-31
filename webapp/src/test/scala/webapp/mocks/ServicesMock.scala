@@ -1,12 +1,12 @@
 package webapp.mocks
 
-import core.store.aggregates.ratable.*
-import core.store.framework.*
+import core.state.aggregates.ratable.*
+import core.state.framework.*
 import webapp.*
 import webapp.mocks.*
 import webapp.services.*
 import webapp.services.state.*
-import webapp.store.{*, given}
+import webapp.state.{*, given}
 
 case class ServicesMock(
   _backendApi: BackendApiServiceInterface = BackendApiServiceMock(),

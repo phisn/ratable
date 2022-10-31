@@ -20,9 +20,8 @@ trait ApplicationConfigInterface:
   def darkMode: Var[Boolean]
   def replicaID: String
 
-// TODO: Rename services.config to services.application?
 class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
-  // should use a config library but was unable to get it working with scalajs
+  // should use a config library but was unable to get it working with scalajs :(
   def backendUrl = if dom.window.location.hostname.contains("localhost") then
     "http://localhost:7071/api/"
   else

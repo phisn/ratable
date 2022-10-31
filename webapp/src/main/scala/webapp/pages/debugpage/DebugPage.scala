@@ -7,9 +7,8 @@ import rescala.default.*
 import scala.util.*
 import webapp.{given, *}
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 
-import webapp.store.given
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 

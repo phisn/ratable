@@ -1,6 +1,6 @@
 package webapp
 
-import core.store.framework.{*, given}
+import core.state.framework.{*, given}
 import org.scalatest.*
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*

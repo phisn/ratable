@@ -8,8 +8,8 @@ import rescala.default.*
 import scala.reflect.Selectable.*
 import webapp.services.*
 import webapp.services.state.*
-import webapp.store.{*, given}
-import webapp.store.framework.{*, given}
+import webapp.state.{*, given}
+import webapp.state.framework.{*, given}
 
 // Creates facades for aggregates and registers them for distribution and persistence
 class FacadeFactory(services: {

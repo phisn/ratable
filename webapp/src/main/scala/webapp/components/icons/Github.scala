@@ -5,7 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def iconGithub(using services: Services) =

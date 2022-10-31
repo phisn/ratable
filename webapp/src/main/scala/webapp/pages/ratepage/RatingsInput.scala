@@ -1,6 +1,6 @@
 package webapp.pages.ratepage
 
-import core.store.aggregates.ratable.*
+import core.state.aggregates.ratable.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -9,7 +9,7 @@ import webapp.components.*
 import webapp.components.layouts.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def ratingsInputComponent(ratable: Ratable, ratingForCategorySignal: Var[Map[Int, Int]]) =

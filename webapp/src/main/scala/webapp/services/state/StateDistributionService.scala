@@ -7,7 +7,7 @@ import core.messages.*
 import core.messages.client.*
 import core.messages.delta_message.*
 import core.messages.server.*
-import core.store.framework.*
+import core.state.framework.*
 import org.scalajs.dom.WebSocket
 import org.scalajs.dom.MessageEvent
 import scala.collection.mutable.Map

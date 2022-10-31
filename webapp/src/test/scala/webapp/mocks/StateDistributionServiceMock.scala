@@ -1,7 +1,7 @@
 package webapp.mocks
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import core.store.framework.*
+import core.state.framework.*
 import rescala.default.*
 import scala.collection.mutable.Map
 import webapp.*

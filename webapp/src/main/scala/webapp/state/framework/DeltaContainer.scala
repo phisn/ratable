@@ -1,8 +1,8 @@
-package webapp.store.framework
+package webapp.state.framework
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.store.framework.*
+import core.state.framework.*
 import kofre.base.*
 
 case class DeltaContainer[A](

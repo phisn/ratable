@@ -1,4 +1,4 @@
-package core.store.framework
+package core.state.framework
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*

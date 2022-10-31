@@ -8,7 +8,7 @@ import webapp.components.*
 import webapp.components.layouts.*
 import webapp.pages.ratepage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def badgesComponent(using services: Services) =

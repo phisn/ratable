@@ -9,7 +9,7 @@ import webapp.components.layouts.*
 import webapp.pages.homepage.*
 import webapp.pages.ratepage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 case class ViewPage(

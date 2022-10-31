@@ -1,4 +1,4 @@
-package webapp.store.framework
+package webapp.state.framework
 
 import kofre.decompose.containers.DeltaBufferRDT
 import rescala.default.*

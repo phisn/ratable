@@ -1,9 +1,9 @@
 package webapp.services
 
-import core.store.*
-import core.store.aggregates.ratable.{*, given}
+import core.state.*
+import core.state.aggregates.ratable.{*, given}
 import webapp.services.*
-import webapp.store.{*, given}
+import webapp.state.{*, given}
 
 import scala.reflect.Selectable.*
 

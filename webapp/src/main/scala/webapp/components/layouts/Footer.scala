@@ -6,7 +6,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.components.icons.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def footerComponent(using services: Services) =

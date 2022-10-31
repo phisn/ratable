@@ -6,7 +6,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import scala.util.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 private def starInputComponent(id: String, value: Int, isChecked: Boolean, changeVar: Var[Int]) = 

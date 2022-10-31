@@ -1,9 +1,9 @@
 package webapp.usecases.ratable
 
-import core.store.aggregates.ratable.*
-import core.store.framework.{given, *}
+import core.state.aggregates.ratable.*
+import core.state.framework.{given, *}
 import webapp.*
-import webapp.store.framework.{given, *}
+import webapp.state.framework.{given, *}
 
 def createRatable(title: String, categories: List[String])(using services: Services) =
   services.logger.log(s"Creating ratable with title: $title")

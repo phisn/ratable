@@ -5,9 +5,9 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.client.*
 import core.messages.delta_message.*
 import core.messages.server.*
-import core.store.*
-import core.store.aggregates.ratable.*
-import core.store.framework.*
+import core.state.*
+import core.state.aggregates.ratable.*
+import core.state.framework.*
 import functions.*
 import scala.util.*
 

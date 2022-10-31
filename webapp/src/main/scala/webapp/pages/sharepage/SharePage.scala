@@ -11,7 +11,7 @@ import webapp.pages.homepage.*
 import webapp.pages.ratepage.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 case class SharePage(

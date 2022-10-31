@@ -2,7 +2,7 @@ package core.messages
 
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import core.store.framework.*
+import core.state.framework.*
 
 case class AcknowledgeDeltaMessage(
   aggregateId: String,

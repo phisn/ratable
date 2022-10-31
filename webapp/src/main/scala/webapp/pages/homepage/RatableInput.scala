@@ -7,7 +7,7 @@ import rescala.default.*
 import webapp.{given, *}
 import webapp.pages.sharepage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.usecases.ratable.*
 
 def ratableInputComponent(using services: Services) = 

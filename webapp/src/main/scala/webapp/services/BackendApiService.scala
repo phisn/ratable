@@ -7,7 +7,7 @@ import sttp.model.ResponseMetadata
 import sttp.ws.WebSocket
 import rescala.default.*
 
-import webapp.store.framework.*
+import webapp.state.framework.*
 
 import reflect.Selectable.reflectiveSelectable
 import cats.effect.syntax.async

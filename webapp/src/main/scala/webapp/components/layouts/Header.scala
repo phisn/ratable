@@ -8,7 +8,7 @@ import rescala.default.*
 import webapp.components.icons.*
 import webapp.pages.homepage.*
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 import webapp.{*, given}
 
 def headerComponent(using services: Services) =

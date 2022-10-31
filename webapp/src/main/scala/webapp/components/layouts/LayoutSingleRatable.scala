@@ -1,6 +1,6 @@
 package webapp.components.layouts
 
-import core.store.aggregates.ratable.*
+import core.state.aggregates.ratable.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -10,7 +10,7 @@ import webapp.components.layouts.*
 import webapp.pages.homepage.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.framework.{given, *}
+import webapp.state.framework.{given, *}
 import webapp.{given, *}
 
 def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: Services) =

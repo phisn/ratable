@@ -1,4 +1,4 @@
-package core.store.framework
+package core.state.framework
 
 import kofre.base.Bottom
 import kofre.datatypes.TimedVal

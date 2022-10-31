@@ -1,14 +1,14 @@
 package webapp.mocks
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import core.store.framework.*
+import core.state.framework.*
 import kofre.base.*
 import org.scalajs.dom
 import rescala.default.*
 import scala.collection.mutable.*
 import scala.collection.immutable.Set
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 
 class StatePersistenceServiceMock[I : JsonValueCodec : Bottom](initialID: String = "<not-used>", initial: Option[I] = None) extends StatePersistanceServiceInterface:
   val changes = ListBuffer[I]()

@@ -9,7 +9,7 @@ import webapp.components.layouts.*
 import webapp.pages.homepage.*
 import webapp.pages.viewpage.*
 import webapp.services.*
-import webapp.store.framework.{given, *}
+import webapp.state.framework.{given, *}
 import webapp.usecases.ratable.*
 import webapp.{given, *}
 

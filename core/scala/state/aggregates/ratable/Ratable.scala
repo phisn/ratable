@@ -1,8 +1,8 @@
-package core.store.aggregates.ratable
+package core.state.aggregates.ratable
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.store.framework.{*, given}
+import core.state.framework.{*, given}
 import kofre.base.*
 import kofre.datatypes.*
 import kofre.syntax.*

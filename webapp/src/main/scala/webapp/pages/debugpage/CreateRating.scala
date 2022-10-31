@@ -7,7 +7,7 @@ import rescala.default.*
 import scala.util.*
 import webapp.{given, *}
 import webapp.services.*
-import webapp.store.framework.*
+import webapp.state.framework.*
 
 def createRating(using Services) = 
   val clickEvent = Evt[Int]()
