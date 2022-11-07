@@ -56,7 +56,7 @@ lazy val commonSettings = Seq(
 lazy val root = project in file(".")
 
 lazy val webapp = project
-  .enablePlugins(ScalaJSBundlerPlugin)
+  .enablePlugins(ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
   .settings(commonSettings)
   .settings(
     scalaJSUseMainModuleInitializer   := true,
@@ -85,9 +85,15 @@ lazy val webapp = project
       "daisyui"                -> "^2.31.0",
 
       // pwa support
-      "workbox-webpack-plugin" -> "^6.5.4",
+      "workbox-webpack-plugin" -> "^6 .5.4",
     ),
+    
+    Compile / npmDependencies ++= Seq(
 
+      // Required by outwatch
+      "snabbdom"        -> "github:outwatch/snabbdom.git#semver:0.7.5",
+    ),
+    
     startWebpackDevServer / version   := "3.11.3",
     // For Webpack v5
     // webpackCliVersion                 := "4.10.0",

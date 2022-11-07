@@ -12,8 +12,12 @@ import scala.reflect.Selectable.*
 class StateProvider(services: {
   val facadeFactory: FacadeFactory
 }):
+  services.statePersistence
+    .migrationsFor[Ratable](AggregateId.Ratable.toString())
+    .build
+
   val application = ApplicationState(
-    services.facadeFactory.registerAggregate[RatableRepository](AggregateId.Ratable.toString()),
+    services.facadeFactory.registerAggregateAsRepository[Ratable](AggregateId.Ratable.toString()),
   )
 
   def ratables = application.ratables.changes

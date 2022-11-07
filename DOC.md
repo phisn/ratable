@@ -23,3 +23,11 @@ The application has unit tests for core services and an test for each usecase. B
 
 # Communication and persistence
 All deltas are first converted to json for further use. For persisting on the client they are simply stored in localstorage. For communication with the azure function we have decided to use protobuf because often messages contain other messages. For example a server message would contain a delta message which would contain a json delta. This or even deeper nesting would result in a lot of overhead when using json. Protobuf is a binary format which is much more efficient and has native support for these types of oneof relationships (ex. server message contains oneof type of a message).
+
+# Authentication, ReplicaTokens and ReplicaIDs
+## Draft 1
+Each ReplicaToken uniquely identifies a device. A client represents multiple ReplicaTokens. A ReplicaID is a hashed ReplicaToken. The seperation is required as a solution to the following problem. Clients may create aggregates and later sign in. Other replicas may already in this time aquire the temporary replicaID in an aggregate (ex. user creates a Ratable before sign in). After the sign in usally the ReplicaID would change to the original one created at first account creation. To solve this, a client has multiple ReplicaIDs. Each ReplicaID is a unique Device. Now a client should be able to aquire a ReplicaID, if it sign ins on a new device. To prevent random clients from aquiring a ReplicaID from other clients (that are not yet signed in), the process of aquiring it is to know a secret. The secret is the ReplicaToken, that gets hashed to the ReplicaID.
+
+# Storage, Localstorage and IndexedDB
+The project initialy used localstorage. Localstorage is limited to 5MB and does only provide synchronous access. The better solution was to use the more modern IndexedDB. It is asynchronous and has browser specific but usally very high limit. IndexedDB is supported on all modern browsers.
+

@@ -13,6 +13,39 @@ module.exports = webDev({
   ]
 });
 
+/*
+  map(
+    replicaID -> ratings
+  ),
+
+
+  merge(rdt, Bottom[].empty)
+
+{
+  map(
+    replicaID -> ratings,
+    otherReplicaID -> ratings,
+  ),
+  ================================>
+  map(
+    replicaID -> ratings,
+  ),
+}
+
+users: [
+  [ replicaID, ..., otherReplicaID ],
+  ...
+]
+
+{
+  users: [
+    [ replicaID, ... ],
+    ...
+  ]
+}
+
+*/
+
 // Enforcing resource finding from root directory to implement path based routing
 // https://github.com/fun-stack/fun-pack/blob/master/src/webpack.config.web.dev.js
 // https://webpack.js.org/plugins/html-webpack-plugin/

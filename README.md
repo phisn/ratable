@@ -86,7 +86,15 @@ terraform apply
 - Add output `api_key` in github as a action secret named `AZURE_STATIC_WEB_APP_TOKEN`.
 - Secret for azure function has to be get manually. [Reference](https://github.com/marketplace/actions/azure-functions-action). Download `Go to azure portal -> func-ratable-core -> Overview -> Get publish profile`. Copy the contents to github as a action secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`.
 
-## Techstack
+## Google SSO
+Follow following tutorials
+- https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid
+- https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-google
+
+How it works
+- https://learn.microsoft.com/en-us/azure/app-service/tutorial-auth-aad?pivots=platform-linux
+
+# Techstack
 ### Core
 `Scala, Scalajs, Rescala, Protobuf, Outwatch, Webpack, Azure Functions, Workbox`
 ### UI
@@ -94,5 +102,5 @@ terraform apply
 ### Infrastructure
 `Azure, Terraform, Github Actions`
 
-## Misc
+# Misc
 - For simplicity Tailwind is installed in (in seperate nodejs packages) `webapp/` and in `/`, because vs code `tailwind intellisense` plugin needs tailwind installed in root directory.

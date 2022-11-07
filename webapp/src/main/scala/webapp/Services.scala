@@ -23,6 +23,7 @@ trait Services:
   lazy val routing: RoutingService
 
 object ServicesDefault extends Services, StateServices:
+  // Core
   lazy val backendApi = BackendApi(this)
   lazy val config = ApplicationConfig(this)
   lazy val logger = LoggerService(this)
@@ -33,7 +34,7 @@ object ServicesDefault extends Services, StateServices:
 
   lazy val routing = RoutingService(this)
 
-  // state
+  // State
   lazy val facadeFactory = FacadeFactory(this)
   lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)

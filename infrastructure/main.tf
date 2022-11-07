@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0.0"
+      version = "~> 3.30.0"
     }
   }
   required_version = ">= 0.14.9"
@@ -23,37 +23,6 @@ resource "azurerm_static_site" "core" {
   name                = "stapp-ratable"
   location            = azurerm_resource_group.core.location
   resource_group_name = azurerm_resource_group.core.name
-}
-
-resource "azurerm_web_pubsub" "core" {
-  name                = "wps-ratable"
-  location            = azurerm_resource_group.core.location
-  resource_group_name = azurerm_resource_group.core.name
-
-  sku = "Free_F1"
-}
-
-resource "azurerm_web_pubsub_hub" "core_socket" {
-  name          = "socket"
-  web_pubsub_id = azurerm_web_pubsub.core.id
-
-  event_handler {
-    url_template       = "https://func-ratable-core.azurewebsites.net/runtime/webhooks/webpubsub?Code="
-    user_event_pattern = "*"
-    system_events      = ["connect", "connected", "disconnected"]
-  }
-  
-  depends_on = [
-    azurerm_web_pubsub.core
-  ]
-}
-
-resource "azurerm_web_pubsub" "test" {
-  name                = "wps-ratable-test"
-  location            = azurerm_resource_group.core.location
-  resource_group_name = azurerm_resource_group.core.name
-
-  sku = "Free_F1"
 }
 
 // linux functions app does currently not support zip deploy. 
@@ -100,6 +69,48 @@ resource "azurerm_windows_function_app" "core" {
   }
 }
 
+// Web Pubsub
+// Needed to get webpubsub token
+data "azurerm_function_app_host_keys" "core" {
+  name                = azurerm_windows_function_app.core.name
+  resource_group_name = azurerm_resource_group.core.name
+}
+
+resource "azurerm_web_pubsub" "core" {
+  name                = "wps-ratable"
+  location            = azurerm_resource_group.core.location
+  resource_group_name = azurerm_resource_group.core.name
+
+  sku = "Free_F1"
+}
+
+resource "azurerm_web_pubsub_hub" "core_socket" {
+  name          = "socket"
+  web_pubsub_id = azurerm_web_pubsub.core.id
+
+  event_handler {
+    url_template       = format(
+      "https://%s/runtime/webhooks/webpubsub?code=%s", 
+      azurerm_windows_function_app.core.default_hostname, 
+      data.azurerm_function_app_host_keys.core.webpubsub_extension_key)
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected", "disconnected"]
+  }
+  
+  depends_on = [
+    azurerm_web_pubsub.core
+  ]
+}
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "wps-ratable-test"
+  location            = azurerm_resource_group.core.location
+  resource_group_name = azurerm_resource_group.core.name
+
+  sku = "Free_F1"
+}
+
+// Outputs
 output "api_key" {
   value = azurerm_static_site.core.api_key
 }

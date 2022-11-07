@@ -15,3 +15,12 @@ message ServerMessage {
     DeltaMessage deltaMessage = 2;
   }
 }
+
+/*
+message: {
+  type: "deltamessage",
+  message: {
+
+  }
+}
+*/

@@ -4,8 +4,17 @@ package core.messages;
 
 import "delta_message.proto";
 
+// Associates a replica with a login information. If the login information
+// does not exist, it will be created.
+message AssociateReplicaMessage {
+  string replicaToken = 1;
+  string username = 2;
+  string hashedpassword = 3;
+}
+
 message ClientMessage {
   oneof message {
     DeltaMessage deltaMessage = 1;
+    AssociateReplicaMessage associateReplicaMessage = 2;
   }
 }
