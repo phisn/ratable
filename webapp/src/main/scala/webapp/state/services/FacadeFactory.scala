@@ -22,65 +22,63 @@ import rescala.operator.*
 
 class FacadeFactory(services: {
   val logger: LoggerServiceInterface
+  val statePersistence: StatePersistenceService
 }):
-  def registerAggregateAsRepository[A : JsonValueCodec : Bottom : Lattice](
-    aggregateTypeId: String
-  ): FacadeRepository[A] =
-    newMigration(version = 1) { db =>
-      val store = db.createObjectStore(aggregateTypeId)
+  // All aggregates are stored in IndexedDB. 
+  def registerAggregate[A : JsonValueCodec : Bottom : Lattice](id: String): Facade[A] =
+    registerAggregate("singleton", id)
+
+  def registerAggregate[A : JsonValueCodec : Bottom : Lattice](aggregateTypeId: String, id: String): Facade[A] =
+    val actions = Evt[A => A]()
+    
+    val aggregateSignalInFuture = services.statePersistence
+      .loadAggregate(aggregateTypeId, id)
+      .map(createAggregateSignal(actions))
+
+    actions.recoverEventsUntilCompleted(aggregateSignalInFuture)
+
+    val aggregateSignal = Signals
+      .fromFuture(aggregateSignalInFuture)
+      .flatten
+      .map(_.inner)
+
+    Facade(
+      actions,
+      aggregateSignal,
+    )
+  
+  private def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](actions: Evt[A => A])(initial: DeltaContainer[A]) =
+    Events.foldAll(initial) { state => 
+      Seq(
+        // Actions received from the client are applied directly to the state
+        actions.act(action => state.mutate(action)),
+/*
+        // Deltas with changes from other clients received from the server
+        deltaEvt.act(delta => state.applyDelta(delta)),
+
+        // Delta acks are sent as a response to merged deltas and contain the tag of the merged delta
+        deltaAckEvt.act(tag => state.acknowledge(tag)),
+*/
+      )
     }
 
-    def registerAggregate(id: String): Facade[A] =
-      val actions = Evt[A => A]()
-      
-      val aggregateSignalInFuture: Future[Signal[A]] = loadAggregate(id)
-        .map(buildAggregateSignal(actions))
-
-      recoverMissingActions(
-        aggregateSignalInFuture, 
-        actions
-      )
-
-      val aggregateSignal = Signals
-        .fromFuture(aggregateSignalInFuture)
-        .flatten
-
-      Facade(
-        actions,
-        aggregateSignal
-      )
-
-    def buildAggregateSignal(actions: Evt[A => A])(initial: A): Signal[A] =
-      Events.foldAll(initial) { state => 
-        Seq(
-          actions.act(action => action(state)),
-        )
-      }
+extension [A](evt: Evt[A])
+  // Actions fired while future is not yet completed
+  // will be replayed after the future is completed in the correct order
+  def recoverEventsUntilCompleted(future: Future[_]) =
+    val pending = collection.mutable.Queue[A]()
     
-    // Actions fired while future is not yet completed
-    // will be replayed after the future is completed in the correct order
-    def recoverMissingActions(future: Future[_], actions: Evt[A => A]) =
-      val pending = collection.mutable.Queue[A => A]()
-      
-      actions
-        .filter(_ => !future.isCompleted)
-        .observe(pending.enqueue(_))
+    evt
+      .filter(_ => !future.isCompleted)
+      .observe(pending.enqueue(_))
 
-      future.onComplete(_ => pending
-// Dequeue not needed, because future will never be incomplete again
-//        .dequeueAll(_ => true)
-        .foreach(actions.fire(_))
-      )
-    
-    val facades = collection.mutable.Map[
-      String, 
-      Facade[A],
-    ]()
+    future.onComplete(_ => pending
+      // Dequeue not needed, because future will never be incomplete again
+      //     .dequeueAll(_ => true)
+      .foreach(evt.fire(_))
+    )
 
-    new FacadeRepository:
-      def facade(id: String): Facade[A] = 
-        facades.getOrElseUpdate(id, registerAggregate(id))
-
+/*
 // Creates facades for aggregates and registers them for distribution and persistence
 class _FacadeFactory(services: {
   val stateDistribution: StateDistributionServiceInterface
@@ -119,3 +117,4 @@ class _FacadeFactory(services: {
       actionsEvt,
       changes.map(_.inner),
     )
+*/

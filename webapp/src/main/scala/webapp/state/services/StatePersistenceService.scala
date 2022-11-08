@@ -9,34 +9,44 @@ import rescala.default.*
 import scala.concurrent.*
 import webapp.services.*
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
+import core.state.framework.*
+import webapp.state.framework.{given, *}
 
 trait StatePersistanceServiceInterface:
   def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]): Signal[A]
 
-class JsonContainer(
-  val json: String
+class JsAggregateContainer(
+  val aggregateJson: String,
+  val tag: Tag
+
 ) extends scalajs.js.Object
 
 class StatePersistenceService(services: {
   val logger: LoggerServiceInterface
-}) extends StatePersistanceServiceInterface:
+}): // extends StatePersistanceServiceInterface:
   private val dbPromise = Promise[IDBDatabase]()
   private val db = dbPromise.future
 
   private val migrations = collection.mutable.Map[Int, collection.mutable.Set[IDBDatabase => Unit]]()
 
-  def migrationsFor[A](aggregateTypeId: String): Unit =
-    new 
+  def migrationForRepository(aggregateTypeId: String): StatePersistenceService =
+    newMigration(1) { db =>
+      val store = db.createObjectStore(aggregateTypeId)
+      store.createIndex("tag", "tag")
+    }
 
-  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String)(id: String): Future[A] =
+    this
+
+  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[DeltaContainer[A]] =
     openStoreFor(aggregateTypeId) { store =>
-      val promise = Promise[A]()
+      val promise = Promise[DeltaContainer[A]]()
       val request = store.get(id)
 
       request.onsuccess = event =>
         promise.success(
-          readFromString[A](request.result.asInstanceOf[JsonContainer].json)
+          readFromString[DeltaContainer[A]](request.result.asInstanceOf[JsAggregateContainer].aggregateJson)
         )
 
       request.onerror = event =>
@@ -63,7 +73,7 @@ class StatePersistenceService(services: {
   private def newMigration(version: Int)(migration: IDBDatabase => Unit): Unit =
     migrations.getOrElseUpdate(version, collection.mutable.Set()) += migration
 
-  def build =
+  def boot =
     dom.window.indexedDB.toOption match
       case Some(indexedDB) =>
         val request = indexedDB.`open`("aggregates", 1)
@@ -88,35 +98,3 @@ class StatePersistenceService(services: {
       case None => 
         services.logger.error("IndexedDB not supported")
         dbPromise.failure(new Exception("IndexedDB not supported"))
-
-/*
-  def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]) =
-    val sig = factory(aggregateFromStorageOrBottom(id)(services.logger))
-    
-    sig.observe(
-      aggregate => 
-        dom.window.localStorage.setItem(id, writeToString(aggregate))
-        services.logger.trace(s"Writing to storage: $id"),
-      fireImmediately = true
-    )
-    
-    sig
-
-  private def aggregateFromStorageOrBottom[A : JsonValueCodec : Bottom](id: String)(logger: LoggerServiceInterface): A =
-    val item = dom.window.localStorage.getItem(id)
-
-    if item != null then
-      try {
-        logger.trace(s"Reading from storage: $id")
-        return readFromString(item) 
-      }
-      catch {
-        case cause: Throwable =>
-          dom.window.localStorage.removeItem(id)
-
-          logger.error(s"Could not restore $id: $cause")
-          cause.printStackTrace()
-      }
-    
-    Bottom[A].empty
-*/
