@@ -26,12 +26,18 @@ class FacadeRepositoryFactory(services: {
 }):
   def registerAggregateAsRepository[A : JsonValueCodec : Bottom : Lattice](
     aggregateTypeId: String
-  ): FacadeRepository[A] = 
+  ): String => Facade[A] = 
     val facades = collection.mutable.Map[String, Facade[A]]()
-
+  
+    id => facades.getOrElseUpdate(
+      id, 
+      services.facadeFactory.registerAggregate(aggregateTypeId, id)
+    )
+/*
     new FacadeRepository:
       def facade(id: String): Facade[A] =
         facades.getOrElseUpdate(
           id, 
           services.facadeFactory.registerAggregate(aggregateTypeId, id)
         )
+*/

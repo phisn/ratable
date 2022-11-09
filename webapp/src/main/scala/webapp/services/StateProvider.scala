@@ -11,13 +11,15 @@ import scala.reflect.Selectable.*
 // Provides access to application state and all its facades
 class StateProvider(services: {
   val applicationStateFactory: ApplicationStateFactory
+  val statePersistence: StatePersistenceService
 }):
-  val application = services.applicationStateFactory.buildApplicationState
+  private val application = services.applicationStateFactory.buildApplicationState
+
+  // Explicitly boot up the StatePersistenceService
+  // after application state has been created
+  services.statePersistence.boot
 
   def ratable(id: String) = application.ratables.facade(id).changes
   def ratable(id: String)(action: Ratable => Ratable) = application.ratables.facade(id).actions.fire(action)
 
-/*
-state.ratable(ratableId).changes
-state.ratable(ratableId).mutate(_ => Ratable(...))
-*/
+  def ratables = application.ratables

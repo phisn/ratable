@@ -24,11 +24,13 @@ class FacadeFactory(services: {
   val logger: LoggerServiceInterface
   val statePersistence: StatePersistenceService
 }):
-  // All aggregates are stored in IndexedDB. 
+  // Aggregates that contain a single instance get a IndexedDB table for themselves
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](id: String): Facade[A] =
-    registerAggregate("singleton", id)
+    registerAggregate(id, id)
 
   def registerAggregate[A : JsonValueCodec : Bottom : Lattice](aggregateTypeId: String, id: String): Facade[A] =
+    services.statePersistence.migrationForRepository(aggregateTypeId)
+
     val actions = Evt[A => A]()
     
     val aggregateSignalInFuture = services.statePersistence

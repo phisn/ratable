@@ -6,17 +6,13 @@ import scala.reflect.Selectable.*
 import webapp.state.*
 import webapp.state.framework.*
 
+// Abstract all state creation in one place away 
+// from the core services into the state module
 class ApplicationStateFactory(services: {
-  val facadeFactory: FacadeRepositoryFactory
+  val facadeRepositoryFactory: FacadeRepositoryFactory
   val statePersistence: StatePersistenceService
 }):
   def buildApplicationState: ApplicationState =
-    services.statePersistence
-      .migrationForRepository(AggregateId.Ratable.toString())
-      .boot
-
-    val state = ApplicationState(
-      ratables = services.facadeFactory.registerAggregateAsRepository[Ratable](AggregateId.Ratable.toString()),
+    ApplicationState(
+      ratables = services.facadeRepositoryFactory.registerAggregateAsRepository[Ratable](AggregateId.Ratable.toString()),
     )
-
-    state

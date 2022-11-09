@@ -31,13 +31,11 @@ class StatePersistenceService(services: {
 
   private val migrations = collection.mutable.Map[Int, collection.mutable.Set[IDBDatabase => Unit]]()
 
-  def migrationForRepository(aggregateTypeId: String): StatePersistenceService =
+  def migrationForRepository(aggregateTypeId: String) =
     newMigration(1) { db =>
       val store = db.createObjectStore(aggregateTypeId)
       store.createIndex("tag", "tag")
     }
-
-    this
 
   def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[DeltaContainer[A]] =
     openStoreFor(aggregateTypeId) { store =>
