@@ -6,3 +6,4 @@ import scala.concurrent.*
 
 trait FacadeRepository[A]:
   def facade(id: String): Facade[A]
+  def remove(id: String): Unit

@@ -1,24 +1,15 @@
 package webapp.state.services
 
+import collection.immutable.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
 import kofre.decompose.containers.*
 import rescala.default.*
+import rescala.operator.*
+import scala.reflect.Selectable.*
 import webapp.services.*
 import webapp.state.framework.{*, given}
 import webapp.state.{*, given}
-
-import scala.reflect.Selectable.*
-
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.scalajs.dom
-import org.scalajs.dom.*
-import scala.concurrent.*
-import webapp.state.framework.*
-import collection.immutable.*
-import rescala.operator.*
 
 class FacadeRepositoryFactory(services: {
   val logger: LoggerServiceInterface
@@ -26,18 +17,18 @@ class FacadeRepositoryFactory(services: {
 }):
   def registerAggregateAsRepository[A : JsonValueCodec : Bottom : Lattice](
     aggregateTypeId: String
-  ): String => Facade[A] = 
+  ): FacadeRepository[A] = 
     val facades = collection.mutable.Map[String, Facade[A]]()
   
-    id => facades.getOrElseUpdate(
-      id, 
-      services.facadeFactory.registerAggregate(aggregateTypeId, id)
-    )
-/*
     new FacadeRepository:
+      // Creation of new aggregates is implicit. If an aggregate is requested that does not exist,
+      // an empty aggregate is returned. This aggregate is then not saved until the first action is fired.
       def facade(id: String): Facade[A] =
         facades.getOrElseUpdate(
           id, 
           services.facadeFactory.registerAggregate(aggregateTypeId, id)
         )
-*/
+
+      // Good question how to implement this one. :D
+      def remove(id: String): Unit =
+        ()

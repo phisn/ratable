@@ -3,6 +3,7 @@ package webapp.state.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import kofre.base.*
+import scalajs.*
 import org.scalajs.dom
 import org.scalajs.dom.*
 import rescala.default.*
@@ -14,37 +15,33 @@ import scala.reflect.Selectable.*
 import core.state.framework.*
 import webapp.state.framework.{given, *}
 
-trait StatePersistanceServiceInterface:
-  def storeAggregateSignal[A : JsonValueCodec : Bottom](id: String, factory: A => Signal[A]): Signal[A]
+trait StatePersistenceServiceInterface:
+  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Unit
+  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]]
+  def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Unit
 
-class JsAggregateContainer(
-  val aggregateJson: String,
-  val tag: Tag
-
-) extends scalajs.js.Object
+  def migrationForRepository(aggregateTypeId: String): Unit
+  def boot: Unit
 
 class StatePersistenceService(services: {
   val logger: LoggerServiceInterface
-}): // extends StatePersistanceServiceInterface:
-  private val dbPromise = Promise[IDBDatabase]()
-  private val db = dbPromise.future
+}) extends StatePersistenceServiceInterface:
+  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]) =
+    ()
 
-  private val migrations = collection.mutable.Map[Int, collection.mutable.Set[IDBDatabase => Unit]]()
-
-  def migrationForRepository(aggregateTypeId: String) =
-    newMigration(1) { db =>
-      val store = db.createObjectStore(aggregateTypeId)
-      store.createIndex("tag", "tag")
-    }
-
-  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[DeltaContainer[A]] =
+  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]] =
     openStoreFor(aggregateTypeId) { store =>
-      val promise = Promise[DeltaContainer[A]]()
+      val promise = Promise[Option[DeltaContainer[A]]]()
       val request = store.get(id)
 
       request.onsuccess = event =>
         promise.success(
-          readFromString[DeltaContainer[A]](request.result.asInstanceOf[JsAggregateContainer].aggregateJson)
+          // IndexedDB store get returns undefined if the key is not found
+          // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
+          if js.isUndefined(request.result) then 
+            None
+          else 
+            Some(readFromString[DeltaContainer[A]](request.result.asInstanceOf[JsAggregateContainer].aggregateJson))
         )
 
       request.onerror = event =>
@@ -53,6 +50,9 @@ class StatePersistenceService(services: {
 
       promise
     }
+
+  def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String) =
+    ()
   
   private def openStoreFor[R](id: String)(f: IDBObjectStore => Promise[R]): Future[R] =
     db.flatMap(db =>
@@ -70,6 +70,12 @@ class StatePersistenceService(services: {
 
   private def newMigration(version: Int)(migration: IDBDatabase => Unit): Unit =
     migrations.getOrElseUpdate(version, collection.mutable.Set()) += migration
+
+  def migrationForRepository(aggregateTypeId: String) =
+    newMigration(1) { db =>
+      val store = db.createObjectStore(aggregateTypeId)
+      store.createIndex("tag", "tag")
+    }
 
   def boot =
     dom.window.indexedDB.toOption match
@@ -96,3 +102,14 @@ class StatePersistenceService(services: {
       case None => 
         services.logger.error("IndexedDB not supported")
         dbPromise.failure(new Exception("IndexedDB not supported"))
+
+  private val dbPromise = Promise[IDBDatabase]()
+  private val db = dbPromise.future
+
+  private val migrations = collection.mutable.Map[Int, collection.mutable.Set[IDBDatabase => Unit]]()
+  
+  class JsAggregateContainer(
+    val aggregateJson: String,
+    val tag: Tag
+
+  ) extends scalajs.js.Object

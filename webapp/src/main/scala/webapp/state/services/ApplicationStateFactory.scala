@@ -10,7 +10,7 @@ import webapp.state.framework.*
 // from the core services into the state module
 class ApplicationStateFactory(services: {
   val facadeRepositoryFactory: FacadeRepositoryFactory
-  val statePersistence: StatePersistenceService
+  val statePersistence: StatePersistenceServiceInterface
 }):
   def buildApplicationState: ApplicationState =
     ApplicationState(

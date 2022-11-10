@@ -34,5 +34,6 @@ case class DebugPage() extends Page:
 
 def jsonApplicationState(using services: Services) =
   div(
-    services.state.application.toSignalDTO.map(dto => writeToString(dto))
+    // services.state.application.toSignalDTO.map(dto => writeToString(dto))
+    "removed"
   )
