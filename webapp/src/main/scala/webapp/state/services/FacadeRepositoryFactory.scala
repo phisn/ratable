@@ -12,6 +12,7 @@ import scala.reflect.Selectable.*
 import webapp.services.*
 import webapp.state.framework.{*, given}
 import webapp.state.{*, given}
+import scala.util.Success
 
 class FacadeRepositoryFactory(services: {
   val logger: LoggerServiceInterface
@@ -24,29 +25,33 @@ class FacadeRepositoryFactory(services: {
     services.statePersistence.migrationForRepository(aggregateTypeId)
 
     val facades = collection.mutable.Map[String, Facade[A]]()
+
+    def tryLoadAggregate(id: String) =
+      val actions = Evt[A => A]()
+        
+      val facadeInFuture = services.statePersistence
+        .loadAggregate(aggregateTypeId, id)
+        .map(_.map(aggregate =>
+          Facade(
+            actions,
+            services.aggregateFactory.createAggregateSignal(actions)(aggregate),
+          )
+        ))
+
+      actions.recoverEventsUntilCompleted(facadeInFuture)
+
+      facadeInFuture
+        .andThen {
+          case Success(Some(facade)) => facades.put(id, facade)
+          case _ =>
+        }
   
     new FacadeRepository:
       def get(id: String): Future[Option[Facade[A]]] =
         facades.get(id) match
-          case Some(facade) => 
-            Future.successful(Some(facade))
+          case Some(facade) => Future.successful(Some(facade))
+          case None => tryLoadAggregate(id)
 
-          case None =>
-            val actions = Evt[A => A]()
-    
-            val facadeInFuture = services.statePersistence
-              .loadAggregate(aggregateTypeId, id)
-              .map(_.map(aggregate =>
-                Facade(
-                  actions,
-                  services.aggregateFactory.createAggregateSignal(actions)(aggregate),
-                )
-              ))
-
-            actions.recoverEventsUntilCompleted(facadeInFuture)
-
-            facadeInFuture
-      
       def create(id: String, aggregate: A): Unit =
         val actions = Evt[A => A]()
 
@@ -59,3 +64,4 @@ class FacadeRepositoryFactory(services: {
 
         // Explicitly save the aggregate, because saving is usally done by action handling
         services.statePersistence.saveAggregate(aggregateTypeId, id, DeltaContainer(aggregate))
+

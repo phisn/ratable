@@ -29,11 +29,20 @@ def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using service
     div(
       cls := "flex-grow flex flex-col",
       services.state.ratables.map(ratableID)(
-        div(
-          "Loading"
+        centerContentComponent(
+          div(
+            cls := "flex flex-col space-y-8 items-center",
+            div(
+              cls := "text-2xl font-bold",
+              "Loading",
+            ),
+            VNode.html("progress")(
+              cls := "progress w-[20rem]"
+            )
+          )
         ),
-        div(
-          "Ratable not found"
+        centerContentComponent(
+          titleComponent("Ratable not found")
         ),
         body
       )

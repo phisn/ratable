@@ -28,11 +28,13 @@ class StatePersistenceService(services: {
   val logger: LoggerServiceInterface
 }) extends StatePersistenceServiceInterface:
   def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]) =
-    openStoreFor(aggregateTypeId) { store =>
+    openStoreFor(aggregateTypeId, IDBTransactionMode.readwrite) { store =>
+      services.logger.trace(s"Saving aggregate with id: $id")
       val promise = Promise[Unit]()
       val request = store.put(JsAggregateContainer(writeToString(aggregate), aggregate.maxTag), id)
 
       request.onsuccess = event =>
+        services.logger.trace(s"Saved aggregate with id: $id")
         promise.success(())
 
       request.onerror = event =>
@@ -43,19 +45,21 @@ class StatePersistenceService(services: {
     }
 
   def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]] =
-    openStoreFor(aggregateTypeId) { store =>
+    openStoreFor(aggregateTypeId, IDBTransactionMode.readonly) { store =>
       val promise = Promise[Option[DeltaContainer[A]]]()
       val request = store.get(id)
 
       request.onsuccess = event =>
-        promise.success(
-          // IndexedDB store get returns undefined if the key is not found
-          // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
-          if js.isUndefined(request.result) then 
-            None
-          else 
-            Some(readFromString[DeltaContainer[A]](request.result.asInstanceOf[JsAggregateContainer].aggregateJson))
-        )
+        scala.scalajs.js.timers.setTimeout(4000) {
+          promise.success(
+            // IndexedDB store get returns undefined if the key is not found
+            // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
+            if js.isUndefined(request.result) then 
+              None
+            else 
+              Some(readFromString[DeltaContainer[A]](request.result.asInstanceOf[JsAggregateContainer].aggregateJson))
+          )
+        }
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}")
@@ -67,9 +71,9 @@ class StatePersistenceService(services: {
   def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String) =
     ()
   
-  private def openStoreFor[R](id: String)(f: IDBObjectStore => Promise[R]): Future[R] =
+  private def openStoreFor[R](id: String, mode: IDBTransactionMode)(f: IDBObjectStore => Promise[R]): Future[R] =
     db.flatMap(db =>
-      val tx = db.transaction(id, IDBTransactionMode.readonly)
+      val tx = db.transaction(id, mode)
       val store = tx.objectStore(id)
 
       tx.oncomplete = event =>
@@ -101,16 +105,16 @@ class StatePersistenceService(services: {
             .filter(_(0) >= event.oldVersion)
             .values
             .flatten
-            .foreach(_(event.target.result))
+            .foreach(_(request.result))
           services.logger.trace("IndexedDB upgrade done")
 
-        request.onsuccess = event =>
+        request.onsuccess = _ =>
           services.logger.log("IndexedDB opened successfully")
-          dbPromise.success(event.target.result)
+          dbPromise.success(request.result)
         
-        request.onerror = event =>
-          services.logger.error(s"IndexedDB open failed with error: ${event.message}")
-          dbPromise.failure(new Exception(s"IndexedDB open failed with error: ${event.message}"))
+        request.onerror = _ =>
+          services.logger.error(s"IndexedDB open failed with error: (${request.error})")
+          dbPromise.failure(new Exception(s"IndexedDB open failed with error: (${request.error})"))
 
       case None => 
         services.logger.error("IndexedDB not supported")
