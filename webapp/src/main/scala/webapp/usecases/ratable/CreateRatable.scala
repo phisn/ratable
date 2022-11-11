@@ -7,7 +7,7 @@ import webapp.state.framework.{given, *}
 
 def createRatable(title: String, categories: List[String])(using services: Services) =
   services.logger.log(s"Creating ratable with title: $title")
-  
+
   val id = services.state.uniqueID
-  services.state.ratable(id)(_ => Ratable(title, categories, services.config.replicaID))
+  services.state.ratables.create(id, Ratable(title, categories, services.config.replicaID))
   id

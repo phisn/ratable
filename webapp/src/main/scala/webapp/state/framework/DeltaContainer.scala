@@ -39,11 +39,17 @@ case class DeltaContainer[A](
       inner = inner,
       deltas = deltas.filter(_.tag > tag)
     )
+
+  def maxTag =
+    deltas.map(_.tag).maxOption.getOrElse(0L)
  
   private def uniqueTag =
-    deltas.map(_.tag).maxOption.getOrElse(0L) + 1L
+    maxTag + 1L
 
 object DeltaContainer:
+  def apply[A](inner: A): DeltaContainer[A] =
+    DeltaContainer(inner, Set.empty)
+
   given [A : JsonValueCodec]: JsonValueCodec[DeltaContainer[A]] = JsonCodecMaker.make
 
   given [A : Bottom]: Bottom[DeltaContainer[A]] = Bottom.derived

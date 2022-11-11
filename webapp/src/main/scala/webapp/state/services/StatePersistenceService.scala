@@ -15,6 +15,7 @@ import scala.reflect.Selectable.*
 import core.state.framework.*
 import webapp.state.framework.{given, *}
 
+// https://www.w3.org/TR/IndexedDB/
 trait StatePersistenceServiceInterface:
   def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Unit
   def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]]
@@ -27,7 +28,19 @@ class StatePersistenceService(services: {
   val logger: LoggerServiceInterface
 }) extends StatePersistenceServiceInterface:
   def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]) =
-    ()
+    openStoreFor(aggregateTypeId) { store =>
+      val promise = Promise[Unit]()
+      val request = store.put(JsAggregateContainer(writeToString(aggregate), aggregate.maxTag), id)
+
+      request.onsuccess = event =>
+        promise.success(())
+
+      request.onerror = event =>
+        services.logger.error(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}"))
+
+      promise
+    }
 
   def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]] =
     openStoreFor(aggregateTypeId) { store =>
@@ -46,7 +59,7 @@ class StatePersistenceService(services: {
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}")
-        promise.failure(new Exception(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}"))
+        promise.failure(Exception(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}"))
 
       promise
     }

@@ -38,6 +38,7 @@ object ServicesDefault extends Services, StateServices:
   lazy val applicationStateFactory = ApplicationStateFactory(this)
   lazy val facadeRepositoryFactory = FacadeRepositoryFactory(this)
   lazy val facadeFactory = FacadeFactory(this)
+  lazy val aggregateFactory = AggregateFactory(this)
 
   lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)

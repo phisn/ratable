@@ -6,6 +6,8 @@ import kofre.base.*
 import kofre.decompose.containers.*
 import rescala.default.*
 import rescala.operator.*
+import scala.concurrent.*
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
 import webapp.services.*
 import webapp.state.framework.{*, given}
@@ -13,22 +15,47 @@ import webapp.state.{*, given}
 
 class FacadeRepositoryFactory(services: {
   val logger: LoggerServiceInterface
-  val facadeFactory: FacadeFactory
+  val statePersistence: StatePersistenceServiceInterface
+  val aggregateFactory: AggregateFactory
 }):
   def registerAggregateAsRepository[A : JsonValueCodec : Bottom : Lattice](
     aggregateTypeId: String
   ): FacadeRepository[A] = 
+    services.statePersistence.migrationForRepository(aggregateTypeId)
+
     val facades = collection.mutable.Map[String, Facade[A]]()
   
     new FacadeRepository:
-      // Creation of new aggregates is implicit. If an aggregate is requested that does not exist,
-      // an empty aggregate is returned. This aggregate is then not saved until the first action is fired.
-      def facade(id: String): Facade[A] =
-        facades.getOrElseUpdate(
-          id, 
-          services.facadeFactory.registerAggregate(aggregateTypeId, id)
+      def get(id: String): Future[Option[Facade[A]]] =
+        facades.get(id) match
+          case Some(facade) => 
+            Future.successful(Some(facade))
+
+          case None =>
+            val actions = Evt[A => A]()
+    
+            val facadeInFuture = services.statePersistence
+              .loadAggregate(aggregateTypeId, id)
+              .map(_.map(aggregate =>
+                Facade(
+                  actions,
+                  services.aggregateFactory.createAggregateSignal(actions)(aggregate),
+                )
+              ))
+
+            actions.recoverEventsUntilCompleted(facadeInFuture)
+
+            facadeInFuture
+      
+      def create(id: String, aggregate: A): Unit =
+        val actions = Evt[A => A]()
+
+        val facade = Facade(
+          actions, 
+          services.aggregateFactory.createAggregateSignal(actions)(DeltaContainer(aggregate))
         )
 
-      // Good question how to implement this one. :D
-      def remove(id: String): Unit =
-        ()
+        facades += id -> facade
+
+        // Explicitly save the aggregate, because saving is usally done by action handling
+        services.statePersistence.saveAggregate(aggregateTypeId, id, DeltaContainer(aggregate))

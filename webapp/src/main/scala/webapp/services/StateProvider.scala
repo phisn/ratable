@@ -20,7 +20,6 @@ class StateProvider(services: {
   // after application state has been created
   services.statePersistence.boot
 
-  def ratable(id: String) = application.ratables.facade(id).changes
-  def ratable(id: String)(action: Ratable => Ratable) = application.ratables.facade(id).actions.fire(action)
+  def ratables = application.ratables
 
   def uniqueID = services.config.replicaID.take(4) + "-" + UUID.randomUUID()
