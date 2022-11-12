@@ -9,4 +9,4 @@ import webapp.aggregates.*
 import webapp.mocks.*
 import webapp.state.framework.*
 
-class FacadeSpec extends AnyFlatSpec
+class FacadeFactorySpec extends AnyFlatSpec

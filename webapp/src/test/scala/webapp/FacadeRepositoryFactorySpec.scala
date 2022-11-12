@@ -9,7 +9,7 @@ import webapp.aggregates.*
 import webapp.mocks.*
 import webapp.state.framework.*
 
-class FacadeRepositorySpec extends AsyncFlatSpec:
+class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
   val aggregateTypeId = "aggregateTypeId"
   
   val aggregateId = "aggregateId"

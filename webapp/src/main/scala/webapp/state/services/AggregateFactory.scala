@@ -11,6 +11,8 @@ class AggregateFactory(services: {
   val facadeRepositoryFactory: FacadeRepositoryFactory
   val statePersistence: StatePersistenceServiceInterface
 }):
+  // TODO: Why does this get a DeltaContainer[A] and only returns A. 
+  // Maybe responsibility can somehow be shifted to loading from persistence here?
   def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](actions: Evt[A => A])(initial: DeltaContainer[A]) =
     /*
     val (
