@@ -52,7 +52,7 @@ class FacadeRepositoryFactory(services: {
           case Some(facade) => Future.successful(Some(facade))
           case None => tryLoadAggregate(id)
 
-      def create(id: String, aggregate: A): Unit =
+      def create(id: String, aggregate: A): Future[Unit] =
         val actions = Evt[A => A]()
 
         val facade = Facade(

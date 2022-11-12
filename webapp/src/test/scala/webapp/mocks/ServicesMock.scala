@@ -11,17 +11,24 @@ import webapp.state.services.*
 case class ServicesMock(
   _backendApi: BackendApiInterface = BackendApiMock(),
   _config: ApplicationConfigInterface = ApplicationConfigMock(),
-  _jsBootstrap: JSBootstrapServiceInterface = new JSBootstrapServiceInterface {},
+
   _stateDistribution: StateDistributionServiceInterface = StateDistributionServiceMock(),
-  _statePersistence: StatePersistanceServiceInterface = StatePersistenceServiceMock[RatableRepository](),
+  _statePersistence: StatePersistenceServiceInterface = StatePersistenceServiceMock(),
 ) extends Services, StateServices:
   lazy val backendApi = _backendApi
   lazy val config = _config
-  val jsBootstrap = _jsBootstrap
+  lazy val logger = LoggerService(this, LogLevel.None)
+
+  val jsBootstrap = new JSBootstrapServiceInterface {}
+
+  val state = StateProvider(this)
+
+  lazy val routing = RoutingService(this)
+
+  lazy val applicationStateFactory = ApplicationStateFactory(this)  
+  lazy val facadeRepositoryFactory = FacadeRepositoryFactory(this)
+  lazy val facadeFactory = FacadeFactory(this)
+  lazy val aggregateFactory = AggregateFactory(this)
+
   lazy val stateDistribution = _stateDistribution
   lazy val statePersistence = _statePersistence
-
-  lazy val facadeFactory = FacadeFactory(this)
-  val state = StateProvider(this)
-  lazy val routing = RoutingService(this)
-  lazy val logger = LoggerService(this, LogLevel.None)

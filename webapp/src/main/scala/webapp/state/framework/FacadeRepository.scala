@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.*
 
 trait FacadeRepository[A]:
-  def create(id: String, aggregate: A): Unit
+  def create(id: String, aggregate: A): Future[Unit]
   def get(id: String): Future[Option[Facade[A]]]
 
   def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =

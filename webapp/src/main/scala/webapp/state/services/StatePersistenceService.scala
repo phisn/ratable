@@ -17,7 +17,7 @@ import webapp.state.framework.{given, *}
 
 // https://www.w3.org/TR/IndexedDB/
 trait StatePersistenceServiceInterface:
-  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Unit
+  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Future[Unit]
   def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]]
   def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Unit
 
