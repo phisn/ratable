@@ -18,6 +18,7 @@ lazy val commonSettings = Seq(
     "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.0",
     
     "com.thesamet.scalapb"                  %%% "scalapb-runtime"       % scalapb.compiler.Version.scalapbVersion,
+    "com.thesamet.scalapb"                  %%% "scalapb-runtime"       % scalapb.compiler.Version.scalapbVersion % "protobuf",
     "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.17.6",
     "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.17.6",
 

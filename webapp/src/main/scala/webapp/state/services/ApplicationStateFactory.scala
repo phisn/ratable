@@ -14,5 +14,5 @@ class ApplicationStateFactory(services: {
 }):
   def buildApplicationState: ApplicationState =
     ApplicationState(
-      ratables = services.facadeRepositoryFactory.registerAggregateAsRepository[Ratable](AggregateId.Ratable.toString()),
+      ratables = services.facadeRepositoryFactory.registerAggregateAsRepository[Ratable](AggregateType.Ratable),
     )

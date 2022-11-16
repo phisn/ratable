@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package core.messages;
+
+import "common.proto";
+
+message GetAggregateMessage {
+  AggregateGid gid = 1;
+}
+
+message RespondAggregateMessage {
+  string aggregateJson = 1;
+}
+
+message ClientHttpMessage {
+  oneof message {
+    GetAggregateMessage getAggregate = 1;
+  }
+}
+
+message ServerHttpMessage {
+  oneof message {
+    RespondAggregateMessage respondAggregate = 1;
+  }
+}

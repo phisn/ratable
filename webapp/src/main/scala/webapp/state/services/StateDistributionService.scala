@@ -3,9 +3,8 @@ package webapp.state.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.*
-import core.messages.client.*
-import core.messages.delta_message.*
-import core.messages.server.*
+import core.messages.common.*
+import core.messages.socket.*
 import core.state.framework.*
 import org.scalajs.dom.{MessageEvent, WebSocket}
 import rescala.default.*
@@ -49,14 +48,14 @@ class StateDistributionService(services: {
     )
 
   def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]) =
-    pushDeltaEvent.fire(DeltaMessage(id, writeToString(delta)))
+    pushDeltaEvent.fire(DeltaMessage(AggregateGid(id, id), writeToString(delta)))
 
   private def handleWebsocketConnection(ws: WebSocket) =
     ws.onmessage = event => handleWebsocketMessage(event)
 
     pushDeltaEvent.observe { message =>
-      val clientMessage = ClientMessage(
-        ClientMessage.Message.DeltaMessage(message)
+      val clientMessage = ClientSocketMessage(
+        ClientSocketMessage.Message.Delta(message)
       )
 
       val clientMessageEncoded = clientMessage.toByteArray.toTypedArray.buffer
@@ -66,7 +65,7 @@ class StateDistributionService(services: {
     }
 
   private def handleWebsocketMessage(event: MessageEvent): Unit =
-    ServerMessage.validate(
+    ServerSocketMessage.validate(
       new Int8Array(event.data.asInstanceOf[ArrayBuffer]).toArray
     ) match
       case Success(value) => 
@@ -76,15 +75,15 @@ class StateDistributionService(services: {
         services.logger.error(s"Could not parse server message: $exception")
         exception.printStackTrace()
 
-  private def handleServerMessage(value: ServerMessage): Unit =
+  private def handleServerMessage(value: ServerSocketMessage): Unit =
     value.message match
-      case ServerMessage.Message.DeltaMessage(message) =>
+      case ServerSocketMessage.Message.Delta(message) =>
         services.logger.log(s"Received delta message")
-        eventRouter(message.aggregateId).deltaEvent.fire(message.deltaJson)
+        eventRouter(message.gid.aggregateId).deltaEvent.fire(message.deltaJson)
       
-      case ServerMessage.Message.AcknowledgeDeltaMessage(message) =>
-        services.logger.log(s"Received ack for ${message.aggregateId} with tag ${message.tag}")
-        eventRouter(message.aggregateId).deltaAckEvent.fire(message.tag)
+      case ServerSocketMessage.Message.AcknowledgeDelta(message) =>
+        services.logger.log(s"Received ack for ${message.gid.aggregateId} with tag ${message.tag}")
+        eventRouter(message.gid.aggregateId).deltaAckEvent.fire(message.tag)
 
       case _ =>
         services.logger.error(s"Unknown message: $value")

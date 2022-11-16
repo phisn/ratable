@@ -7,7 +7,6 @@ import kofre.base.*
 
 case class DeltaContainer[A](
   inner: A,
-  // TODO: When we have no internet
   deltas: Set[TaggedDelta[A]]
 ):
   // Mutation by client
@@ -31,6 +30,14 @@ case class DeltaContainer[A](
     TaggedDelta(
       deltas.map(_.tag).maxOption.getOrElse(0L),
       deltas.foldLeft(Bottom[A].empty)((acc, delta) => Lattice[A].merge(acc, delta.delta))
+    )
+
+  // Used for offline compression. When user has no internet we only want to
+  // send one small delta after going online again. 
+  def deflateDeltas(using Lattice[A], Bottom[A]) =
+    DeltaContainer(
+      inner = inner,
+      deltas = Set(mergedDeltas)
     )
 
   // Acknowledges delta received from the server

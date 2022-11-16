@@ -1,5 +1,6 @@
 package webapp.mocks
 
+import core.state.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.state.framework.*
 import kofre.base.*
@@ -13,24 +14,24 @@ import webapp.state.framework.*
 import webapp.state.services.*
 
 class StatePersistenceServiceMock(
-  val aggregates: collection.mutable.Map[(String, String), DeltaContainer[_]] = Map.empty
+  val aggregates: collection.mutable.Map[AggregateId, DeltaContainer[_]] = Map.empty
 ) extends StatePersistenceServiceInterface:
-  val saves = collection.mutable.Buffer[(String, String, DeltaContainer[_])]()
-  val migrations = collection.mutable.Buffer[String]()
+  val saves = collection.mutable.Buffer[(AggregateId, DeltaContainer[_])]()
+  val migrations = collection.mutable.Buffer[AggregateType]()
 
-  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Future[Unit] =
-    saves.append((aggregateTypeId, id, aggregate.asInstanceOf[DeltaContainer[_]]))
-    aggregates += (aggregateTypeId, id) -> aggregate
+  def saveAggregate[A : JsonValueCodec](id: AggregateId, aggregate: DeltaContainer[A]): Future[Unit] =
+    saves.append((id, aggregate.asInstanceOf[DeltaContainer[_]]))
+    aggregates += id -> aggregate
     Future.successful(())
 
-  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]] =
-    Future.successful(aggregates.get((aggregateTypeId, id)).map(_.asInstanceOf[DeltaContainer[A]]))
+  def loadAggregate[A : JsonValueCodec](id: AggregateId): Future[Option[DeltaContainer[A]]] =
+    Future.successful(aggregates.get(id).map(_.asInstanceOf[DeltaContainer[A]]))
 
-  def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Unit =
+  def deleteAggregate[A : JsonValueCodec](id: AggregateId): Unit =
     ()
 
-  def migrationForRepository(aggregateTypeId: String): Unit =
-    migrations.append(aggregateTypeId)
+  def migrationForRepository(aggregateType: AggregateType): Unit =
+    migrations.append(aggregateType)
 
   def boot: Unit =
     ()

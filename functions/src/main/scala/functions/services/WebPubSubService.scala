@@ -50,4 +50,3 @@ class WebPubSubService(
     // Errors and documentation say that this should be ArrayBuffer, but it's not.
     // Only nodejs Buffer class is supported
     js.Dynamic.global.Buffer.from(ServerMessage(message).toByteArray.toTypedArray)
-    

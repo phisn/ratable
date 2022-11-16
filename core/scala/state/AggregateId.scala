@@ -1,4 +1,6 @@
 package core.state
 
-enum AggregateId:
-  case Ratable
+case class AggregateId(
+  val aggregateType: AggregateType,
+  val id: String
+)

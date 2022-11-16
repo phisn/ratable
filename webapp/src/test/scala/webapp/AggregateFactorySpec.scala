@@ -1,5 +1,6 @@
 package webapp
 
+import core.state.*
 import core.state.framework.{*, given}
 import org.scalatest.*
 import org.scalatest.flatspec.*
@@ -12,8 +13,7 @@ import webapp.state.framework.*
 
 class AggregateFactorySpec extends AsyncFlatSpec:
   val aggregateTypeId = "aggregateTypeId"
-  
-  val aggregateId = "aggregateId"
+  val aggregateId = AggregateId(AggregateType.Ratable, "aggregateId")
   
   val aggregate = TestAggregate(123, "abc", Set(1, 2, 3))
   val otherAggregate = TestAggregate(456, "cde", Set(2, 3, 4))
@@ -25,10 +25,10 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions)
+      (actions, aggregateId)
       (DeltaContainer(aggregate))
 
-    aggregateSignal.now shouldEqual aggregate
+    aggregateSignal.now.inner shouldEqual aggregate
   }
 
   it should "show deltas as changes" in {
@@ -36,12 +36,12 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions)
+      (actions, aggregateId)
       (Bottom.empty)
     
     actions.fire(_ => aggregate)
 
-    aggregateSignal.now shouldEqual aggregate
+    aggregateSignal.now.inner shouldEqual aggregate
   }
 
   it should "merge deltas together" in {
@@ -49,11 +49,11 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions)
+      (actions, aggregateId)
       (Bottom.empty)
     
     actions.fire(_ => aggregate)
-    aggregateSignal.now shouldEqual aggregate
+    aggregateSignal.now.inner shouldEqual aggregate
     
     val delta = TestAggregate(LWW.empty, Set(
       LWW(3, services.config.replicaID), 
@@ -62,7 +62,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     ))
 
     actions.fire(_ => delta)
-    aggregateSignal.now shouldEqual Lattice[TestAggregate].merge(aggregate, delta)
+    aggregateSignal.now.inner shouldEqual Lattice[TestAggregate].merge(aggregate, delta)
   }
 
   it should "save changes to StatePersistenceService" in {
@@ -73,14 +73,17 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions)
+      (actions, aggregateId)
       (Bottom.empty)
 
     actions.fire(_ => aggregate)
     actions.fire(_ => otherAggregate)
 
+    val firstSave = DeltaContainer(Bottom[TestAggregate].empty).mutate(_ => aggregate)
+    val secondSave = firstSave.mutate(_ => otherAggregate)
+
     statePersistence.saves shouldEqual Seq(
-      (aggregateTypeId, aggregateId, DeltaContainer(aggregate)),
-      (aggregateTypeId, aggregateId, DeltaContainer(otherAggregate))
+      (aggregateId, firstSave),
+      (aggregateId, secondSave)
     )
   }

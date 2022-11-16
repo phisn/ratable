@@ -1,30 +1,45 @@
 package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.state.*
 import kofre.base.*
+import org.scalajs.dom
+import org.scalajs.dom.*
+import reflect.Selectable.reflectiveSelectable
 import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import webapp.services.*
 import webapp.state.framework.*
+
+case class AggregateContext[A](
+)
 
 class AggregateFactory(services: {
   val facadeRepositoryFactory: FacadeRepositoryFactory
   val statePersistence: StatePersistenceServiceInterface
+  val stateDistribution: StateDistributionServiceInterface
+  val jsUtility: JsUtilityServiceInterface
 }):
-  // TODO: Why does this get a DeltaContainer[A] and only returns A. 
-  // Maybe responsibility can somehow be shifted to loading from persistence here?
-  def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](actions: Evt[A => A])(initial: DeltaContainer[A]) =
-    /*
+  def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](
+    actions: Evt[A => A],
+    aggregateId: AggregateId,
+  )(
+    initial: DeltaContainer[A]
+  ) =
     val (
       deltaEvt,
       deltaAckEvt
-    ) = services.stateDistribution.aggregateEventsFor[A](id)
-    */
+    ) = services.stateDistribution.aggregateEventsFor[A](aggregateId.id)
 
-    Events.foldAll(initial) { state => 
+    val offlineEvent = services.jsUtility.windowEventAsEvent("offline")
+
+    val signal = Events.foldAll(initial) { state => 
       Seq(
         // Actions received from the client are applied directly to the state
         actions.act(action => state.mutate(action)),
+
+        offlineEvent.act(_ => state.deflateDeltas),
 
         // Deltas with changes from other clients received from the server
         // deltaEvt.act(delta => state.applyDelta(delta)),
@@ -32,7 +47,13 @@ class AggregateFactory(services: {
         // Delta acks are sent as a response to merged deltas and contain the tag of the merged delta
         // deltaAckEvt.act(tag => state.acknowledge(tag)),
       )
-    }.map(_.inner)
+    }
+
+    signal.changed.observe { _ =>
+      services.statePersistence.saveAggregate(aggregateId, signal.now)
+    }
+
+    signal
     
     /*  
     // When the state changes by an action, send the delta to the server

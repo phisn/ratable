@@ -2,6 +2,7 @@ package webapp.state.services
 
 import collection.immutable.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.state.*
 import kofre.base.*
 import kofre.decompose.containers.*
 import rescala.default.*
@@ -20,9 +21,9 @@ class FacadeRepositoryFactory(services: {
   val aggregateFactory: AggregateFactory
 }):
   def registerAggregateAsRepository[A : JsonValueCodec : Bottom : Lattice](
-    aggregateTypeId: String
+    aggregateType: AggregateType
   ): FacadeRepository[A] = 
-    services.statePersistence.migrationForRepository(aggregateTypeId)
+    services.statePersistence.migrationForRepository(aggregateType)
 
     val facades = collection.mutable.Map[String, Facade[A]]()
 
@@ -30,11 +31,13 @@ class FacadeRepositoryFactory(services: {
       val actions = Evt[A => A]()
         
       val facadeInFuture = services.statePersistence
-        .loadAggregate(aggregateTypeId, id)
+        .loadAggregate(AggregateId(aggregateType, id))
         .map(_.map(aggregate =>
           Facade(
             actions,
-            services.aggregateFactory.createAggregateSignal(actions)(aggregate),
+            services.aggregateFactory.createAggregateSignal
+              (actions, AggregateId(aggregateType, id))
+              (aggregate).map(_.inner),
           )
         ))
 
@@ -57,11 +60,13 @@ class FacadeRepositoryFactory(services: {
 
         val facade = Facade(
           actions, 
-          services.aggregateFactory.createAggregateSignal(actions)(DeltaContainer(aggregate))
+          services.aggregateFactory.createAggregateSignal
+            (actions, AggregateId(aggregateType, id))
+            (DeltaContainer(aggregate)).map(_.inner)
         )
 
         facades += id -> facade
 
         // Explicitly save the aggregate, because saving is usally done by action handling
-        services.statePersistence.saveAggregate(aggregateTypeId, id, DeltaContainer(aggregate))
+        services.statePersistence.saveAggregate(AggregateId(aggregateType, id), DeltaContainer(aggregate))
 

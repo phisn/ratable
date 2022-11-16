@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package core.messages;
-
-message DeltaMessage {
-  string aggregateId = 1;
-  string deltaJson = 2;
-}

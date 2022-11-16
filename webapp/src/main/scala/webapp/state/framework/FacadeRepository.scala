@@ -11,13 +11,13 @@ trait FacadeRepository[A]:
 
   def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =
     Signals.fromFuture(get(id))
-      .map(_ match
+      .map {
         case Some(ratable) => ratable.changes.map(found)
         case None => Signal(notFound)
-      )
+      }
       .withDefault(Signal(loading))
       .flatten
- 
+
   def mutate(id: String, action: A => A): Future[Unit] =
     get(id)
       .map(

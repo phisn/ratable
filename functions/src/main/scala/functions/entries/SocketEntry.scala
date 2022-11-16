@@ -1,16 +1,17 @@
-package functions
+package functions.entries
 
 import core.messages.client.*
 import core.messages.delta_message.*
 import core.messages.server.*
-import functions.handlers.*
+import functions.*
+import functions.handlers.messages.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.typedarray.*
 import scala.util.*
 import scalapb.*
 
-object Socket {
+object SocketEntry {
   @JSExportTopLevel("socket")
   def socketGateway(context: js.Dynamic, data: ArrayBuffer) =
     implicit val services = ProductionServices(context)

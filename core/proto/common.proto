@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package core.messages;
+
+import "scalapb/scalapb.proto";
+
+message AggregateGid {
+  // https://scalapb.github.io/docs/customizations#message-level-custom-type-and-boxing
+  option (scalapb.message).no_box = true;
+
+  string aggregateId = 1;
+  string aggregateType = 2;
+}

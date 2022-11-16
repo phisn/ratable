@@ -10,44 +10,45 @@ import rescala.default.*
 import scala.concurrent.*
 import webapp.services.*
 
+import core.state.*
+import core.state.framework.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
-import core.state.framework.*
 import webapp.state.framework.{given, *}
 
 // https://www.w3.org/TR/IndexedDB/
 trait StatePersistenceServiceInterface:
-  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]): Future[Unit]
-  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]]
-  def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Unit
+  def saveAggregate[A : JsonValueCodec](aggregateId: AggregateId, aggregate: DeltaContainer[A]): Future[Unit]
+  def loadAggregate[A : JsonValueCodec](aggregateId: AggregateId): Future[Option[DeltaContainer[A]]]
+  def deleteAggregate[A : JsonValueCodec](aggregateId: AggregateId): Unit
 
-  def migrationForRepository(aggregateTypeId: String): Unit
+  def migrationForRepository(aggregateType: AggregateType): Unit
   def boot: Unit
 
 class StatePersistenceService(services: {
   val logger: LoggerServiceInterface
 }) extends StatePersistenceServiceInterface:
-  def saveAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String, aggregate: DeltaContainer[A]) =
-    openStoreFor(aggregateTypeId, IDBTransactionMode.readwrite) { store =>
-      services.logger.trace(s"Saving aggregate with id: $id")
+  def saveAggregate[A : JsonValueCodec](aggregateId: AggregateId, aggregate: DeltaContainer[A]) =
+    openStoreFor(aggregateId.aggregateType, IDBTransactionMode.readwrite) { store =>
+      services.logger.trace(s"Saving aggregate with id: ${aggregateId.id}")
       val promise = Promise[Unit]()
-      val request = store.put(JsAggregateContainer(writeToString(aggregate), aggregate.maxTag), id)
+      val request = store.put(JsAggregateContainer(writeToString(aggregate), aggregate.maxTag), aggregateId.id)
 
       request.onsuccess = event =>
-        services.logger.trace(s"Saved aggregate with id: $id")
+        services.logger.trace(s"Saved aggregate with id: ${aggregateId.id}")
         promise.success(())
 
       request.onerror = event =>
-        services.logger.error(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}"))
+        services.logger.error(s"IndexedDB: Transaction failed while getting ${aggregateId.id}: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: Transaction failed while getting ${aggregateId.id}: ${request.error.message}"))
 
       promise
     }
 
-  def loadAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String): Future[Option[DeltaContainer[A]]] =
-    openStoreFor(aggregateTypeId, IDBTransactionMode.readonly) { store =>
+  def loadAggregate[A : JsonValueCodec](aggregateId: AggregateId): Future[Option[DeltaContainer[A]]] =
+    openStoreFor(aggregateId.aggregateType, IDBTransactionMode.readonly) { store =>
       val promise = Promise[Option[DeltaContainer[A]]]()
-      val request = store.get(id)
+      val request = store.get(aggregateId.id)
 
       request.onsuccess = event =>
         scala.scalajs.js.timers.setTimeout(4000) {
@@ -62,13 +63,13 @@ class StatePersistenceService(services: {
         }
 
       request.onerror = event =>
-        services.logger.error(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while getting $id: ${request.error.message}"))
+        services.logger.error(s"IndexedDB: Transaction failed while getting ${aggregateId.id}: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: Transaction failed while getting ${aggregateId.id}: ${request.error.message}"))
 
       promise
     }
 
-  def deleteAggregate[A : JsonValueCodec](aggregateTypeId: String, id: String) =
+  def deleteAggregate[A : JsonValueCodec](aggregateId: AggregateId) =
     ()
   
   private def openStoreFor[R](id: String, mode: IDBTransactionMode)(f: IDBObjectStore => Promise[R]): Future[R] =
@@ -88,9 +89,9 @@ class StatePersistenceService(services: {
   private def newMigration(version: Int)(migration: IDBDatabase => Unit): Unit =
     migrations.getOrElseUpdate(version, collection.mutable.Set()) += migration
 
-  def migrationForRepository(aggregateTypeId: String) =
+  def migrationForRepository(aggregateType: AggregateType) =
     newMigration(1) { db =>
-      val store = db.createObjectStore(aggregateTypeId)
+      val store = db.createObjectStore(aggregateType)
       store.createIndex("tag", "tag")
     }
 

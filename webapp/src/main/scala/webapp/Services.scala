@@ -14,7 +14,7 @@ trait Services:
   
   // Service bootstraps in constructor and wont be accessed
   // so it needs to be non lazy to force execution
-  val jsBootstrap: JSBootstrapServiceInterface
+  val jsUtility: JsUtilityServiceInterface
 
   // State handling should be running from the start to setup connection to server
   // Instatiation starts from StateProvider
@@ -28,7 +28,7 @@ object ServicesDefault extends Services, StateServices:
   lazy val config = ApplicationConfig(this)
   lazy val logger = LoggerService(this)
 
-  val jsBootstrap = JSBootstrapService(this)
+  val jsUtility = JsUtilityService(this)
 
   val state = StateProvider(this)
 
