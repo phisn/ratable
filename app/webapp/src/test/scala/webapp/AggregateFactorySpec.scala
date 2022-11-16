@@ -1,5 +1,6 @@
 package webapp
 
+import core.messages.common.*
 import core.state.*
 import core.state.framework.{*, given}
 import org.scalatest.*
@@ -12,8 +13,7 @@ import webapp.mocks.*
 import webapp.state.framework.*
 
 class AggregateFactorySpec extends AsyncFlatSpec:
-  val aggregateTypeId = "aggregateTypeId"
-  val aggregateId = AggregateId(AggregateType.Ratable, "aggregateId")
+  val aggregateGid = AggregateGid("aggregateId", AggregateType.Ratable)
   
   val aggregate = TestAggregate(123, "abc", Set(1, 2, 3))
   val otherAggregate = TestAggregate(456, "cde", Set(2, 3, 4))
@@ -25,7 +25,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions, aggregateId)
+      (actions, aggregateGid)
       (DeltaContainer(aggregate))
 
     aggregateSignal.now.inner shouldEqual aggregate
@@ -36,7 +36,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions, aggregateId)
+      (actions, aggregateGid)
       (Bottom.empty)
     
     actions.fire(_ => aggregate)
@@ -49,7 +49,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions, aggregateId)
+      (actions, aggregateGid)
       (Bottom.empty)
     
     actions.fire(_ => aggregate)
@@ -73,7 +73,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val actions = Evt[TestAggregate => TestAggregate]()
 
     val aggregateSignal = services.aggregateFactory.createAggregateSignal
-      (actions, aggregateId)
+      (actions, aggregateGid)
       (Bottom.empty)
 
     actions.fire(_ => aggregate)
@@ -83,7 +83,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     val secondSave = firstSave.mutate(_ => otherAggregate)
 
     statePersistence.saves shouldEqual Seq(
-      (aggregateId, firstSave),
-      (aggregateId, secondSave)
+      (aggregateGid, firstSave),
+      (aggregateGid, secondSave)
     )
   }

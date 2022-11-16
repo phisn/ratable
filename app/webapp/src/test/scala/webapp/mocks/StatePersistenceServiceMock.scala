@@ -1,7 +1,8 @@
 package webapp.mocks
 
-import core.state.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.messages.common.*
+import core.state.*
 import core.state.framework.*
 import kofre.base.*
 import org.scalajs.dom
@@ -14,20 +15,20 @@ import webapp.state.framework.*
 import webapp.state.services.*
 
 class StatePersistenceServiceMock(
-  val aggregates: collection.mutable.Map[AggregateId, DeltaContainer[_]] = Map.empty
+  val aggregates: collection.mutable.Map[AggregateGid, DeltaContainer[_]] = Map.empty
 ) extends StatePersistenceServiceInterface:
-  val saves = collection.mutable.Buffer[(AggregateId, DeltaContainer[_])]()
+  val saves = collection.mutable.Buffer[(AggregateGid, DeltaContainer[_])]()
   val migrations = collection.mutable.Buffer[AggregateType]()
 
-  def saveAggregate[A : JsonValueCodec](id: AggregateId, aggregate: DeltaContainer[A]): Future[Unit] =
-    saves.append((id, aggregate.asInstanceOf[DeltaContainer[_]]))
-    aggregates += id -> aggregate
+  def saveAggregate[A : JsonValueCodec](gid: AggregateGid, aggregate: DeltaContainer[A]): Future[Unit] =
+    saves.append((gid, aggregate.asInstanceOf[DeltaContainer[_]]))
+    aggregates += gid -> aggregate
     Future.successful(())
 
-  def loadAggregate[A : JsonValueCodec](id: AggregateId): Future[Option[DeltaContainer[A]]] =
-    Future.successful(aggregates.get(id).map(_.asInstanceOf[DeltaContainer[A]]))
+  def loadAggregate[A : JsonValueCodec](gid: AggregateGid): Future[Option[DeltaContainer[A]]] =
+    Future.successful(aggregates.get(gid).map(_.asInstanceOf[DeltaContainer[A]]))
 
-  def deleteAggregate[A : JsonValueCodec](id: AggregateId): Unit =
+  def deleteAggregate[A : JsonValueCodec](gid: AggregateGid): Unit =
     ()
 
   def migrationForRepository(aggregateType: AggregateType): Unit =

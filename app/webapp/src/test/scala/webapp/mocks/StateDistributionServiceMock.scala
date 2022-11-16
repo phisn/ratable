@@ -1,6 +1,7 @@
 package webapp.mocks
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.messages.common.*
 import core.state.framework.*
 import rescala.default.*
 
@@ -9,25 +10,25 @@ import webapp.*
 import webapp.state.services.StateDistributionServiceInterface
 
 class StateDistributionServiceMock extends StateDistributionServiceInterface:
-  val eventRouter = Map[String, EventRouterEntry]()
+  val eventRouter = Map[AggregateGid, EventRouterEntry]()
 
   case class EventRouterEntry(
     deltaEvent: Evt[Any],
     deltaAckEvent: Evt[Tag]
   )
 
-  override def aggregateEventsFor[A : JsonValueCodec](id: String) =
+  override def aggregateEventsFor[A : JsonValueCodec](gid: AggregateGid) =
     val entry = EventRouterEntry(
       deltaEvent = Evt[Any](),
       deltaAckEvent = Evt[Tag]()
     )
 
-    eventRouter(id) = entry
+    eventRouter(gid) = entry
     
     (
       entry.deltaEvent.map(_.asInstanceOf[A]),
       entry.deltaAckEvent
     )
 
-  override def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]) =
-    eventRouter(id).deltaAckEvent.fire(delta.tag)
+  override def pushDelta[A : JsonValueCodec](gid: AggregateGid, delta: TaggedDelta[A]) =
+    eventRouter(gid).deltaAckEvent.fire(delta.tag)

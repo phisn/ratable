@@ -1,5 +1,6 @@
 package webapp
 
+import core.messages.common.*
 import core.state.*
 import core.state.framework.{*, given}
 import org.scalatest.*
@@ -11,9 +12,7 @@ import webapp.mocks.*
 import webapp.state.framework.*
 
 class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
-  val aggregateTypeId = "aggregateTypeId"
-  
-  val aggregateId = AggregateId(AggregateType.Ratable, "aggregateId")
+  val aggregateGid = AggregateGid("aggregateId", AggregateType.Ratable)
 
   val aggregate = TestAggregate(123, "abc", Set.empty)
 
@@ -23,16 +22,16 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
 
   "FacadeRepository" should "should be created by facadeRepositoryFactory" in {
     val services = ServicesMock()
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
     repository should not be null
   }
 
   "FacadeRepository.get" should "return None if no aggregate exist" in {
     val services = ServicesMock()
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
-    repository.get(aggregateId.id).map(
+    repository.get(aggregateGid.aggregateId).map(
       _ shouldEqual None
     )
   }
@@ -41,14 +40,14 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
     val services = ServicesMock(
       _statePersistence = StatePersistenceServiceMock(
         aggregates = collection.mutable.Map(
-          aggregateId -> DeltaContainer(aggregate)
+          aggregateGid -> DeltaContainer(aggregate)
         )
       )
     )
 
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
-    repository.get(aggregateId.id).map {
+    repository.get(aggregateGid.aggregateId).map {
       case Some(facade) =>
         facade.changes.now shouldEqual aggregate
 
@@ -59,21 +58,21 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
   "FacadeRepository.create" should "save aggregate in statePersistenceService" in {
     val statePersistence = StatePersistenceServiceMock()
     val services = ServicesMock(_statePersistence = statePersistence)
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
-    repository.create(aggregateId.id, aggregate).map(_ =>
+    repository.create(aggregateGid.aggregateId, aggregate).map(_ =>
       statePersistence.saves shouldEqual Seq(
-        (aggregateId, DeltaContainer(aggregate))
+        (aggregateGid, DeltaContainer(aggregate))
       )
     )
   }
 
   it should "be retrievable by get" in {
     val services = ServicesMock()
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
-    repository.create(aggregateId.id, aggregate)
-      .flatMap(_ => repository.get(aggregateId.id))
+    repository.create(aggregateGid.aggregateId, aggregate)
+      .flatMap(_ => repository.get(aggregateGid.aggregateId))
       .map {
         case Some(facade) =>
           facade.changes.now shouldEqual aggregate
@@ -84,10 +83,10 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
 
   "FacadeRepository" should "handle changes correctly" in {
     val services = ServicesMock()
-    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateId.aggregateType)
+    val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
-    repository.create(aggregateId.id, aggregate)
-      .flatMap(_ => repository.get(aggregateId.id))
+    repository.create(aggregateGid.aggregateId, aggregate)
+      .flatMap(_ => repository.get(aggregateGid.aggregateId))
       .map {
         case Some(facade) =>
           facade.actions.fire(_ => aggregate2)
