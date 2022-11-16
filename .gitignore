@@ -1,5 +1,5 @@
-tunnel.bat
-function-logs.baat
+app/tunnel.bat
+infrastructure/function-logs.bat
 
 # bloop and metals
 .bloop

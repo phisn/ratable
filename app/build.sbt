@@ -4,8 +4,6 @@ Global / onChangedBuildSource := IgnoreSourceChanges
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := Dependencies.scalaVersion
 
-val projectRoot = file("projects")
-
 lazy val commonSettings = Seq(
   resolvers += "jitpack" at "https://jitpack.io",
 
@@ -35,11 +33,11 @@ lazy val bundlerSettings = Seq(
   fullOptJS / webpackEmitSourceMaps := false,
 )
 
-lazy val core = (project in projectRoot / "core")
+lazy val core = project
   .enablePlugins(ScalaJSPlugin)
   .settings(commonSettings, Dependencies.coreDependencies)
 
-lazy val webapp = (project in projectRoot / "webapp")
+lazy val webapp = project
   .dependsOn(core)
   .enablePlugins(ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
   .settings(commonSettings, bundlerSettings, Dependencies.webappDependencies)
@@ -61,7 +59,7 @@ lazy val webapp = (project in projectRoot / "webapp")
     fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
   )
 
-lazy val functions = (project in projectRoot / "functions")
+lazy val functions = project
   .dependsOn(core)
   .enablePlugins(ScalaJSBundlerPlugin)
   .settings(commonSettings, bundlerSettings, Dependencies.functionsDependencies)
