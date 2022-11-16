@@ -29,14 +29,12 @@ jobs:
       uses: Azure/functions-action@v1.4.7
       with:
         app-name: func-backend
-        package: "./functions/app/"
+        package: "./app/functions/app/"
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-      working-directory: ./app
     - name: Deploy webapp
       uses: Azure/static-web-apps-deploy@v1
       with:
         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APP_TOKEN }}
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         action: "upload"
-        app_location: "./webapp/target/scala-3.2.0/scalajs-bundler/main/dist"
-      working-directory: ./app
+        app_location: "./app/webapp/target/scala-3.2.0/scalajs-bundler/main/dist"
