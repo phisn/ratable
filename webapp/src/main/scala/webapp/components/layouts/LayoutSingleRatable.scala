@@ -42,7 +42,15 @@ def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using service
           )
         ),
         centerContentComponent(
-          titleComponent("Ratable not found")
+          div(
+            cls := "flex flex-col space-y-8 items-center",
+            titleComponent("Ratable not found"),
+            button(
+              cls := "btn btn-ghost",
+              "Create a new one",
+              onClick.foreach(_ => services.routing.to(HomePage()))
+            )
+          )
         ),
         body
       )
