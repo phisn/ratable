@@ -1,5 +1,6 @@
 package webapp.state.services
 
+import core.messages.common.*
 import core.state.*
 import core.state.aggregates.ratable.{*, given}
 import scala.reflect.Selectable.*

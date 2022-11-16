@@ -19,14 +19,14 @@ import scala.scalajs.js.typedarray.*
 import scala.util.*
 
 trait StateDistributionServiceInterface:
-  def aggregateEventsFor[A : JsonValueCodec](id: String): (Event[A], Evt[Tag])
-  def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]): Unit
+  def aggregateEventsFor[A : JsonValueCodec](gid: AggregateGid): (Event[A], Evt[Tag])
+  def pushDelta[A : JsonValueCodec](gid: AggregateGid, delta: TaggedDelta[A]): Unit
 
 class StateDistributionService(services: {
   val config: ApplicationConfigInterface
   val logger: LoggerServiceInterface
 }) extends StateDistributionServiceInterface:
-  private val eventRouter = Map[String, EventRouterEntry]()
+  private val eventRouter = Map[AggregateGid, EventRouterEntry]()
   private val pushDeltaEvent = Evt[DeltaMessage]()
 
   case class EventRouterEntry(
@@ -34,21 +34,21 @@ class StateDistributionService(services: {
     deltaAckEvent: Evt[Tag]
   )
 
-  def aggregateEventsFor[A : JsonValueCodec](id: String): (Event[A], Evt[Tag]) =
+  def aggregateEventsFor[A : JsonValueCodec](gid: AggregateGid): (Event[A], Evt[Tag]) =
     val entry = EventRouterEntry(
       deltaEvent = Evt[String](),
       deltaAckEvent = Evt[Tag]()
     )
 
-    eventRouter(id) = entry
+    eventRouter(gid) = entry
 
     (
       entry.deltaEvent.map(readFromString[A](_)),
       entry.deltaAckEvent
     )
 
-  def pushDelta[A : JsonValueCodec](id: String, delta: TaggedDelta[A]) =
-    pushDeltaEvent.fire(DeltaMessage(AggregateGid(id, id), writeToString(delta)))
+  def pushDelta[A : JsonValueCodec](gid: AggregateGid, delta: TaggedDelta[A]) =
+    pushDeltaEvent.fire(DeltaMessage(gid, writeToString(delta)))
 
   private def handleWebsocketConnection(ws: WebSocket) =
     ws.onmessage = event => handleWebsocketMessage(event)
@@ -79,11 +79,11 @@ class StateDistributionService(services: {
     value.message match
       case ServerSocketMessage.Message.Delta(message) =>
         services.logger.log(s"Received delta message")
-        eventRouter(message.gid.aggregateId).deltaEvent.fire(message.deltaJson)
+        eventRouter(message.gid).deltaEvent.fire(message.deltaJson)
       
       case ServerSocketMessage.Message.AcknowledgeDelta(message) =>
         services.logger.log(s"Received ack for ${message.gid.aggregateId} with tag ${message.tag}")
-        eventRouter(message.gid.aggregateId).deltaAckEvent.fire(message.tag)
+        eventRouter(message.gid).deltaAckEvent.fire(message.tag)
 
       case _ =>
         services.logger.error(s"Unknown message: $value")

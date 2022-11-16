@@ -1,6 +1,7 @@
 package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.messages.common.*
 import core.state.*
 import kofre.base.*
 import org.scalajs.dom
@@ -23,14 +24,14 @@ class AggregateFactory(services: {
 }):
   def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](
     actions: Evt[A => A],
-    aggregateId: AggregateId,
+    gid: AggregateGid,
   )(
     initial: DeltaContainer[A]
   ) =
     val (
       deltaEvt,
       deltaAckEvt
-    ) = services.stateDistribution.aggregateEventsFor[A](aggregateId.id)
+    ) = services.stateDistribution.aggregateEventsFor[A](gid)
 
     val offlineEvent = services.jsUtility.windowEventAsEvent("offline")
 
@@ -50,7 +51,7 @@ class AggregateFactory(services: {
     }
 
     signal.changed.observe { _ =>
-      services.statePersistence.saveAggregate(aggregateId, signal.now)
+      services.statePersistence.saveAggregate(gid, signal.now)
     }
 
     signal

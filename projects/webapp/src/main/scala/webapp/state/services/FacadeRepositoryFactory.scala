@@ -2,6 +2,7 @@ package webapp.state.services
 
 import collection.immutable.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.messages.common.*
 import core.state.*
 import kofre.base.*
 import kofre.decompose.containers.*
@@ -31,12 +32,12 @@ class FacadeRepositoryFactory(services: {
       val actions = Evt[A => A]()
         
       val facadeInFuture = services.statePersistence
-        .loadAggregate(AggregateId(aggregateType, id))
+        .loadAggregate(AggregateGid(id, aggregateType))
         .map(_.map(aggregate =>
           Facade(
             actions,
             services.aggregateFactory.createAggregateSignal
-              (actions, AggregateId(aggregateType, id))
+              (actions, AggregateGid(id, aggregateType))
               (aggregate).map(_.inner),
           )
         ))
@@ -61,12 +62,12 @@ class FacadeRepositoryFactory(services: {
         val facade = Facade(
           actions, 
           services.aggregateFactory.createAggregateSignal
-            (actions, AggregateId(aggregateType, id))
+            (actions, AggregateGid(id, aggregateType))
             (DeltaContainer(aggregate)).map(_.inner)
         )
 
         facades += id -> facade
 
         // Explicitly save the aggregate, because saving is usally done by action handling
-        services.statePersistence.saveAggregate(AggregateId(aggregateType, id), DeltaContainer(aggregate))
+        services.statePersistence.saveAggregate(AggregateGid(id, aggregateType), DeltaContainer(aggregate))
 
