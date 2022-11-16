@@ -1,0 +1,11 @@
+{
+    "files.exclude": {
+        "**/.bloop": true,
+        "**/.bsp": true,
+        "**/.idea": true,
+        "**/.metals": true,
+        "**/.vscode": true,
+        "**/node_modules": true
+    },
+    "editor.tabSize": 2
+}
