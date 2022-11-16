@@ -1,22 +1,24 @@
 {
   "bindings": [
     {
-      "authLevel": "anonymous",
+      "name": "req",
       "type": "httpTrigger",
       "direction": "in",
-      "name": "req"
+
+      "authLevel": "anonymous"
     },
     {
+      "name": "res",
       "type": "http",
-      "direction": "out",
-      "name": "res"
+      "direction": "out"
     },
     {
-      "type": "webPubSubConnection",
       "name": "connection",
-      "userId": "{query.userid}",
+      "type": "webPubSubConnection",
+      "direction": "in",
+
       "hub": "socket",
-      "direction": "in"
+      "userId": "{query.userid}"
     }
   ]
 }

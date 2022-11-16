@@ -25,9 +25,6 @@ resource "azurerm_static_site" "core" {
   resource_group_name = azurerm_resource_group.core.name
 }
 
-// linux functions app does currently not support zip deploy. 
-// needed for github actions cicd.
-// https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app
 resource "azurerm_storage_account" "core" {
   name                     = "stratable"
   resource_group_name      = azurerm_resource_group.core.name
@@ -44,6 +41,9 @@ resource "azurerm_service_plan" "core" {
   sku_name            = "Y1"
 }
 
+// Linux functions app does currently not support zip deploy. So we must use Windows.
+// Zip deploy is needed for github actions cicd.
+// https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app
 // https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app
 resource "azurerm_windows_function_app" "core" {
   name                = "func-ratable-core"
@@ -108,6 +108,44 @@ resource "azurerm_web_pubsub" "test" {
   resource_group_name = azurerm_resource_group.core.name
 
   sku = "Free_F1"
+}
+
+// CosmosDB storage
+resource "azurerm_cosmosdb_account" "core" {
+  name                = "cosacc-ratable"
+  location            = azurerm_resource_group.core.location
+  resource_group_name = azurerm_resource_group.core.name
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.core.location
+    failover_priority = 0
+  }
+
+  // Currently not caring about consistency
+  // https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+
+  offer_type = "Standard"
+}
+
+resource "azurerm_cosmosdb_sql_database" "core" {
+  name                = "core"
+  resource_group_name = azurerm_cosmosdb_account.core.resource_group_name
+  account_name        = azurerm_cosmosdb_account.core.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "ratables" {
+  name                  = "ratables"
+  resource_group_name   = azurerm_cosmosdb_account.core.resource_group_name
+  account_name          = azurerm_cosmosdb_account.core.name
+  database_name         = azurerm_cosmosdb_sql_database.core.name
+  partition_key_path    = "/id"
 }
 
 // Outputs

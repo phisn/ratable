@@ -1,15 +1,31 @@
 {
   "bindings": [
     {
-      "authLevel": "anonymous",
+      "name": "req",
       "type": "httpTrigger",
       "direction": "in",
-      "name": "req"
+
+      "authLevel": "anonymous"
     },
     {
+      "name": "ratables",
+      "type": "cosmosDB",
+      "direction": "inout",
+
+      "collectionName": "ratables",
+      "databaseName": "core"
+    },
+    {
+      "name": "res",
       "type": "http",
+      "direction": "out"
+    },
+    {
+      "name": "actions",
+      "type": "webPubSub",
       "direction": "out",
-      "name": "res"
+
+      "hub": "socket"
     }
   ]
 }
