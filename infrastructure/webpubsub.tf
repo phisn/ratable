@@ -32,3 +32,20 @@ resource "azurerm_web_pubsub" "test" {
 
   sku = "Free_F1"
 }
+
+resource "azurerm_web_pubsub_hub" "test_socket" {
+  name          = "socket"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+
+  event_handler {
+    url_template       = format(
+      "%s/runtime/webhooks/webpubsub",
+      var.webpubsub_tunnel_gateway)
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected", "disconnected"]
+  }
+  
+  depends_on = [
+    azurerm_web_pubsub.test
+  ]
+}

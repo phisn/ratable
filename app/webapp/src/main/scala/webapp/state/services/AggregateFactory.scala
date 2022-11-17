@@ -17,6 +17,7 @@ case class AggregateContext[A](
 )
 
 class AggregateFactory(services: {
+  val logger: LoggerServiceInterface
   val facadeRepositoryFactory: FacadeRepositoryFactory
   val statePersistence: StatePersistenceServiceInterface
   val stateDistribution: StateDistributionServiceInterface
@@ -43,22 +44,20 @@ class AggregateFactory(services: {
         offlineEvent.act(_ => state.deflateDeltas),
 
         // Deltas with changes from other clients received from the server
-        // deltaEvt.act(delta => state.applyDelta(delta)),
+        deltaEvt.act(delta => state.applyDelta(delta)),
 
         // Delta acks are sent as a response to merged deltas and contain the tag of the merged delta
-        // deltaAckEvt.act(tag => state.acknowledge(tag)),
+        deltaAckEvt.act(tag => state.acknowledge(tag)),
       )
     }
 
     signal.changed.observe { _ =>
       services.statePersistence.saveAggregate(gid, signal.now)
     }
+    
+    // When the state changes by an action, send the delta to the server
+    actions.observe { _ =>
+      services.stateDistribution.pushDelta(gid, signal.now.mergedDeltas)
+    }
 
     signal
-    
-    /*  
-    // When the state changes by an action, send the delta to the server
-    actionsEvt.zip(changes.changed).observe { _ =>
-      services.stateDistribution.pushDelta(id, changes.now.mergedDeltas)
-    }
-    */

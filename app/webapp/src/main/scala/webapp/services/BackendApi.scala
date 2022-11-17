@@ -22,6 +22,7 @@ class BackendApi(services: {
 
   def hello(username: String) =
     Signal(Some("Hello " + username))
+
   /*
     Signals.fromFuture(
       basicRequest.get(uri"${services.config.backendUrl}hello?name=$username").send(backend)

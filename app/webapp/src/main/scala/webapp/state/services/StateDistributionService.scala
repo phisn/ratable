@@ -48,9 +48,12 @@ class StateDistributionService(services: {
     )
 
   def pushDelta[A : JsonValueCodec](gid: AggregateGid, taggedDelta: TaggedDelta[A]) =
+    services.logger.trace(s"Pushing delta for ${gid} to server: ${taggedDelta}")
     pushDeltaEvent.fire(DeltaMessage(gid, writeToString(taggedDelta.delta), taggedDelta.tag))
 
   private def handleWebsocketConnection(ws: WebSocket) =
+    ws.onopen = _ => services.logger.log("Websocket connection opened")
+
     ws.onmessage = event => handleWebsocketMessage(event)
 
     pushDeltaEvent.observe { message =>

@@ -36,10 +36,10 @@ object HttpEntry {
     val encoder = TextEncoder()
     val decoder = TextDecoder()
 
-    def respond[A <: ServerHttpMessage.Message](message: A) =
+    def respond[A <: GeneratedMessage](message: A) =
       context.res = js.Dynamic.literal(
         "status" -> 200,
-        "body" -> js.Dynamic.global.Buffer.from(ServerHttpMessage(message).toByteArray.toTypedArray),
+        "body" -> js.Dynamic.global.Buffer.from(message.toByteArray.toTypedArray),
         "headers" ->  js.Dynamic.literal(
           "Content-Type" -> "application/x-protobuf"
         )
@@ -53,7 +53,9 @@ object HttpEntry {
           services.logger.trace(s"GetAggregateMessage: aggregateId=${message.gid}")
         
           getAggregateMessageHandler(message).andThen {
-            case Success(aggregate) => respond(ServerHttpMessage.Message.RespondAggregate(aggregate))
+            case Success(message) => 
+              services.logger.log(message.aggregateJson.get)
+              respond(message)
             case Failure(exception) => 
               services.logger.error(s"Failed to get aggregate: ${exception.getMessage}")
               context.done()
