@@ -9,6 +9,7 @@ import core.state.framework.*
 import functions.*
 import functions.state.*
 import functions.state.processors.*
+import scala.concurrent.*
 import scala.scalajs.js
 import scala.util.*
 
@@ -16,10 +17,10 @@ class StateDeltaProcessor(
   services: Services with StateServices, 
   context: js.Dynamic
 ):
-  def processDelta(gid: AggregateGid, deltaJson: String) =
+  def processDelta(gid: AggregateGid, deltaJson: String): Future[Unit] =
     implicit val services = this.services
 
-    def routeTo[A: JsonValueCodec](processor: (String, A) => Unit) =
+    def routeTo[A: JsonValueCodec](processor: (String, A) => Future[Unit]) =
       processor(gid.aggregateId, readFromString[A](deltaJson))
 
     gid.aggregateType match

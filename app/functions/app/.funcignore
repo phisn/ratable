@@ -5,3 +5,6 @@
 local.settings.json
 test
 tsconfig.json
+
+run-with-https.bat
+certificate.pfx

@@ -9,7 +9,7 @@ message GetAggregateMessage {
 }
 
 message RespondAggregateMessage {
-  string aggregateJson = 1;
+  optional string aggregateJson = 1;
 }
 
 message ClientHttpMessage {

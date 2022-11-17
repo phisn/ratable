@@ -21,6 +21,7 @@ resource "azurerm_cosmosdb_account" "core" {
   offer_type = "Standard"
 }
 
+/*
 resource "azurerm_cosmosdb_sql_database" "core" {
   name                = "core"
   resource_group_name = azurerm_cosmosdb_account.core.resource_group_name
@@ -34,6 +35,7 @@ resource "azurerm_cosmosdb_sql_container" "core_ratables" {
   database_name         = azurerm_cosmosdb_sql_database.core.name
   partition_key_path    = "/id"
 }
+*/
 
 // Not using the same account for test and prod because connection strings are grained
 // by account and not by database. This makes it hard to use the same account for test and prod.
@@ -60,6 +62,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type = "Standard"
 }
 
+/*
 resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "core"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
@@ -73,6 +76,7 @@ resource "azurerm_cosmosdb_sql_container" "test_ratables" {
   database_name         = azurerm_cosmosdb_sql_database.test.name
   partition_key_path    = "/id"
 }
+*/
 
 data "azurerm_cosmosdb_account" "core" {
   name                = azurerm_cosmosdb_account.core.name

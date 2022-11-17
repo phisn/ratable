@@ -10,15 +10,6 @@
       "type": "http",
       "direction": "out",
       "name": "res"
-    },
-    {
-      "name": "ratables",
-      "type": "cosmosDB",
-      "direction": "in",
-
-      "collectionName": "ratables",
-      "connectionStringSetting": "CosmosDBConnectionString",
-      "databaseName": "core"
     }
   ]
 }

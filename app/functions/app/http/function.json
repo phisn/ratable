@@ -8,14 +8,6 @@
       "authLevel": "anonymous"
     },
     {
-      "name": "ratables",
-      "type": "cosmosDB",
-      "direction": "inout",
-
-      "collectionName": "ratables",
-      "databaseName": "core"
-    },
-    {
       "name": "res",
       "type": "http",
       "direction": "out"

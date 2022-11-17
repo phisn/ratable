@@ -1,5 +1,7 @@
 package functions.state.framework
 
+import scala.concurrent.*
+
 trait AggregateRepository[A]:
-  def get(id: String): Option[A]
-  def set(id: String, aggregate: A): Unit
+  def get(id: String): Future[Option[A]]
+  def set(id: String, aggregate: A): Future[Unit]
