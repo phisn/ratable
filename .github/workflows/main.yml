@@ -22,6 +22,8 @@ jobs:
     - name: Test
       run: sbt test
       working-directory: ./app
+    - name: Increase heap size
+      run: export SBT_OPTS="-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xss2M  -Duser.timezone=GMT"
     - name: Build
       run: sbt prod
       working-directory: ./app
