@@ -76,6 +76,7 @@ object Dependencies {
   )
 
   val functionsNpmDependencies = Seq(
+    "@types/node"   -> "latest",
     "@azure/cosmos" -> "latest",
   )
 
