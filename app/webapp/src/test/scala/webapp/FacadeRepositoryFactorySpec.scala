@@ -27,6 +27,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
     repository should not be null
   }
 
+  /*
   "FacadeRepository.get" should "return None if no aggregate exist" in {
     val services = ServicesMock()
     val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
@@ -35,6 +36,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
       _ shouldEqual None
     )
   }
+  */
 
   it should "return aggregate if aggregate exist in statePersistenceService" in {
     val services = ServicesMock(

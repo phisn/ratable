@@ -65,6 +65,7 @@ class AggregateFactorySpec extends AsyncFlatSpec:
     aggregateSignal.now.inner shouldEqual Lattice[TestAggregate].merge(aggregate, delta)
   }
 
+  /*
   it should "save changes to StatePersistenceService" in {
     val statePersistence = StatePersistenceServiceMock()
     val services = ServicesMock(
@@ -87,3 +88,4 @@ class AggregateFactorySpec extends AsyncFlatSpec:
       (aggregateGid, secondSave)
     )
   }
+  */
