@@ -6,7 +6,8 @@ import "common.proto";
 
 message DeltaMessage {
   AggregateGid gid = 1;
-  string deltaJson = 3;
+  string deltaJson = 2;
+  uint64 tag = 3;
 }
 
 // Associates a replica with a login information. If the login information

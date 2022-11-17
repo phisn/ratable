@@ -47,8 +47,8 @@ class StateDistributionService(services: {
       entry.deltaAckEvent
     )
 
-  def pushDelta[A : JsonValueCodec](gid: AggregateGid, delta: TaggedDelta[A]) =
-    pushDeltaEvent.fire(DeltaMessage(gid, writeToString(delta)))
+  def pushDelta[A : JsonValueCodec](gid: AggregateGid, taggedDelta: TaggedDelta[A]) =
+    pushDeltaEvent.fire(DeltaMessage(gid, writeToString(taggedDelta.delta), taggedDelta.tag))
 
   private def handleWebsocketConnection(ws: WebSocket) =
     ws.onmessage = event => handleWebsocketMessage(event)

@@ -9,18 +9,18 @@ import scala.scalajs.js.JSConverters.*
 import scala.scalajs.js.typedarray.*
 import scalapb.*
 
-trait WebPubSubServiceInterface:
+trait SocketMessagingServiceInterface:
   def sendToAll[A <: ServerSocketMessage.Message](message: A, exclude: Seq[String] = Seq()): Unit
   def sendToAllJson(message: String, exclude: Seq[String] = Seq()): Unit
   def reply[A <: ServerSocketMessage.Message](message: A): Unit
 
-class WebPubSubService(
+class SocketMessagingService(
   services: {
     val connectionContext: ConnectionContextProviderInterface
     val logger: LoggerServiceInterface
   }, 
   context: js.Dynamic
-) extends WebPubSubServiceInterface:
+) extends SocketMessagingServiceInterface:
   context.bindings.actions = js.Array()
 
   def sendToAll[A <: ServerSocketMessage.Message](message: A, exclude: Seq[String] = Seq()) =

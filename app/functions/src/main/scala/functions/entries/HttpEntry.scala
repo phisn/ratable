@@ -12,15 +12,15 @@ import scala.scalajs.js.typedarray.*
 import scala.util.*
 import scalapb.*
 
+import typings.azureCosmos.mod.*
+
 given JsonValueCodec[String] = JsonCodecMaker.make
 
 object HttpEntry {
   @JSExportTopLevel("http")
-  def httpGateway(context: js.Dynamic) =
+  def gateway(context: js.Dynamic) =
     implicit val services = ProductionServices(context)
-    http(services.http.query("type"))
 
-  def http(messageType: String)(using services: Services) =
-    ()
+    readFromString(context.req.rawBody.asInstanceOf[String])
 }
 

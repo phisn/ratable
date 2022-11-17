@@ -75,5 +75,9 @@ object Dependencies {
     "snabbdom" -> npmVersions.snabbdom
   )
 
+  val functionsNpmDependencies = Seq(
+    "@azure/cosmos" -> "latest",
+  )
+
   val functionsDependencies = coreDependencies
 }

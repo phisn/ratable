@@ -102,5 +102,9 @@ How it works
 ### Infrastructure
 `Azure, Terraform, Github Actions`
 
+## Useful tools
+- [Postman](https://www.postman.com/)
+- [Protoman](https://github.com/spluxx/Protoman)
+
 # Misc
 - For simplicity Tailwind is installed in (in seperate nodejs packages) `webapp/` and in `/`, because vs code `tailwind intellisense` plugin needs tailwind installed in root directory.
