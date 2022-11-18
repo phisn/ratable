@@ -9,7 +9,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.pages.*
+import webapp.application.pages.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
 

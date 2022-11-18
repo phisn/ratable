@@ -3,7 +3,6 @@ package webapp.state.services
 import collection.immutable.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.messages.common.*
-import core.state.*
 import kofre.base.*
 import kofre.decompose.containers.*
 import rescala.default.*
@@ -20,7 +19,7 @@ import core.messages.common.*
 import core.messages.http.*
 import typings.std.global.TextEncoder
 import scala.scalajs.js.typedarray.Int8Array
-import core.state.framework.TaggedDelta
+import core.framework.TaggedDelta
 import scala.util.Failure
 
 class FacadeRepositoryFactory(services: {

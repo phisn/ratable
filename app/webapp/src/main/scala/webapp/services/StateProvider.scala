@@ -1,7 +1,6 @@
 package webapp.services
 
-import core.state.*
-import core.state.aggregates.ratable.{*, given}
+import core.domain.aggregates.ratable.{*, given}
 import java.util.UUID
 import scala.reflect.Selectable.*
 import webapp.services.*

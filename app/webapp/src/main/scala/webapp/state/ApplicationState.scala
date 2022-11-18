@@ -2,7 +2,7 @@ package webapp.state
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.state.aggregates.ratable.*
+import core.domain.aggregates.ratable.*
 import webapp.state.framework.*
 import rescala.default.*
 

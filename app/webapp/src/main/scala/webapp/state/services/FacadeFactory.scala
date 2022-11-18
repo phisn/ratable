@@ -4,7 +4,6 @@ import collection.immutable.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.common.*
-import core.state.*
 import org.scalajs.dom
 import org.scalajs.dom.*
 import kofre.base.*

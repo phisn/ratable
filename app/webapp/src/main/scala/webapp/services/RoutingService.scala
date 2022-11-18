@@ -11,7 +11,7 @@ import rescala.default.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
 import webapp.*
-import webapp.pages.*
+import webapp.application.pages.*
 
 trait Page:
   def render(using services: Services): VNode

@@ -2,7 +2,7 @@ package webapp.aggregates
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.state.framework.{*, given}
+import core.framework.{*, given}
 import kofre.base.*
 
 case class TestAggregate(

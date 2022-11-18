@@ -5,7 +5,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.*
 import core.messages.common.*
 import core.messages.socket.*
-import core.state.framework.*
+import core.framework.*
 import org.scalajs.dom.{MessageEvent, WebSocket}
 import rescala.default.*
 import sttp.client3.*

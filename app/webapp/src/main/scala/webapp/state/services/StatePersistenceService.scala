@@ -11,8 +11,7 @@ import rescala.default.*
 import scala.concurrent.*
 import webapp.services.*
 
-import core.state.*
-import core.state.framework.*
+import core.framework.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
 import webapp.state.framework.{given, *}

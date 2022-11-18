@@ -6,11 +6,11 @@ import colibri.router.Router
 import org.scalajs.dom.window
 import outwatch.*
 import rescala.default.*
-import webapp.pages.debugpage.*
-import webapp.pages.homepage.*
-import webapp.pages.sharepage.*
-import webapp.pages.ratepage.*
-import webapp.pages.viewpage.*
+import webapp.application.pages.debugpage.*
+import webapp.application.pages.homepage.*
+import webapp.application.pages.sharepage.*
+import webapp.application.pages.ratepage.*
+import webapp.application.pages.viewpage.*
 import webapp.services.*
 
 object Routes:

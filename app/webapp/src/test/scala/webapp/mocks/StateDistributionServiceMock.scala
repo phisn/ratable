@@ -2,7 +2,7 @@ package webapp.mocks
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.messages.common.*
-import core.state.framework.*
+import core.framework.*
 import rescala.default.*
 
 import scala.collection.mutable.Map

@@ -2,7 +2,6 @@ package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.messages.common.*
-import core.state.*
 import kofre.base.*
 import org.scalajs.dom
 import org.scalajs.dom.*

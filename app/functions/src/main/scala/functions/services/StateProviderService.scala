@@ -1,7 +1,7 @@
 package functions.services
 
 import core.messages.common.*
-import core.state.aggregates.ratable.*
+import core.domain.aggregates.ratable.*
 import functions.state.services.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js

@@ -6,7 +6,7 @@ import core.messages.common.*
 import core.messages.http.*
 import functions.*
 import scala.concurrent.*
-import core.state.aggregates.ratable.* 
+import core.domain.aggregates.ratable.* 
 
 /*
 def getAggregateMessageHandler(message: GetAggregateMessage) =

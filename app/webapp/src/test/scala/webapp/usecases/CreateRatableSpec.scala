@@ -1,10 +1,10 @@
-package webapp.usecases
+package webapp.application.usecases
 
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*
 import webapp.*
 import webapp.mocks.*
-import webapp.usecases.ratable.*
+import webapp.application.usecases.ratable.*
 
 class CreateRatableSpec extends AnyFlatSpec
 

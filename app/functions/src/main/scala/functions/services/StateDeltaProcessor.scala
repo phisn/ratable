@@ -4,8 +4,8 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.common.*
 import core.messages.socket.*
-import core.state.aggregates.ratable.*
-import core.state.framework.*
+import core.domain.aggregates.ratable.*
+import core.framework.*
 import functions.*
 import functions.state.*
 import functions.state.processors.*

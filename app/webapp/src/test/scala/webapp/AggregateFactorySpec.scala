@@ -1,8 +1,7 @@
 package webapp
 
 import core.messages.common.*
-import core.state.*
-import core.state.framework.{*, given}
+import core.framework.{*, given}
 import org.scalatest.*
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*

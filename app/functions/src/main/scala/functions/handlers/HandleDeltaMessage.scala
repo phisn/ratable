@@ -6,9 +6,8 @@ import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
 import core.messages.common.*
 import core.messages.socket.*
-import core.state.*
-import core.state.aggregates.ratable.*
-import core.state.framework.*
+import core.domain.aggregates.ratable.*
+import core.framework.*
 import functions.*
 import functions.handlers.*
 import scala.concurrent.*

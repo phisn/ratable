@@ -1,11 +1,11 @@
-package webapp.usecases
+package webapp.application.usecases
 
 import org.scalatest.flatspec.*
 import org.scalatest.matchers.should.Matchers.*
 import webapp.*
 import webapp.mocks.*
-import webapp.usecases.ratable.*
-import core.state.aggregates.ratable.Ratable
+import webapp.application.usecases.ratable.*
+import core.domain.aggregates.ratable.Ratable
 
 class RateRatableSpec extends AnyFlatSpec
 

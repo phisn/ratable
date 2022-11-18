@@ -2,7 +2,7 @@ package webapp.state.framework
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import core.state.framework.*
+import core.framework.*
 import kofre.base.*
 
 case class DeltaContainer[A](
