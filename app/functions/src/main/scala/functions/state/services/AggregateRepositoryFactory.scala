@@ -6,6 +6,7 @@ import core.messages.common.*
 import functions.services.*
 import functions.state.*
 import functions.state.framework.*
+import kofre.base.*
 import scala.concurrent.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
@@ -15,7 +16,7 @@ import typings.azureCosmos.mod.DatabaseRequest
 import typings.azureCosmos.mod.ResourceResponse
 
 trait AggregateRepositoryFactoryInterface:
-  def create[A : JsonValueCodec](aggregateType: AggregateType): AggregateRepository[A]
+  def create[A : Bottom : Lattice : JsonValueCodec](aggregateType: AggregateType): AggregateRepository[A]
 
 class AggregateRepositoryFactory(
   services: {
@@ -28,9 +29,9 @@ class AggregateRepositoryFactory(
 
   val database = cosmosClient.databases.createIfNotExists(
     DatabaseRequest().setId("Core")
-  ).toFuture.map(mapResourceResponse(_, "Create Database: ").database)
+  ).toFuture.map(_.ensureSuccessfullStatusCode("Create Database: ").database)
 
-  def create[A : JsonValueCodec](aggregateType: AggregateType): AggregateRepository[A] =
+  def create[A : Bottom : Lattice : JsonValueCodec](aggregateType: AggregateType): AggregateRepository[A] =
     val lowercase = aggregateType.name.toLowerCase()
 
     val container = database
@@ -45,53 +46,57 @@ class AggregateRepositoryFactory(
       )
       .map(response =>
         services.logger.trace(s"Created Container: ${aggregateType.name} - ${response.statusCode}")
-        mapResourceResponse(response, s"Create container for type ${aggregateType.name}: ").container
+
+        response
+          .ensureSuccessfullStatusCode(s"Create container for type ${aggregateType.name}: ")
+          .container
       )
 
     new AggregateRepository:
       override def get(id: String): Future[Option[A]] =
         services.logger.trace(s"Get Aggregate: ${aggregateType.name} - ${id}")
 
-        container.flatMap(ct =>
-          ct.item(id, id).read[JsAggregateContainer]().toFuture
-        )
-        // TODO: Not clean refactor
-        .map(response =>
-          services.logger.trace(s"Got Aggregate: ${response.item.id}, ${response.resource}, ${aggregateType.name} - ${response.statusCode}")
-
-          if response.statusCode == 404 then
-            services.logger.trace(s"Aggregate not found: ${aggregateType.name} ${id}")
-            None
-          else
-            val resource = mapResourceResponse(response, s"Get aggregate ${aggregateType.name} with id $id: ")
-              .resource.toOption.get
-
-            Some(
-              readFromString(resource.aggregateJson)
-            )
-        )
-
-      override def set(id: String, aggregate: A): Future[Unit] =
-        services.logger.trace(s"Set aggregate: ${aggregateType.name} ${id}")
-
         container
           .flatMap(
-            _.items.upsert(JsAggregateContainer(
+            _.item(id, id).read[JsAggregateContainer]().toFuture
+          )
+          .map(response =>
+            response.statusCode match
+              case 404 =>
+                services.logger.trace(s"Aggregate not found: ${aggregateType.name} - ${id}")
+                None
+
+              case _ =>
+                response.ensureSuccessfullStatusCode(s"Get aggregate ${aggregateType.name} with id $id: ")
+
+                // Assuming resource contains aggregate if response code is successfull
+                Some(readFromString(response.resource.get.aggregateJson))
+          )
+
+      override def applyDelta(id: String, delta: A): Future[Unit] =
+        services.logger.trace(s"Set aggregate: ${aggregateType.name} ${id}")
+
+        get(id)
+          .map(_.getOrElse(Bottom[A].empty))
+          .zip(container)
+          .flatMap((aggregate, container) =>
+            container.items.upsert(JsAggregateContainer(
               id,
-              writeToString(aggregate)
+              writeToString(Lattice[A].merge(aggregate, delta))
             )).toFuture
           )
-          .map(response => mapResourceResponse(response, s"Set aggregate with id $id: "))
+          .map(_.ensureSuccessfullStatusCode(s"Set aggregate with id $id: "))
           .map(_ => ())
 
-  def mapResourceResponse[A, B <: ResourceResponse[A]](response: B, message: => String) =
-    if response.statusCode != 200 && response.statusCode != 201 then
-      services.logger.error(s"$message Unexpected status code ${response.statusCode}")
-      throw new Exception(s"$message Unexpected status code ${response.statusCode}")
+  extension [A, B <: ResourceResponse[A]](response: B)
+    def ensureSuccessfullStatusCode(message: => String) =
+      if response.statusCode != 200 && response.statusCode != 201 then
+        services.logger.error(s"$message Unexpected status code ${response.statusCode}")
+        throw new Exception(s"$message Unexpected status code ${response.statusCode}")
 
-    services.logger.trace(s"$message ${response.statusCode}")
+      services.logger.trace(s"$message ${response.statusCode}")
 
-    response
+      response
   
   class JsAggregateContainer(
     // This property must be named id for CosmosDB to work

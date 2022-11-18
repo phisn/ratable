@@ -15,15 +15,9 @@ import kofre.base.*
 
 def processRatable(id: String, delta: Ratable)(using services: Services with StateServices) =
   services.logger.trace(s"RatableDeltaMessage ${id}: ${delta._title.read.getOrElse("<empty>")}")
-  services.stateProvider.ratables.set(id, delta)
 
   services.socketMessaging.sendToAll(ServerSocketMessage.Message.Delta(
     DeltaMessage(AggregateGid(id, AggregateType.Ratable), writeToString(delta))
   ))
 
-  services.stateProvider.ratables.get(id).map(_.getOrElse(Bottom[Ratable].empty)).flatMap(ratable =>
-    services.stateProvider.ratables.set(
-      id,
-      Lattice[Ratable].merge(ratable, delta)
-    )
-  )
+  services.stateProvider.ratables.applyDelta(id, delta)

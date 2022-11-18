@@ -29,7 +29,7 @@ resource "azurerm_windows_function_app" "core" {
 
   app_settings = {
     WebPubSubConnectionString    = azurerm_web_pubsub.core.primary_connection_string
- //   CosmosDBConnectionString     = data.azurerm_cosmosdb_account.core.virtual_network_rule.primary_sql_connection_string
+    CosmosDBConnectionString     = azurerm_cosmosdb_account.core.connection_strings[0]
   }
 
   site_config {
