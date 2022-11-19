@@ -11,10 +11,12 @@ import scala.concurrent.*
 import webapp.*
 import webapp.services.*
 
-trait StorageDatabaseInterface
+trait StorageDatabaseInterface:
+  def get[A <: js.Any](name: String, key: String): Future[Option[A]]
+  def put[A <: js.Any](name: String, key: String)(value: A): Future[Unit]
 
 class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends StorageDatabaseInterface:
-  def read[A <: js.Any](name: String, key: String): Future[Option[A]] =
+  def get[A <: js.Any](name: String, key: String) =
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       val promise = Promise[Option[A]]()
       val request = store.get(key)
@@ -38,7 +40,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       promise
     }
 
-  def write[A <: js.Any](name: String, key: String, value: A): Future[Unit] =
+  def put[A <: js.Any](name: String, key: String)(value: A) =
     openStoreFor(name, IDBTransactionMode.readwrite) { store =>
       val promise = Promise[Unit]()
       val request = store.put(value, key)

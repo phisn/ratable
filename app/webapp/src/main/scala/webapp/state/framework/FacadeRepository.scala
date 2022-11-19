@@ -28,3 +28,23 @@ trait FacadeRepository[A]:
         case _ =>
       }
       .map(_ => ())
+
+trait NewFacadeRepository[A]:
+  def create(id: String, aggregate: A): Future[Unit]
+  def get(id: String): Future[Option[NewFacade[A]]]
+
+  def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =
+    Signals.fromFuture(get(id))
+      .map {
+        case Some(ratable) => ratable.listen.map(found)
+        case None => Signal(notFound)
+      }
+      .withDefault(Signal(loading))
+      .flatten
+
+  def mutate(id: String, action: A => A): Future[Unit] =
+    get(id)
+      .flatMap {
+        case Some(facade) => facade.mutate(action)
+        case None => Future.failed(new Exception(s"Aggregate with id $id not found"))
+      }
