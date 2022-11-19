@@ -48,14 +48,14 @@ class DeltaDispatcherService(services: {
 
   def dispatchToServer[A : JsonValueCodec : Bottom : Lattice](
     gid: AggregateGid,
-    delta: DeltaContainer[A]
+    delta: TaggedDelta[A]
   ) =
     services.functionsSocketApi
       .send(ClientSocketMessage.Message.Delta(
         DeltaMessage(
           gid,
-          writeToString(delta.mergedDeltas),
-          delta.maxTag
+          writeToString(delta.delta),
+          delta.tag
         )
       ))
       .andThen {

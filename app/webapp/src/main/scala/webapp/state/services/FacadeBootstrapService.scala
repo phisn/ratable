@@ -47,7 +47,7 @@ class FacadeBootstrapService(services: {
       .andThen {
         case Success(unacknowledged) =>
           unacknowledged.foreach { 
-            case (gid, aggregate) => services.deltaDispatcher.dispatchToServer(gid, aggregate)
+            case (gid, aggregate) => services.deltaDispatcher.dispatchToServer(gid, aggregate.mergedDeltas)
           }
       }
 

@@ -27,6 +27,25 @@ class FunctionsSocketApi(services: {
   val functionsHttpApi: FunctionsHttpApiInterface
   val logger: LoggerServiceInterface
 }) extends FunctionsSocketApiInterface:
+  val futureWebsocket = services.functionsHttpApi.getWebPubSubConnection()
+    .andThen {
+      case Failure(exception) => 
+        services.logger.error(s"Failed to get websocket connection: ${exception.getMessage}")
+    }
+    .map { connection =>
+      services.logger.trace("Connecting to websocket")
+
+      val ws = new WebSocket(connection.url)
+      ws.binaryType = "arraybuffer"
+
+      ws.onopen = onOpen(_)
+      ws.onmessage = onMessage(_)
+
+      ws
+    }
+  
+  val listeners = collection.mutable.Set[ServerSocketMessage => Unit]()
+
   def send[A <: ClientSocketMessage.Message](message: A) =
     futureWebsocket.map { ws =>
       val wrapped = ClientSocketMessage(message)
@@ -53,16 +72,3 @@ class FunctionsSocketApi(services: {
       case Failure(exception) => 
         services.logger.error(s"Could not parse server message: $exception")
         exception.printStackTrace()
-
-  val futureWebsocket = services.functionsHttpApi.getWebPubSubConnection()
-    .map { connection =>
-      val ws = new WebSocket(connection.url)
-      ws.binaryType = "arraybuffer"
-
-      ws.onopen = onOpen(_)
-      ws.onmessage = onMessage(_)
-
-      ws
-    }
-  
-  val listeners = collection.mutable.Set[ServerSocketMessage => Unit]()

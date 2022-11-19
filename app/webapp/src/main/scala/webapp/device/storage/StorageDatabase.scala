@@ -47,7 +47,10 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
 
       request.onsuccess = event =>
         services.logger.trace(s"Wrote aggregate with id: $key in $name")
-        promise.success(())
+
+        customDelay {
+          promise.success(())
+        }
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while putting $key into $name: ${request.error.message}")

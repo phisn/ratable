@@ -22,7 +22,7 @@ class StateStorage(db: StorageDatabaseInterface):
       .map(_.map(container => readFromString(container.aggregateJson)))
 
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
-    ???
+    Future.successful(Seq.empty)
 
   class JsAggregateContainer(
     val aggregateJson: String,

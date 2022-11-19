@@ -16,6 +16,6 @@ class StateProvider(services: {
 }):
   private val application = services.applicationStateFactory.buildApplicationState
 
-  def ratables = null.asInstanceOf[FacadeRepository[Ratable]]
+  def ratables = application.ratables
 
   def uniqueID = services.config.replicaID.take(4) + "-" + UUID.randomUUID()

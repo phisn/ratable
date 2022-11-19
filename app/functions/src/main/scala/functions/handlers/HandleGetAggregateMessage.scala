@@ -13,7 +13,7 @@ def getAggregateMessageHandler(message: GetAggregateMessage) =
   println(s"GetAggregateMessage: ${message.aggregateId.id}")
 */
 
-def getAggregateMessageHandler(message: GetAggregateMessage)(using services: Services): Future[RespondAggregateMessage] =
+def getAggregateMessageHandler(message: GetAggregateMessage)(using services: Services): Future[GetAggregateResponseMessage] =
   println(s"GetAggregateMessage: gid=${message.gid}")
 
   services.stateProvider.ratables.get(
@@ -22,7 +22,7 @@ def getAggregateMessageHandler(message: GetAggregateMessage)(using services: Ser
     if optionAggregate.isEmpty then
       services.logger.warning(s"GetAggregateMessage: aggregate not found: gid=${message.gid}")
 
-    RespondAggregateMessage(
+    GetAggregateResponseMessage(
       optionAggregate.map(writeToString(_))
     )
   )

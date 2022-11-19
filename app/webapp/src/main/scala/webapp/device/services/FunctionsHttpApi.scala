@@ -45,10 +45,7 @@ class FunctionsHttpApi(services: {
       .response(asJson[WebPubSubConnectionMessage])
       .send(backend)
       .map(_.body match
-        case Left(error) => 
-          services.logger.error(s"Failed to get web pub sub connection: ${error.getMessage}")
-          throw error
-
+        case Left(error) => throw error
         case Right(value) => 
           services.logger.trace("Received successfull getWebPubSubConnection response")
           value

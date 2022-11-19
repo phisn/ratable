@@ -17,6 +17,13 @@ import webapp.device.services.*
 
 trait Page:
   def render(using services: Services): VNode
+  
+class RoutingState(
+  // if canReturn is true then the page will show in mobile mode
+  // an go back arrow in the top left corner
+  val canReturn: Boolean
+
+) extends js.Object
 
 class RoutingService(services: {
   val logger: LoggerServiceInterface
@@ -34,7 +41,10 @@ class RoutingService(services: {
 
   def toReplace(newPage: Page, preventReturn: Boolean = false) =
     services.logger.trace(s"Routing replace to ${linkPath(newPage)}")
-    services.window.routeToInPlace(RoutingState(!preventReturn), linkPath(newPage))
+    services.window.routeToInPlace(
+      services.window.routeState[RoutingState], 
+      linkPath(newPage)
+    )
     page.set(newPage)
 
   def link(newPage: Page) =
@@ -59,12 +69,5 @@ class RoutingService(services: {
 
   // Change path when url changes by user action
   services.window.eventFromName("popstate").observe(_ =>
-    page.set(Routes.fromPath(Path(window.location.pathname)))
+    page.set(Routes.fromPath(Path(services.window.routePath)))
   )
-
-  class RoutingState(
-    // if canReturn is true then the page will show in mobile mode
-    // an go back arrow in the top left corner
-    val canReturn: Boolean
-
-  ) extends js.Object

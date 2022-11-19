@@ -43,11 +43,13 @@ class FacadeFactory(services: {
 
     new FacadeRepository:
       def create(id: String, aggregate: A): Unit =
-        facadeFromInitial(
+        val facade = facadeFromInitial(
           AggregateGid(id, aggregateType), 
           stateStorage
         )(DeltaContainer(aggregate))
-          .mutate(_ => aggregate)
+
+        facades += id -> facade
+        facade.mutate(_ => aggregate)
 
       def get(id: String): Future[Option[Facade[A]]] =
         facades.get(id) match

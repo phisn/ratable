@@ -25,7 +25,7 @@ trait WindowServiceInterface:
 
   def isOnline: Boolean
 
-  def eventFromName[T](name: String): rescala.default.Event[T]
+  def eventFromName(name: String): rescala.default.Event[js.Any]
   
 class WindowService(services: {}) extends WindowServiceInterface:
   def routeState[A <: js.Any] =
@@ -46,7 +46,7 @@ class WindowService(services: {}) extends WindowServiceInterface:
   def isOnline =
     window.navigator.onLine
 
-  def eventFromName[T](name: String) =
-    val evt = Evt[T]()
-    window.addEventListener(name, (e: T) => evt.fire(e))
+  def eventFromName(name: String) =
+    val evt = Evt[js.Any]()
+    window.addEventListener(name, (e: js.Any) => evt.fire(e))
     evt

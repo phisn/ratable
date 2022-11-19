@@ -63,7 +63,7 @@ class AggregateFactory(services: {
     }
 
     actions.observe(_ =>
-      services.deltaDispatcher.dispatchToServer(gid, signal.now)
+      services.deltaDispatcher.dispatchToServer(gid, signal.now.mergedDeltas)
     )
 
     signal.changed.observe(_ =>
