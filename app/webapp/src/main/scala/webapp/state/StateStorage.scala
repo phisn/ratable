@@ -21,7 +21,7 @@ class StateStorage(db: StorageDatabaseInterface):
     db.get[JsAggregateContainer](gid.aggregateType.name, gid.aggregateId)
       .map(_.map(container => readFromString(container.aggregateJson)))
 
-  def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[DeltaContainer[A]]] =
+  def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
     ???
 
   class JsAggregateContainer(

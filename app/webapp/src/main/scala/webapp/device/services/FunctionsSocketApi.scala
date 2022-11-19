@@ -20,17 +20,7 @@ import webapp.services.*
 
 trait FunctionsSocketApiInterface:
   def send[A <: ClientSocketMessage.Message](message: A): Future[Unit]
-  def listen[U](listener: PartialFunction[ServerSocketMessage, U]): Unit
-
-  def listenDeltaMessage: rescala.default.Event[DeltaMessage] =
-    val event = Evt[DeltaMessage]()
-    
-    listen {
-      case ServerSocketMessage(ServerSocketMessage.Message.Delta(message), _) =>
-        event.fire(message)
-    }
-
-    event
+  def listen[U](listener: PartialFunction[ServerSocketMessage.Message, U]): Unit
 
 class FunctionsSocketApi(services: {
   val config: ApplicationConfigInterface
@@ -46,8 +36,8 @@ class FunctionsSocketApi(services: {
     }
 
   // Partial function allowing to listen to specific messages
-  def listen[U](listener: PartialFunction[ServerSocketMessage, U]) =
-    listeners.add(message => listener.applyOrElse(message, identity))
+  def listen[U](listener: PartialFunction[ServerSocketMessage.Message, U]) =
+    listeners.add(message => listener.applyOrElse(message.message, identity))
 
   private def onOpen(event: Event) =
     services.logger.log("Websocket connection opened")

@@ -23,6 +23,8 @@ trait WindowServiceInterface:
 
   def routeBack: Unit
 
+  def isOnline: Boolean
+
   def eventFromName[T](name: String): rescala.default.Event[T]
   
 class WindowService(services: {}) extends WindowServiceInterface:
@@ -40,6 +42,9 @@ class WindowService(services: {}) extends WindowServiceInterface:
 
   def routeBack =
     window.history.back()
+
+  def isOnline =
+    window.navigator.onLine
 
   def eventFromName[T](name: String) =
     val evt = Evt[T]()

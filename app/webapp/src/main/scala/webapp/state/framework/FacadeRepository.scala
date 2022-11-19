@@ -6,32 +6,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.*
 
 trait FacadeRepository[A]:
-  def create(id: String, aggregate: A): Future[Unit]
+  def create(id: String, aggregate: A): Unit
   def get(id: String): Future[Option[Facade[A]]]
-
-  def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =
-    Signals.fromFuture(get(id))
-      .map {
-        case Some(ratable) => ratable.changes.map(found)
-        case None => Signal(notFound)
-      }
-      .withDefault(Signal(loading))
-      .flatten
-
-  def mutate(id: String, action: A => A): Future[Unit] =
-    get(id)
-      .map(
-        _.getOrElse(throw new Exception(s"Aggregate with id $id not found"))
-      )
-      .andThen {
-        case Success(facade) => facade.actions.fire(action)
-        case _ =>
-      }
-      .map(_ => ())
-
-trait NewFacadeRepository[A]:
-  def create(id: String, aggregate: A): Future[Unit]
-  def get(id: String): Future[Option[NewFacade[A]]]
 
   def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =
     Signals.fromFuture(get(id))
@@ -44,7 +20,10 @@ trait NewFacadeRepository[A]:
 
   def mutate(id: String, action: A => A): Future[Unit] =
     get(id)
-      .flatMap {
-        case Some(facade) => facade.mutate(action)
-        case None => Future.failed(new Exception(s"Aggregate with id $id not found"))
+      .andThen {
+        case Success(Some(facade)) => facade.mutate(action)
+      }
+      .map {
+        case Some(facade) => ()
+        case None => throw Exception(s"Aggregate with id $id not found")
       }
