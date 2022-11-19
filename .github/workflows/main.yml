@@ -23,8 +23,8 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'sbt'
-    - name: Test
-      run: sbt test
+#    - name: Test
+#      run: sbt test
       working-directory: ./app
     - name: Build
       run: sbt prod
