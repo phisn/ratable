@@ -31,3 +31,13 @@ Each ReplicaToken uniquely identifies a device. A client represents multiple Rep
 # Storage, Localstorage and IndexedDB
 The project initialy used localstorage. Localstorage is limited to 5MB and does only provide synchronous access. The better solution was to use the more modern IndexedDB. It is asynchronous and has browser specific but usally very high limit. IndexedDB is supported on all modern browsers.
 
+# Project structure
+The project consists of three subprojects. Core, Functions and Webapp. The core project contains shared domain logic and domain models. The functions is the cloud backend using azure functions and Webapp is the scala frontend. 
+
+The structure of Functions and Webapp are the more interesting ones. They both are implemented similarly. 
+
+The idea is to have a hierarchy of modules. Starting at the root each module contains services which contain the core logic. Each module can only access content in the module above or below it. So modules can not access content in other branches. This is done to improve abstraction and modularity. 
+
+Services implement the module logic but may be assisted with further abstractions. Services themselves can access other services by dependency injection.
+
+In the current state of the project we have a root, application, device and state module. The root module contains all other modules. The device module contains device specific knowledge that can be mocked to test the project. The state module contains state handling, distribution and persistence logic. In the Webapp project the application contains the ui and the usecases. In the Functions poject the application contains azure function gateways and handlers for all messages.  
