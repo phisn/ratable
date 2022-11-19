@@ -4,7 +4,8 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.{given, *}
+import webapp.*
+import webapp.application.{given, *}
 import webapp.application.pages.sharepage.*
 import webapp.services.*
 import webapp.state.framework.*

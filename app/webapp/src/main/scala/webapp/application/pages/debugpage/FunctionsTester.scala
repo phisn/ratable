@@ -4,7 +4,8 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.given
+import webapp.*
+import webapp.application.{given, *}
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.Services
@@ -20,7 +21,7 @@ def functionsTest(using services: Services) =
         button(
             cls := "btn btn-primary",
             "Test functions",
-            onClick.map(_ => services.backendApi.hello(inputStr.now)) --> outputStr
+            //onClick.map(_ => services.backendApi.hello(inputStr.now)) --> outputStr
         ),
         input(
             cls := "input input-bordered",

@@ -1,4 +1,4 @@
-package webapp
+package webapp.application
 
 import colibri.{Cancelable, Observer, Sink}
 import rescala.default.*

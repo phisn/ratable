@@ -3,18 +3,15 @@ package webapp
 import webapp.services.*
 import webapp.state.*
 import webapp.state.services.*
+import webapp.device.*
+import webapp.device.services.*
 
 // The Services trait contains core services used by usecases, components and pages
 // Other Services traits like StateServices can by design only be accessed by other 
 // Services. The idea is to abstract away complexity
 trait Services:
-  lazy val backendApi: BackendApiInterface
   lazy val config: ApplicationConfigInterface
   lazy val logger: LoggerServiceInterface
-  
-  // Service bootstraps in constructor and wont be accessed
-  // so it needs to be non lazy to force execution
-  val jsUtility: JsUtilityServiceInterface
 
   // State handling should be running from the start to setup connection to server
   // Instatiation starts from StateProvider
@@ -22,13 +19,9 @@ trait Services:
   
   lazy val routing: RoutingService
 
-object ServicesDefault extends Services, StateServices:
-  // Core
-  lazy val backendApi = BackendApi(this)
+object ServicesDefault extends Services, StateServices, DeviceServices:
   lazy val config = ApplicationConfig(this)
   lazy val logger = LoggerService(this)
-
-  val jsUtility = JsUtilityService(this)
 
   val state = StateProvider(this)
 
@@ -42,3 +35,15 @@ object ServicesDefault extends Services, StateServices:
 
   lazy val stateDistribution = StateDistributionService(this)
   lazy val statePersistence = StatePersistenceService(this)
+
+  // Device
+  val applicationInitializer = ApplicationInitializer(this)
+  
+  lazy val functionsHttpApi = FunctionsHttpApi(this)
+  
+  // We want socket connection to be established as soon as possible
+  val functionsSocketApi = FunctionsSocketApi(this)
+
+  lazy val storage = StorageService(this)
+
+  lazy val window = WindowService(this)

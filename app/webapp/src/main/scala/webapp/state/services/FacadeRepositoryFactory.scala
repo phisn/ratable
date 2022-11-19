@@ -59,7 +59,7 @@ class FacadeRepositoryFactory(services: {
               .send(backend)
               .map(_.body.toOption)
               .map(_.flatMap(body =>
-                RespondAggregateMessage.validate(body) match
+                GetAggregateResponseMessage.validate(body) match
                   case Success(message) => message.aggregateJson match
                     case Some(json) => 
                       services.logger.log(s"Loaded aggregate from server for $id as ${TextEncoder().encode(message.aggregateJson.get).toArray.fold("")((acc, b) => f"$acc ${b.asInstanceOf[Short]}%X")}")

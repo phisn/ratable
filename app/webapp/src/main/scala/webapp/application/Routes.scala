@@ -1,4 +1,4 @@
-package webapp
+package webapp.application
 
 import colibri.*
 import colibri.router.*

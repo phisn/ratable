@@ -11,34 +11,30 @@ import rescala.default.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
 import webapp.*
+import webapp.application.{given, *}
 import webapp.application.pages.*
+import webapp.device.services.*
 
 trait Page:
   def render(using services: Services): VNode
 
-class RoutingState(
-  // if canReturn is true then the page will show in mobile mode
-  // an go back arrow in the top left corner
-  val canReturn: Boolean
-
-) extends js.Object
-
 class RoutingService(services: {
   val logger: LoggerServiceInterface
+  val window: WindowServiceInterface
 }):
-  private val page = Var[Page](Routes.fromPath(Path(window.location.pathname)))
+  private val page = Var[Page](Routes.fromPath(Path(services.window.routePath)))
 
   def render(using services: Services): Signal[VNode] =
     page.map(_.render)
 
   def to(newPage: Page, preventReturn: Boolean = false) =
     services.logger.trace(s"Routing to ${linkPath(newPage)}")
-    window.history.pushState(RoutingState(!preventReturn), "", linkPath(newPage))
+    services.window.routeTo(RoutingState(!preventReturn), linkPath(newPage))
     page.set(newPage)
 
   def toReplace(newPage: Page, preventReturn: Boolean = false) =
     services.logger.trace(s"Routing replace to ${linkPath(newPage)}")
-    window.history.replaceState(RoutingState(!preventReturn), "", linkPath(newPage))
+    services.window.routeToInPlace(RoutingState(!preventReturn), linkPath(newPage))
     page.set(newPage)
 
   def link(newPage: Page) =
@@ -49,17 +45,26 @@ class RoutingService(services: {
 
   def back =
     services.logger.trace(s"Routing back")
-    window.history.back()
+    services.window.routeBack
 
   def state =
-    window.history.state.asInstanceOf[RoutingState]
+    services.window.routeState[RoutingState]
 
   services.logger.trace(s"Routing initial from ${window.location.pathname} to ${linkPath(page.now)}")
 
   // Ensure initial path is correctly set
   // Example: for path "/counter" and pattern "counter/{number=0}" the
   //          url should be "/counter/0" and not "/counter"
-  window.history.replaceState(RoutingState(false), "", linkPath(page.now))
+  services.window.routeToInPlace(RoutingState(false), linkPath(page.now))
 
   // Change path when url changes by user action
-  window.onpopstate = _ => page.set(Routes.fromPath(Path(window.location.pathname)))
+  services.window.eventFromName("popstate").observe(_ =>
+    page.set(Routes.fromPath(Path(window.location.pathname)))
+  )
+
+  class RoutingState(
+    // if canReturn is true then the page will show in mobile mode
+    // an go back arrow in the top left corner
+    val canReturn: Boolean
+
+  ) extends js.Object

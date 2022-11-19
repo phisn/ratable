@@ -8,18 +8,12 @@ message GetAggregateMessage {
   AggregateGid gid = 1;
 }
 
-message RespondAggregateMessage {
+message GetAggregateResponseMessage {
   optional string aggregateJson = 1;
 }
 
 message ClientHttpMessage {
   oneof message {
     GetAggregateMessage getAggregate = 1;
-  }
-}
-
-message ServerHttpMessage {
-  oneof message {
-    RespondAggregateMessage respondAggregate = 1;
   }
 }

@@ -6,13 +6,14 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import webapp.*
+import webapp.application.{given, *}
 import webapp.application.components.*
 import webapp.application.components.layouts.*
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
-import webapp.{given, *}
 
 import kofre.base.*
 import outwatch.BasicVNode

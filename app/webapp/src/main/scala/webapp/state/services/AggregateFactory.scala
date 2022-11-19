@@ -10,6 +10,7 @@ import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.services.*
+import webapp.device.services.*
 import webapp.state.framework.*
 
 case class AggregateContext[A](
@@ -20,7 +21,7 @@ class AggregateFactory(services: {
   val facadeRepositoryFactory: FacadeRepositoryFactory
   val statePersistence: StatePersistenceServiceInterface
   val stateDistribution: StateDistributionServiceInterface
-  val jsUtility: JsUtilityServiceInterface
+  val window: WindowServiceInterface
 }):
   def createAggregateSignal[A : JsonValueCodec : Bottom : Lattice](
     actions: Evt[A => A],
@@ -33,7 +34,7 @@ class AggregateFactory(services: {
       deltaAckEvt
     ) = services.stateDistribution.aggregateEventsFor[A](gid)
 
-    val offlineEvent = services.jsUtility.windowEventAsEvent("offline")
+    val offlineEvent = services.window.eventFromName("offline")
 
     val signal = Events.foldAll(initial) { state => 
       Seq(

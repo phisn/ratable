@@ -21,12 +21,11 @@ trait ApplicationConfigInterface:
   def replicaID: String
 
 class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
-  // should use a config library but was unable to get it working with scalajs :(
+  // Should use a config library but was unable to get it working with scalajs :(
   def backendUrl = if dom.window.location.hostname.contains("localhost") then
     "http://localhost:7071/api/"
   else
     "https://func-ratable-core.azurewebsites.net/api/"
 
   def darkMode = Var(false)
-
   def replicaID: String = ThreadLocalRandom.current().nextLong().toHexString
