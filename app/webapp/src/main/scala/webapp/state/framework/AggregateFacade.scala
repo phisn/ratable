@@ -11,4 +11,11 @@ case class AggregateFacade[A](
   val mutationEvent: Evt[A => A],
   val deltaEvent: Evt[A],
   val deltaAckEvent: Evt[Tag],
-)
+):
+  def toView: AggregateView[A] =
+    new AggregateView:
+      def mutate(f: A => A): Unit =
+        mutationEvent.fire(f)
+
+      def listen: Signal[A] =
+        signal

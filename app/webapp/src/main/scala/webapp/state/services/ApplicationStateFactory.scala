@@ -56,14 +56,14 @@ class ApplicationStateFactory(services: {
   def newAggregateRepository[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType): AggregateViewRepository[A] =
     new AggregateViewRepository:
       def create(id: String, aggregate: A): AggregateView[A] =
-        AggregateView.fromFacade(
-          services.aggregateFacadeProvider.fromInitial(AggregateGid(id, aggregateType), aggregate)
-        )
+        services.aggregateFacadeProvider
+          .fromInitial(AggregateGid(id, aggregateType), aggregate)
+          .toView
 
       def get(id: String): Future[Option[AggregateView[A]]] =
         services.aggregateFacadeProvider
           .get(AggregateGid(id, aggregateType))
-          .map(_.map(AggregateView.fromFacade))
+          .map(_.map(_.toView))
           .andThen {
             case Success(None) =>
               services.logger.error(s"ApplicationStateFactory: No aggregate facade for $id")

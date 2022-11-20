@@ -32,6 +32,7 @@ object ServicesDefault extends Services, StateServices, DeviceServices:
 
   lazy val window = WindowService(this)
 
+  // Core
   lazy val config = ApplicationConfig(this)
   lazy val logger = LoggerService(this)
 
