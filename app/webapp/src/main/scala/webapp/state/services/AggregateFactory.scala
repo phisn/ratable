@@ -83,8 +83,7 @@ class AggregateFactory(services: {
     )
 
     AggregateFacade(
-      signal.map(_.inner),
-
+      signal,
       mutationEvent,
       deltaEvent,
       deltaAckEvent,

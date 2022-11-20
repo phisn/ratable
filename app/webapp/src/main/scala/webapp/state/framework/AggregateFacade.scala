@@ -6,7 +6,7 @@ import scala.concurrent.*
 
 // Internal representation of an aggregate
 case class AggregateFacade[A](
-  val signal: Signal[A],
+  val signal: Signal[DeltaContainer[A]],
 
   val mutationEvent: Evt[A => A],
   val deltaEvent: Evt[A],
@@ -18,4 +18,4 @@ case class AggregateFacade[A](
         mutationEvent.fire(f)
 
       def listen: Signal[A] =
-        signal
+        signal.map(_.inner)
