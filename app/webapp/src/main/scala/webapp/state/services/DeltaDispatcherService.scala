@@ -33,12 +33,34 @@ class DeltaDispatcherService(services: {
   val functionsSocketApi: FunctionsSocketApiInterface
 }):
   val dispatchToClientMap = collection.mutable.Map[AggregateGid, DispatcherEntry]()
+  val deltaMessageHandler = collection.mutable.Map[AggregateType, DeltaMessage => Unit]()
 
   services.functionsSocketApi.listen {
     case ServerSocketMessage.Message.Delta(message) =>
+      deltaMessageHandler.get(message.gid.aggregateType) match
+        case Some(handler) => handler(message)
+        case None => services.logger.error(s"DeltaDispatcherService: No handler for aggregate type ${message.gid}")
+    /*
+      Future.successful(dispatchToClientMap.get(message.gid))
+        .flatMap {
+          case Some(entry) => Future.successful(Some(entry))
+          case None => 
+            ensureAggregateLoadedMap.get(message.gid.aggregateType) match
+              case Some(entry) => 
+                entry(message.gid.aggregateId)
+                  .map(_.map(_ => dispatchToClientMap.get(message.gid)))
+
+              case None => throw new Exception(s"DeltaDispatcherService: No dispatcher for ${message.gid}")
+        }
+        .andThen {
+          case Success(Some(entry)) =>
+            entry.delta.fire(message)
+        }
+
       dispatchToClientMap.get(message.gid) match
         case Some(entry) => entry.delta.fire(message)
         case None => services.logger.error(s"Received delta for unknown aggregate type ${message.gid}")
+    */
 
     case ServerSocketMessage.Message.AcknowledgeDelta(message) =>
       dispatchToClientMap.get(message.gid) match
@@ -62,6 +84,17 @@ class DeltaDispatcherService(services: {
         case Failure(exception) =>
           services.logger.error(s"Failed to dispatch delta $delta because ${exception}")
       }
+
+  def registerAggregateType[A : JsonValueCodec : Bottom : Lattice](
+    aggregateType: AggregateType,
+    facadeRepository: FacadeRepository[A]
+  ) =
+    deltaMessageHandler += aggregateType -> (
+      (message: DeltaMessage) => facadeRepository.mutate(
+        message.gid.aggregateId, 
+        _ => readFromString[A](message.deltaJson)
+      )
+    )
 
   def listenToServerDispatcher[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid): (Event[A], Event[Tag]) =
     val entry = dispatchToClientMap.getOrElseUpdate(gid, DispatcherEntry())

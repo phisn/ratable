@@ -31,8 +31,9 @@ import typings.std.stdStrings.storage
 // Abstract all state creation in one place away 
 // from the core services into the state module
 class ApplicationStateFactory(services: {
+  val logger: LoggerServiceInterface
   val storage: StorageServiceInterface
-  val facadeBootstrap: FacadeBootstrapService
+  val deltaDispatcher: DeltaDispatcherService
   val facadeFactory: FacadeFactory
 }):
   def buildApplicationState: ApplicationState =
@@ -46,8 +47,36 @@ class ApplicationStateFactory(services: {
     state
 
   def newFacadeHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): Facade[A] =
-    services.facadeBootstrap.bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.Facade[A])
+    bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.Facade[A])
 
   def newFacadeRepositoryHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): FacadeRepository[A] =
-    services.facadeBootstrap.bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.FacadeRepository[A])
+    bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.FacadeRepository[A])
 
+  def bootstrapFacadeFactory[A : JsonValueCodec : Bottom : Lattice, U](
+    aggregateType: AggregateType, 
+    builder: StorageDatabaseBuilderInterface,
+    factory: (AggregateType, StateStorage) => U
+  ): U =
+    builder.newMigration { migrator =>
+      migrator.store(aggregateType.name, Set("tag"))
+    }
+
+    val stateStorage = StateStorage(builder.assume)
+
+    /**
+      * We need some reversement of control here. Currently when the server sends a message about a aggregate we fire a event.
+      * If the aggregate behind this event is not yet loaded we currently do not react to this event. We should instead load the 
+      * aggregate and then fire the event.
+      */
+
+    stateStorage.unacknowledged[A](aggregateType)
+      .andThen {
+        case Success(unacknowledged) =>
+          unacknowledged.foreach { 
+            case (gid, aggregate) => 
+              services.logger.trace(s"Unacknowledged ${aggregateType.name} ${gid} found")
+              services.deltaDispatcher.dispatchToServer(gid, aggregate.mergedDeltas)
+          }
+      }
+
+    factory(aggregateType, stateStorage)

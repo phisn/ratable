@@ -32,7 +32,6 @@ object ServicesDefault extends Services, StateServices, DeviceServices:
   lazy val applicationStateFactory = ApplicationStateFactory(this)
   
   lazy val deltaDispatcher = DeltaDispatcherService(this)
-  lazy val facadeBootstrap = FacadeBootstrapService(this)
   lazy val facadeFactory = FacadeFactory(this)
 
   // Device

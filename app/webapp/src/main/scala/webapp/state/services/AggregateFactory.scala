@@ -31,7 +31,7 @@ import typings.std.stdStrings.storage
 class AggregateFactory(services: {
   val logger: LoggerServiceInterface
   val deltaDispatcher: DeltaDispatcherService
-  val functionsSocketApi: FunctionsSocketApi
+  val functionsSocketApi: FunctionsSocketApiInterface
   val window: WindowServiceInterface
 }):
   def createSignal[A : JsonValueCodec : Bottom : Lattice](
@@ -40,33 +40,23 @@ class AggregateFactory(services: {
     stateStorage: StateStorage
   )(initial: DeltaContainer[A]): Signal[A] =
     val dispatchFailureEvent = Evt[Unit]()
-    val actionWhileOfflineEvent = actions.filter(_ => !services.window.isOnline)
+    val actionWhileOfflineEvent = actions
+      .filter(_ => !services.window.isOnline)
+      .dropParam
 
-    val (
-      deltaEvent,
-      deltaAckEvent
-    ) = services.deltaDispatcher.listenToServerDispatcher[A](gid)
+    val deltaEvent = Evt[A]()
+    val deltaAckEvent = deltaAckDispatcher.getOrElseUpdate(gid, Evt[Tag]())
 
     deltaAckEvent.observe(ack =>
       services.logger.trace(s"Delta ack received for ${gid} ${ack}")
     )
 
-    val signal = Events.foldAll(initial) { state => 
-      Seq(
-        // Actions received from the client are applied directly to the state
-        actions.act(state.mutate(_)),
-
-        // Merge all outbound deltas into one
-        (actionWhileOfflineEvent || dispatchFailureEvent)
-          .act(_ => state.deflateDeltas),
-        
-        // Deltas with changes from other clients received from the server
-        deltaEvent.act(delta => state.applyDelta(delta)),
-        
-        // Delta acks are sent as a response to merged deltas and contain the tag of the merged delta
-        deltaAckEvent.act(tag => state.acknowledge(tag)),
-      )
-    }
+    val signal = aggregateSignalFromSpecification(initial, AggregateSpecificationByEvents(
+      mutate = actions,
+      delta = deltaEvent,
+      deltaAck = deltaAckEvent,
+      deflateDeltas = actionWhileOfflineEvent || dispatchFailureEvent,
+    ))
 
     val connectWithOpenDeltasEvent = services.functionsSocketApi.connected
       .filter(_ => !signal.now.deltas.isEmpty)
@@ -89,3 +79,39 @@ class AggregateFactory(services: {
     )
 
     signal.map(_.inner)
+
+  def aggregateSignalFromSpecification[A : JsonValueCodec : Bottom : Lattice](
+    initial: DeltaContainer[A],
+    specification: AggregateSpecificationByEvents[A]
+  ) =
+    Events.foldAll(initial) { state => 
+      Seq(
+        specification.mutate.act(state.mutate(_)),
+
+        specification.delta.act(state.applyDelta(_)),
+        specification.deltaAck.act(tag => state.acknowledge(tag)),
+        
+        specification.deflateDeltas.act(_ => state.deflateDeltas),
+      )
+    }
+  
+  case class AggregateSpecificationByEvents[A : JsonValueCodec : Bottom : Lattice](
+    val mutate: Event[A => A],
+
+    val delta: Event[A],
+    val deltaAck: Event[Tag],
+
+    val deflateDeltas: Event[Unit],
+  )
+
+  private val deltaAckDispatcher = collection.mutable.Map[AggregateGid, Evt[Tag]]()
+
+  services.functionsSocketApi.listen {
+    case ServerSocketMessage.Message.AcknowledgeDelta(message) =>
+      deltaAckDispatcher.get(message.gid) match
+        case Some(entry) => 
+          entry.fire(message.tag)
+
+        case None => 
+          services.logger.error(s"Received acknowledge delta for unknown aggregate type ${message.gid}")
+  }
