@@ -1,15 +1,33 @@
-package webapp.state
+package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.messages.common.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.reflect.Selectable.*
 import webapp.device.storage.*
+import webapp.device.services.*
 import webapp.state.framework.*
 import org.scalajs.dom.IDBKeyRange
 
-class StateStorage(db: StorageDatabaseInterface):
+class StateStorageService(services: {
+  val storage: StorageServiceInterface
+}):
+  val builder = services.storage.openDatabase("state")
+  val db = builder.assume
+
+  def registerAggregateType(aggregateType: AggregateType) =
+    builder.newMigration(2) { migrator =>
+      // Remove old store from previous version
+      migrator.remove(aggregateType.name)
+
+      migrator.store(aggregateType.name, Set(IndexKeys.tag))
+    }
+
+  def finishAggregateRegistration =
+    builder.build
+
   def save[A : JsonValueCodec](gid: AggregateGid, aggregate: DeltaContainer[A]) =
     db.put(gid.aggregateType.name, gid.aggregateId) {
       JsAggregateContainer(
@@ -23,7 +41,7 @@ class StateStorage(db: StorageDatabaseInterface):
       .map(_.map(container => readFromString(container.aggregateJson)))
 
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
-    db.all[JsAggregateContainer](aggregateType.name, "tag",
+    db.all[JsAggregateContainer](aggregateType.name, IndexKeys.tag,
       // Lowerbound is closed from 1. This means the first number will be 1.  
       IDBKeyRange.lowerBound(1, open = false)
     )
@@ -34,7 +52,10 @@ class StateStorage(db: StorageDatabaseInterface):
             readFromString(container.aggregateJson)
           )
       })
-
+  
+  object IndexKeys:
+    val tag = "tag"
+    
   class JsAggregateContainer(
     val aggregateJson: String,
 

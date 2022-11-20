@@ -30,55 +30,74 @@ import typings.std.stdStrings.storage
 
 class AggregateFactory(services: {
   val logger: LoggerServiceInterface
-  val deltaDispatcher: DeltaDispatcherService
   val functionsSocketApi: FunctionsSocketApiInterface
+  val stateDistribution: StateDistributionService
+  val stateStorage: StateStorageService
   val window: WindowServiceInterface
 }):
-  def createSignal[A : JsonValueCodec : Bottom : Lattice](
-    actions: Evt[A => A], 
-    gid: AggregateGid, 
-    stateStorage: StateStorage
-  )(initial: DeltaContainer[A]): Signal[A] =
+  def createSignal[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid, initial: DeltaContainer[A]): AggregateFacade[A] =
     val dispatchFailureEvent = Evt[Unit]()
-    val actionWhileOfflineEvent = actions
+    
+    val mutationEvent = Evt[A => A]()
+    val deltaEvent = Evt[A]()
+    val deltaAckEvent = Evt[Tag]()
+
+    // Maybe extract deflateDeltas into AggregateFacade provide activation from outside
+    val mutationOfflineEvent = mutationEvent
       .filter(_ => !services.window.isOnline)
       .dropParam
 
-    val deltaEvent = Evt[A]()
-    val deltaAckEvent = deltaAckDispatcher.getOrElseUpdate(gid, Evt[Tag]())
-
-    deltaAckEvent.observe(ack =>
-      services.logger.trace(s"Delta ack received for ${gid} ${ack}")
-    )
+    val mutationOnlineEvent = mutationEvent
+      .filter(_ => services.window.isOnline)
+      .dropParam
 
     val signal = aggregateSignalFromSpecification(initial, AggregateSpecificationByEvents(
-      mutate = actions,
+      mutate = mutationEvent,
       delta = deltaEvent,
       deltaAck = deltaAckEvent,
-      deflateDeltas = actionWhileOfflineEvent || dispatchFailureEvent,
+      deflateDeltas = mutationOfflineEvent || dispatchFailureEvent,
     ))
 
-    val connectWithOpenDeltasEvent = services.functionsSocketApi.connected
+    // Side effects here dont feel very smooth. Maybe we can do better or do them somewhere else
+    // Problem is that we must handle side effects for every created signal. There arent many places where
+    // we currently could handle them. Maybe we need additional abstraction for that.
+
+    val connectAndUnsendDeltaEvent = services.functionsSocketApi.connected
       .filter(_ => !signal.now.deltas.isEmpty)
 
-    val dispatchDeltas = connectWithOpenDeltasEvent || actions
-     
-    dispatchDeltas.observe(_ => 
+    val dispatchEvent = mutationOnlineEvent || connectAndUnsendDeltaEvent
+
+    dispatchEvent.observe(_ =>
       services.logger.trace(s"Dispatching deltas to server for $gid")
 
-      services.deltaDispatcher.dispatchToServer(gid, signal.now.mergedDeltas)
+      services.stateDistribution.dispatchToServer(gid, signal.now.mergedDeltas)
         .andThen {
           case Failure(exception) =>
-            services.logger.error(s"Failed to dispatch deltas to server: ${exception.getMessage}")
+            services.logger.error(s"Failed to dispatch deltas to server: id=$gid ${exception.getMessage}")
             dispatchFailureEvent.fire(())
         }
     )
 
-    signal.changed.observe(_ =>
-      stateStorage.save(gid, signal.now)
+    signal.observe(aggregate =>
+      services.stateStorage.save(gid, aggregate)
     )
 
-    signal.map(_.inner)
+    AggregateFacade(
+      signal.map(_.inner),
+
+      mutationEvent,
+      deltaEvent,
+      deltaAckEvent,
+    )
+
+  case class AggregateSpecificationByEvents[A : JsonValueCodec : Bottom : Lattice](
+    val mutate: Event[A => A],
+
+    val delta: Event[A],
+    val deltaAck: Event[Tag],
+
+    val deflateDeltas: Event[Unit],
+  )
 
   def aggregateSignalFromSpecification[A : JsonValueCodec : Bottom : Lattice](
     initial: DeltaContainer[A],
@@ -94,16 +113,47 @@ class AggregateFactory(services: {
         specification.deflateDeltas.act(_ => state.deflateDeltas),
       )
     }
-  
-  case class AggregateSpecificationByEvents[A : JsonValueCodec : Bottom : Lattice](
-    val mutate: Event[A => A],
 
-    val delta: Event[A],
-    val deltaAck: Event[Tag],
+    /*
+    val dispatchFailureEvent = Evt[Unit]()
+    val actionWhileOfflineEvent = mutationEvent
+      .filter(_ => !services.window.isOnline)
+      .dropParam
 
-    val deflateDeltas: Event[Unit],
-  )
+    val deltaEvent = Evt[A]()
+    val deltaAckEvent = deltaAckDispatcher.getOrElseUpdate(gid, Evt[Tag]())
 
+    deltaAckEvent.observe(ack =>
+      services.logger.trace(s"Delta ack received for ${gid} ${ack}")
+    )
+
+    val signal = aggregateSignalFromSpecification(initial, AggregateSpecificationByEvents(
+      mutate = mutationEvent,
+      delta = deltaEvent,
+      deltaAck = deltaAckEvent,
+      deflateDeltas = actionWhileOfflineEvent || dispatchFailureEvent,
+    ))
+
+    val connectWithOpenDeltasEvent = services.functionsSocketApi.connected
+      .filter(_ => !signal.now.deltas.isEmpty)
+
+    val dispatchDeltas = connectWithOpenDeltasEvent || mutationEvent
+     
+    dispatchDeltas.observe(_ => 
+      services.logger.trace(s"Dispatching deltas to server for $gid")
+
+      services.deltaDispatcher.dispatchToServer(gid, signal.now.mergedDeltas)
+        .andThen {
+          case Failure(exception) =>
+            services.logger.error(s"Failed to dispatch deltas to server: ${exception.getMessage}")
+            dispatchFailureEvent.fire(())
+        }
+    )
+
+    signal.map(_.inner)
+    */
+
+  /*
   private val deltaAckDispatcher = collection.mutable.Map[AggregateGid, Evt[Tag]]()
 
   services.functionsSocketApi.listen {
@@ -115,3 +165,4 @@ class AggregateFactory(services: {
         case None => 
           services.logger.error(s"Received acknowledge delta for unknown aggregate type ${message.gid}")
   }
+  */

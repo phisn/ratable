@@ -11,7 +11,7 @@ import webapp.aggregates.*
 import webapp.mocks.*
 import webapp.state.framework.*
 
-class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
+class AggregateViewRepositoryFactorySpec extends AsyncFlatSpec:
   val aggregateGid = AggregateGid("aggregateId", AggregateType.Ratable)
 
   val aggregate = TestAggregate(123, "abc", Set.empty)
@@ -20,7 +20,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
 
   implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  "FacadeRepository" should "should be created by facadeRepositoryFactory" in {
+  "AggregateViewRepository" should "should be created by facadeRepositoryFactory" in {
     val services = ServicesMock()
     val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
@@ -28,7 +28,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
   }
 
   /*
-  "FacadeRepository.get" should "return None if no aggregate exist" in {
+  "AggregateViewRepository.get" should "return None if no aggregate exist" in {
     val services = ServicesMock()
     val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 
@@ -57,7 +57,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
     }
   }
 
-  "FacadeRepository.create" should "save aggregate in statePersistenceService" in {
+  "AggregateViewRepository.create" should "save aggregate in statePersistenceService" in {
     val statePersistence = StatePersistenceServiceMock()
     val services = ServicesMock(_statePersistence = statePersistence)
     val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
@@ -83,7 +83,7 @@ class FacadeRepositoryFactorySpec extends AsyncFlatSpec:
       }
   }
 
-  "FacadeRepository" should "handle changes correctly" in {
+  "AggregateViewRepository" should "handle changes correctly" in {
     val services = ServicesMock()
     val repository = services.facadeRepositoryFactory.registerAggregateAsRepository[TestAggregate](aggregateGid.aggregateType)
 

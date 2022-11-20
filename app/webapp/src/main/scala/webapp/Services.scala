@@ -20,20 +20,6 @@ trait Services:
   lazy val routing: RoutingService
 
 object ServicesDefault extends Services, StateServices, DeviceServices:
-  lazy val config = ApplicationConfig(this)
-  lazy val logger = LoggerService(this)
-
-  val state = StateProvider(this)
-
-  lazy val routing = RoutingService(this)
-
-  // State
-  lazy val aggregateFactory = AggregateFactory(this)
-  lazy val applicationStateFactory = ApplicationStateFactory(this)
-  
-  lazy val deltaDispatcher = DeltaDispatcherService(this)
-  lazy val facadeFactory = FacadeFactory(this)
-
   // Device
   val applicationInitializer = ApplicationInitializer(this)
   
@@ -45,3 +31,18 @@ object ServicesDefault extends Services, StateServices, DeviceServices:
   lazy val storage = StorageService(this)
 
   lazy val window = WindowService(this)
+
+  lazy val config = ApplicationConfig(this)
+  lazy val logger = LoggerService(this)
+
+  val state = StateProvider(this)
+
+  lazy val routing = RoutingService(this)
+  
+  // State
+  lazy val aggregateFacadeProvider = AggregateFacadeProvider(this)
+  lazy val aggregateFactory = AggregateFactory(this)
+  lazy val applicationStateFactory = ApplicationStateFactory(this)
+  
+  lazy val stateDistribution = StateDistributionService(this)
+  lazy val stateStorage = StateStorageService(this)

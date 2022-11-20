@@ -73,10 +73,6 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       val buffer  = collection.mutable.Buffer[(String, A)]()
 
       request.onsuccess = event =>
-        services.logger.trace(s"Iteration")
-
-        scala.scalajs.js.Dynamic.global.window.a = request
-
         if request.result == null then
           services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
           promise.success(buffer.toSeq)

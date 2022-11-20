@@ -13,6 +13,7 @@ import webapp.services.*
 
 trait StorageDatabaseMigratorInterface:
   def store(name: String, indexes: Set[String] = Set.empty): StorageDatabaseMigratorInterface
+  def remove(name: String): StorageDatabaseMigratorInterface
 
 class StorageDatabaseMigrator(services: Services, db: IDBDatabase) extends StorageDatabaseMigratorInterface:
   def store(name: String, indexes: Set[String] = Set.empty): StorageDatabaseMigratorInterface = 
@@ -22,4 +23,8 @@ class StorageDatabaseMigrator(services: Services, db: IDBDatabase) extends Stora
       store.createIndex(index, index)
     )
 
+    this
+
+  def remove(name: String): StorageDatabaseMigratorInterface = 
+    db.deleteObjectStore(name)
     this
