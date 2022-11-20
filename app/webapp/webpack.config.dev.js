@@ -3,7 +3,8 @@ const {InjectManifest} = require('workbox-webpack-plugin');
 
 // https://github.com/fun-stack/fun-pack
 module.exports = webDev({
-  indexHtml: "src/main/html/index.html",
+  // Custom html without workbox call (pwa)
+  indexHtml: "src/main/html/index.dev.html",
   assetsDir: "assets",
   extraWatchDirs: [
 

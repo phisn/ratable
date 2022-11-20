@@ -39,15 +39,15 @@ class ApplicationStateFactory(services: {
     val builder = services.storage.openDatabase("state")
 
     val state = ApplicationState(
-      FacadeRepositoryHelper[Ratable](AggregateType.Ratable, builder)
+      newFacadeRepositoryHelper[Ratable](AggregateType.Ratable, builder)
     )
 
     builder.build
     state
 
-  def FacadeHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): Facade[A] =
+  def newFacadeHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): Facade[A] =
     services.facadeBootstrap.bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.Facade[A])
 
-  def FacadeRepositoryHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): FacadeRepository[A] =
+  def newFacadeRepositoryHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): FacadeRepository[A] =
     services.facadeBootstrap.bootstrapFacadeFactory(aggregateType, builder, services.facadeFactory.FacadeRepository[A])
 

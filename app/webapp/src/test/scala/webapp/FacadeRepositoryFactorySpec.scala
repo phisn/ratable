@@ -1,3 +1,4 @@
+/*
 package webapp
 
 import core.messages.common.*
@@ -160,4 +161,5 @@ class StateDistributionServiceSepc extends AnyFlatSpec:
         tail.isEmpty shouldEqual true
       case _ => fail("StatePersistenceService did not receive the correct changes")
   }
+*/
 */

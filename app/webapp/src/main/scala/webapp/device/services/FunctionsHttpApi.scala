@@ -1,6 +1,7 @@
 package webapp.device.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import concurrent.duration.DurationInt
 import core.messages.*
 import core.messages.common.*
 import core.messages.http.*
@@ -28,9 +29,12 @@ class FunctionsHttpApi(services: {
   private val backend = FetchBackend()
 
   def getAggregate(aggregateMessage: GetAggregateMessage) =
+    services.logger.trace(s"Sending get aggregate message: ${aggregateMessage.gid}")
+
     protoRequest(ClientHttpMessage.Message.GetAggregate(aggregateMessage))
       .map {
-        case Success(message) => 
+        case Success(message) =>
+          services.logger.trace(s"Received get aggregate response: ${message.toProtoString}")
           message
           
         case Failure(exception) => 
@@ -56,5 +60,6 @@ class FunctionsHttpApi(services: {
       .contentType("application/x-protobuf")
       .body(ClientHttpMessage(message).toByteArray)
       .response(asByteArrayAlways)
+      .readTimeout(10.seconds)
       .send(backend)
       .map(response => GetAggregateResponseMessage.validate(response.body))

@@ -29,7 +29,7 @@ class AggregateRepositoryFactory(
 
   val database = cosmosClient.databases.createIfNotExists(
     DatabaseRequest().setId("Core")
-  ).toFuture.map(_.ensureSuccessfullStatusCode("Create Database: ").database)
+  ).toFuture.map(_.ensureSuccessfullStatusCode("AggregateRepository.init, Create Database: ").database)
 
   def create[A : Bottom : Lattice : JsonValueCodec](aggregateType: AggregateType): AggregateRepository[A] =
     val lowercase = aggregateType.name.toLowerCase()
@@ -45,10 +45,10 @@ class AggregateRepositoryFactory(
         ).toFuture
       )
       .map(response =>
-        services.logger.trace(s"Created Container: ${aggregateType.name} - ${response.statusCode}")
+        services.logger.trace(s"AggregateRepository.create, Created Container: ${aggregateType.name} - ${response.statusCode}")
 
         response
-          .ensureSuccessfullStatusCode(s"Create container for type ${aggregateType.name}: ")
+          .ensureSuccessfullStatusCode(s"AggregateRepository.create, Create container for type ${aggregateType.name}: ")
           .container
       )
 
@@ -63,18 +63,18 @@ class AggregateRepositoryFactory(
           .map(response =>
             response.statusCode match
               case 404 =>
-                services.logger.trace(s"Aggregate not found: ${aggregateType.name} - ${id}")
+                services.logger.trace(s"AggregateRepository.get, Aggregate not found: ${aggregateType.name} - ${id}")
                 None
 
               case _ =>
-                response.ensureSuccessfullStatusCode(s"Get aggregate ${aggregateType.name} with id $id: ")
+                response.ensureSuccessfullStatusCode(s"AggregateRepository.get, Get aggregate ${aggregateType.name} with id $id: ")
 
                 // Assuming resource contains aggregate if response code is successfull
                 Some(readFromString(response.resource.get.aggregateJson))
           )
 
       override def applyDelta(id: String, delta: A): Future[Unit] =
-        services.logger.trace(s"Set aggregate: ${aggregateType.name} ${id}")
+        services.logger.trace(s"AggregateRepository.applyDelta, Set aggregate: ${aggregateType.name} ${id}")
 
         get(id)
           .map(_.getOrElse(Bottom[A].empty))
@@ -85,7 +85,7 @@ class AggregateRepositoryFactory(
               writeToString(Lattice[A].merge(aggregate, delta))
             )).toFuture
           )
-          .map(_.ensureSuccessfullStatusCode(s"Set aggregate with id $id: "))
+          .map(_.ensureSuccessfullStatusCode(s"AggregateRepository.applyDelta, Set aggregate with id $id: "))
           .map(_ => ())
 
   extension [A, B <: ResourceResponse[A]](response: B)

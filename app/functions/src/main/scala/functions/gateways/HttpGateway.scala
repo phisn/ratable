@@ -54,8 +54,9 @@ object HttpEntry {
         
           getAggregateMessageHandler(message).andThen {
             case Success(message) => 
-              services.logger.log(message.aggregateJson.get)
+              services.logger.log(message.aggregateJson.getOrElse("null"))
               respond(message)
+
             case Failure(exception) => 
               services.logger.error(s"Failed to get aggregate: ${exception.getMessage}")
               context.done()

@@ -1,3 +1,4 @@
+/*
 package webapp.mocks
 
 import core.domain.aggregates.ratable.*
@@ -8,6 +9,11 @@ import webapp.services.*
 import webapp.state.{*, given}
 import webapp.state.services.*
 
+case class ServicesMock(
+) extends Services, StateServices
+*/
+
+/*
 case class ServicesMock(
   _backendApi: BackendApiInterface = BackendApiMock(),
   _config: ApplicationConfigInterface = ApplicationConfigMock(),
@@ -34,3 +40,4 @@ case class ServicesMock(
 
   lazy val stateDistribution = _stateDistribution
   lazy val statePersistence = _statePersistence
+*/

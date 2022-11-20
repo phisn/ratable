@@ -1,3 +1,4 @@
+/*
 package webapp.mocks
 
 import rescala.default.*
@@ -14,3 +15,4 @@ class ApplicationConfigMock(private var _replicaID: String = "mockReplicaID") ex
     f
     _replicaID = oldReplicaID
     replicaID
+*/

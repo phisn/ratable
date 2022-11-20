@@ -23,9 +23,13 @@ object SocketEntry {
       message match
         case ClientSocketMessage.Message.Delta(message) => 
           services.logger.trace(s"DeltaMessage: aggregateId=${message.gid}")
+
           deltaMessageHandler(message).andThen(_ =>
+            services.logger.trace(s"DeltaMessage: done")
             context.done()
           )
+
+          services.logger.trace(s"DeltaMessage: dispatched")
           
         case ClientSocketMessage.Message.AssociateReplica(message) => 
           services.logger.trace(s"AssociateReplicaMessage: username=${message.username}")

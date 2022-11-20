@@ -86,14 +86,24 @@ class FacadeFactory(services: {
   ) =
     stateStorage
       .load[A](gid)
+      .andThen {
+        case Success(Some(_)) =>
+          services.logger.trace(s"FacadeFactory.initialAggregate: $gid found in storage")
+
+        case Success(None) => 
+          services.logger.trace(s"FacadeFactory.initialAggregate: $gid not found")
+      }
       .flatMap {
-        case Some(value) => Future.successful(Some(value))
+        case Some(value) => 
+          Future.successful(Some(value))
+        
         case None =>
           services.functionsHttpApi.getAggregate(
             GetAggregateMessage(gid)
           )
             .map(_.aggregateJson.map(readFromString[A](_)))
             .map(_.map(DeltaContainer(_)))
+            .fallbackTo(Future.successful(None))
       }
       .andThen {
         case Failure(exception) =>

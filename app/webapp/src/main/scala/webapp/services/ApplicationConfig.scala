@@ -18,6 +18,7 @@ import rescala.default._
 trait ApplicationConfigInterface:
   def backendUrl: String
   def darkMode: Var[Boolean]
+  def websocketReconnectInterval: Int
   def replicaID: String
 
 class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
@@ -28,4 +29,8 @@ class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
     "https://func-ratable-core.azurewebsites.net/api/"
 
   def darkMode = Var(false)
+
+  def websocketReconnectInterval = 
+    30.seconds.toMillis.toInt
+
   def replicaID: String = ThreadLocalRandom.current().nextLong().toHexString

@@ -31,6 +31,7 @@ import typings.std.stdStrings.storage
 class AggregateFactory(services: {
   val logger: LoggerServiceInterface
   val deltaDispatcher: DeltaDispatcherService
+  val functionsSocketApi: FunctionsSocketApi
   val window: WindowServiceInterface
 }):
   def createSignal[A : JsonValueCodec : Bottom : Lattice](
@@ -38,20 +39,25 @@ class AggregateFactory(services: {
     gid: AggregateGid, 
     stateStorage: StateStorage
   )(initial: DeltaContainer[A]): Signal[A] =
+    val dispatchFailureEvent = Evt[Unit]()
+    val actionWhileOfflineEvent = actions.filter(_ => !services.window.isOnline)
+
     val (
       deltaEvent,
       deltaAckEvent
     ) = services.deltaDispatcher.listenToServerDispatcher[A](gid)
+
+    deltaAckEvent.observe(ack =>
+      services.logger.trace(s"Delta ack received for ${gid} ${ack}")
+    )
 
     val signal = Events.foldAll(initial) { state => 
       Seq(
         // Actions received from the client are applied directly to the state
         actions.act(state.mutate(_)),
 
-        // If we do not have internet access we can
-        // fold all deltas received from the server
-        actions
-          .filter(_ => !services.window.isOnline)
+        // Merge all outbound deltas into one
+        (actionWhileOfflineEvent || dispatchFailureEvent)
           .act(_ => state.deflateDeltas),
         
         // Deltas with changes from other clients received from the server
@@ -62,8 +68,20 @@ class AggregateFactory(services: {
       )
     }
 
-    actions.observe(_ =>
+    val connectWithOpenDeltasEvent = services.functionsSocketApi.connected
+      .filter(_ => !signal.now.deltas.isEmpty)
+
+    val dispatchDeltas = connectWithOpenDeltasEvent || actions
+     
+    dispatchDeltas.observe(_ => 
+      services.logger.trace(s"Dispatching deltas to server for $gid")
+
       services.deltaDispatcher.dispatchToServer(gid, signal.now.mergedDeltas)
+        .andThen {
+          case Failure(exception) =>
+            services.logger.error(s"Failed to dispatch deltas to server: ${exception.getMessage}")
+            dispatchFailureEvent.fire(())
+        }
     )
 
     signal.changed.observe(_ =>
