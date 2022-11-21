@@ -1,4 +1,4 @@
-package functions.handlers.messages
+package function.application.handlers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import concurrent.ExecutionContext.Implicits.global

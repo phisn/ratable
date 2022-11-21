@@ -1,4 +1,4 @@
-package functions.handlers.messages
+package function.application.handlers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -9,7 +9,7 @@ import core.messages.socket.*
 import core.domain.aggregates.ratable.*
 import core.framework.*
 import functions.*
-import functions.handlers.*
+import function.application.handlers.*
 import scala.concurrent.*
 import scala.util.*
 

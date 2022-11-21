@@ -16,3 +16,6 @@ module.exports.output = {
 
 // Tell webpack to use nodejs libraries. Else we get "window is not defined" errors
 module.exports.target = "node";
+
+// We currently always use the production mode
+module.exports.mode = "production";

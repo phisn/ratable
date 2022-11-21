@@ -1,4 +1,4 @@
-package functions.gateway
+package function.application.gateway
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -6,7 +6,7 @@ import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
 import core.messages.http.*
 import functions.*
-import functions.handlers.messages.*
+import function.application.handlers.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.typedarray.*

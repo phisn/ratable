@@ -1,5 +1,7 @@
 package functions
 
+import functions.device.*
+import functions.device.services.*
 import functions.services.*
 import functions.state.*
 import functions.state.services.*
@@ -18,11 +20,15 @@ trait Services:
 
 class ProductionServices(
   context: js.Dynamic
-) extends Services, StateServices:
+) extends Services, StateServices, DeviceServices:
+  lazy val storage = new StorageService(this, context)
+
+  // Core
   lazy val config = new ApplicationConfig(this, context)
   lazy val connectionContext = new ConnectionContextProvider(this, context)
   lazy val logger = new LoggerService(this, context)
   lazy val socketMessaging = new SocketMessagingService(this, context)
+
   lazy val stateDeltaProcessor = new StateDeltaProcessor(this, context)
   lazy val stateProvider = new StateProviderService(this, context)
 
