@@ -43,7 +43,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       val request = store.get(key)
 
       request.onsuccess = event =>
-        customDelay {
+        // customDelay {
           promise.success(
             // IndexedDB store get returns undefined if the key is not found
             // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
@@ -52,7 +52,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
             else 
               Some(request.result.asInstanceOf[A])
           )
-        }
+        // }
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}")
