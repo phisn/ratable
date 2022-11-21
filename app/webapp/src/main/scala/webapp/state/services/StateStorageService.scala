@@ -3,6 +3,7 @@ package webapp.state.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.messages.common.*
+import kofre.base.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
@@ -28,10 +29,12 @@ class StateStorageService(services: {
   def finishAggregateRegistration =
     builder.build
 
-  def save[A : JsonValueCodec](gid: AggregateGid, aggregate: DeltaContainer[A]) =
+  def save[A : JsonValueCodec : Lattice : Bottom](gid: AggregateGid, aggregate: DeltaContainer[A]) =
     db.put(gid.aggregateType.name, gid.aggregateId) {
       JsAggregateContainer(
-        aggregateJson = writeToString(aggregate),
+        // Funny thing is we can savely deflate before saving because deltas are only infalted
+        // because we might expect acknoledgements from the server. 
+        aggregateJson = writeToString(aggregate.deflateDeltas),
         tag = aggregate.maxTag.toDouble
       )
     }
