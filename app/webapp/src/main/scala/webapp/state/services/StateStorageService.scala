@@ -15,7 +15,7 @@ import org.scalajs.dom.IDBKeyRange
 class StateStorageService(services: {
   val storage: StorageServiceInterface
 }):
-  val builder = services.storage.openDatabase("state")
+  val builder = services.storage.openDatabase("state", 2)
   val db = builder.assume
 
   def registerAggregateType(aggregateType: AggregateType) =

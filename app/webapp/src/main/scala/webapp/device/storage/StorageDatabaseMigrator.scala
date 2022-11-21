@@ -26,5 +26,7 @@ class StorageDatabaseMigrator(services: Services, db: IDBDatabase) extends Stora
     this
 
   def remove(name: String): StorageDatabaseMigratorInterface = 
-    db.deleteObjectStore(name)
+    if db.objectStoreNames.contains(name) then
+      db.deleteObjectStore(name)
+
     this

@@ -82,12 +82,26 @@ class FunctionsSocketApi(services: {
         ws.onmessage = onMessage(_)
 
         ws.onerror = event =>
-          services.logger.error(s"Websocket connection error: ${event.message}")
-          promise.failure(new Exception(event.message))
+          services.logger.error(s"Websocket connection error: $event")
+          promise.failure(new Exception(s"Websocket connection error: $event"))
       
         ws.onclose = event =>
           services.logger.log(s"Websocket connection closed: ${event.reason}")
-          futureWebsocket = openWebsocket
+
+          promise.future.value match
+            case Some(Success(_)) =>
+              services.logger.log(s"Websocket connection closed with result reason=${event.reason}")
+
+              // Websocket was closed by the server, try to reconnect
+              futureWebsocket = openWebsocket
+            
+            case Some(Failure(_)) =>
+              // Do nothing, the promise was already completed with an error
+              ()
+
+            case None => 
+              // Websocket was closed by the client, do not try to reconnect
+              promise.failure(new Exception(s"Websocket connection closed without result reason=${event.reason}"))
 
         promise.future
       }
@@ -98,6 +112,7 @@ class FunctionsSocketApi(services: {
 
           val promise = Promise[WebSocket]()
 
+          services.logger.trace(s"Reconnecting in ${services.config.websocketReconnectInterval} millis")
           scala.scalajs.js.timers.setTimeout(services.config.websocketReconnectInterval) {
             services.logger.trace("Retrying to open websocket")
 
