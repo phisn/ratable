@@ -1,6 +1,7 @@
 package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.framework.*
 import core.messages.common.*
 import core.messages.http.*
 import kofre.base.*

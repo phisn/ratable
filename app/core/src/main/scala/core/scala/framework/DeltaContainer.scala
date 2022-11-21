@@ -1,4 +1,4 @@
-package webapp.state.framework
+package core.framework
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
