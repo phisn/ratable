@@ -33,4 +33,12 @@ class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
   def websocketReconnectInterval = 
     30.seconds.toMillis.toInt
 
-  def replicaID: String = ThreadLocalRandom.current().nextLong().toHexString
+  def replicaID: String = 
+    // Hack. Later to be exported into state
+    var item = window.localStorage.getItem("replicaID")
+
+    if item == null then
+      item = ThreadLocalRandom.current().nextLong().toHexString
+      window.localStorage.setItem("replicaID", item)
+
+    item
