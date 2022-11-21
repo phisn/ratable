@@ -1,5 +1,6 @@
 package webapp.application.pages.viewpage
 
+import core.domain.aggregates.ratable.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -11,12 +12,12 @@ import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def badgesComponent(using services: Services) =
+def badgesComponent(ratable: Ratable)(using services: Services) =
   div(
     cls := "flex space-x-2 md:space-x-4",
 
-    badgeComponent("36 Submissions"),
-    badgeComponent("20 Comments")(
+    badgeComponent(s"${ratable._ratings.size} Submissions"),
+    badgeComponent(s"0 Comments")(
     ),
-    badgeComponent("2 days")
+    badgeComponent("7 days")
   )

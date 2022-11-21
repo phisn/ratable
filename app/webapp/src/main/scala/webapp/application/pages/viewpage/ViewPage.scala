@@ -23,7 +23,7 @@ case class ViewPage(
           cls := "flex flex-col space-y-6 w-[40rem]",
           
           titleComponent(ratable.title),
-          badgesComponent,
+          badgesComponent(ratable),
           viewRatingsComponent(ratable)(
             cls := "md:pt-6"
           )
