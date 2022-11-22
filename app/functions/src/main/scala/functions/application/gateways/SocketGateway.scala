@@ -12,7 +12,7 @@ import scala.scalajs.js.typedarray.*
 import scala.util.*
 import scalapb.*
 
-object SocketEntry {
+object SocketEntry:
   @JSExportTopLevel("socket")
   def gateway(context: js.Dynamic, data: ArrayBuffer) =
     implicit val services = ProductionServices(context)
@@ -52,4 +52,3 @@ object SocketEntry {
       case Failure(exception) => 
         services.logger.error(s"Failed to validate message: ${exception.getMessage}")
         context.done()
-}

@@ -24,7 +24,7 @@ import scala.scalajs.js.annotation.{JSGlobalScope, JSGlobal, JSImport, JSName, J
 
 given JsonValueCodec[String] = JsonCodecMaker.make
 
-object HttpEntry {
+object HttpEntry:
   @JSExportTopLevel("http")
   def gateway(context: js.Dynamic) =
     implicit val services = ProductionServices(context)
@@ -78,4 +78,3 @@ object HttpEntry {
       case Failure(exception) =>
         services.logger.error(s"Failed to parse message: ${exception.getMessage}")
         context.done()
-}

@@ -3,6 +3,7 @@ package functions.device.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
+import core.framework.*
 import functions.*
 import functions.services.*
 import functions.state.*
@@ -45,11 +46,9 @@ class StorageContainer(
   
   def put[A : JsonValueCodec](name: String, id: String)(value: A): Future[Unit] =
     container.flatMap(container =>
-      val aggregateJson = writeToString(value)
-
       container.items.upsert(JsAggregateContainer(
         id,
-        js.JSON.parse(aggregateJson)
+        value.toJs
       )).toFuture
         .andThen {
           case scala.util.Success(response) =>
@@ -76,7 +75,7 @@ class StorageContainer(
             response.ensureSuccessfullStatusCode(s"AggregateRepository.get, Get aggregate $name with id $id: ")
 
             // Assuming resource contains aggregate if response code is successfull
-            Some(readFromString(js.JSON.stringify(response.resource.get.aggregate)))
+            Some(response.resource.get.aggregate.toScala)
       )
 
   class JsAggregateContainer(
