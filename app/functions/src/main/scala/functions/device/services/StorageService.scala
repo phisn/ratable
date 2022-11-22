@@ -45,10 +45,18 @@ class StorageContainer(
   
   def put[A : JsonValueCodec](name: String, id: String)(value: A): Future[Unit] =
     container.flatMap(container =>
+      val aggregateJson = writeToString(value)
+
       container.items.upsert(JsAggregateContainer(
         id,
-        writeToString(value)
+        js.JSON.parse(aggregateJson)
       )).toFuture
+        .andThen {
+          case scala.util.Success(response) =>
+            services.logger.trace(s"AggregateRepository.put, Put aggregate: $name $id - ${response.statusCode}")
+          case scala.util.Failure(exception) =>
+            services.logger.error(s"AggregateRepository.put, Put aggregate: $name $id - ${exception.getMessage()}")
+        }
     )
       .map(_.ensureSuccessfullStatusCode(s"AggregateRepository.applyDelta, Set aggregate with id $id: "))
       .map(_ => ())
@@ -68,14 +76,17 @@ class StorageContainer(
             response.ensureSuccessfullStatusCode(s"AggregateRepository.get, Get aggregate $name with id $id: ")
 
             // Assuming resource contains aggregate if response code is successfull
-            Some(readFromString(response.resource.get.aggregateJson))
+            Some(readFromString(js.JSON.stringify(response.resource.get.aggregate)))
       )
 
   class JsAggregateContainer(
     // This property must be named id for CosmosDB to work
     // https://stackoverflow.com/questions/48641133/can-i-create-azure-cosmos-db-document-with-a-custom-key-other-than-id
     val id: String,
-    val aggregateJson: String
+
+    // Seems like a hack that we are using JSON.parse and JSON.stringify to convert to/from
+    // a JSON object. But it works.
+    val aggregate: js.Any
 
   ) extends js.Object
 
