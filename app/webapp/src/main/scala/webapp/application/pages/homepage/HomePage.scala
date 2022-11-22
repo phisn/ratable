@@ -15,9 +15,9 @@ case class HomePage() extends Page:
     layoutCustomHeaderComponent(
       headerCleanComponent
     )(
-      centerContentComponent(
+      contentFullCenterComponent(
         div(
-          cls := "space-y-8 md:space-y-16 p-4",
+          cls := "space-y-8 md:space-y-16",
           h1(
             cls := "text-5xl font-bold text-center",
             "Create your own Ratable"

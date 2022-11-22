@@ -6,7 +6,7 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
 import webapp.application.{given, *}
-import webapp.application.pages.sharepage.*
+import webapp.application.pages.createpage.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.application.usecases.ratable.*
@@ -17,18 +17,24 @@ def ratableInputComponent(using services: Services) =
   val inputSignal = Var("")
   val inputEvt = Evt[String]()
 
-  inputEvt.observe { value =>
-    if value.isEmpty() then
+  inputEvt.observe { title =>
+    if title.isEmpty() then
       customInputClass.set("border-red-500 border-2")
     else
-      val id = createRatable(value, List("Taste", "Ambiente", "Price"))
-      services.routing.to(SharePage(id), true)
+      services.routing.to(CreatePage(title), true)
   }
 
   div(
     cls := "form-control md:w-[40rem]",
+    label(
+      cls := "label",
+      span(
+        cls := "label-text",
+        "Title of your Ratable"
+      ),
+    ),
     div(
-      cls := "flex flex-col md:flex-row items-end md:input-group space-y-4 md:space-y-0",
+      cls := "flex flex-col md:flex-row md:input-group space-y-4 md:space-y-0",
       input(
         customInputClass.map(cls := _),
         cls := "input bg-base-200 w-full",

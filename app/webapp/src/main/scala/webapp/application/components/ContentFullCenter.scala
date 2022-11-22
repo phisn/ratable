@@ -8,7 +8,7 @@ import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def centerContentComponent =
+def contentFullCenterComponent =
   div(
-    cls := "flex-grow flex flex-col justify-center items-center"
+    cls := "flex-grow flex flex-col justify-center items-center p-4"
   )

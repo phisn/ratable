@@ -19,29 +19,23 @@ case class SharePage(
 ) extends Page:
   override def render(using services: Services): VNode =
     layoutSingleRatable(ratableID)(ratable =>
-      div(
-        cls := "flex-grow flex flex-col",
-        centerContentComponent(
-          cls := "p-4",
+      contentFullCenterComponent(
+        div(
           div(
-            div(
-              cls := "flex justify-center pb-16",
-              iconCheckCircleFill(
-                cls := "w-40 fill-accenfsdt"
-              )
-            ),
-            div(
-              cls := "text-3xl text-center mb-4",
-              "Done! Now share your ratable with your friends"
-            ),
-            copyBoxComponent(
-              "View link",
-              ViewPage(ratableID)
-            ),
-            copyBoxComponent(
-              "Edit & Vote link", 
-              RatePage(ratableID)
-            )
+            cls := "flex justify-center pb-16",
+            iconCheckCircleFill(cls := "w-40")
+          ),
+          div(
+            cls := "text-3xl text-center mb-4",
+            "Done! Now share your ratable with your friends"
+          ),
+          copyBoxComponent(
+            "View link",
+            ViewPage(ratableID)
+          ),
+          copyBoxComponent(
+            "Edit & Vote link", 
+            RatePage(ratableID)
           )
         )
       )

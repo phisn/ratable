@@ -20,29 +20,24 @@ case class RatePage(
     val ratingForCategorySignal = Var(Map[Int, Int]())
 
     layoutSingleRatable(ratableID)(ratable =>
-      div(
-        cls := "flex-grow flex justify-center p-4 md:p-12",
+      contentHorizontalCenterComponent(
+        titleComponent(ratable.title),
+        ratingsInputComponent(ratable, ratingForCategorySignal),
+
         div(
-          cls := "flex flex-col space-y-8 w-[40rem]",
-
-          titleComponent(ratable.title),
-          ratingsInputComponent(ratable, ratingForCategorySignal),
-
-          div(
-            cls := "flex flex-col md:flex-row pt-4 space-y-4 md:space-y-0 md:space-x-4",
-            button(
-              cls := "btn btn-primary",
-              "Submit",
-              onClick.foreach(_ => {
-                rateRatable(ratableID, ratingForCategorySignal.now)
-                services.routing.toReplace(ViewPage(ratableID))
-              })
-            ),
-            button(
-              cls := "btn btn-outline",
-              "Cancel and view submissions",
-              onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
-            )
+          cls := "flex flex-col md:flex-row pt-4 space-y-4 md:space-y-0 md:space-x-4",
+          button(
+            cls := "btn btn-primary",
+            "Submit",
+            onClick.foreach(_ => {
+              rateRatable(ratableID, ratingForCategorySignal.now)
+              services.routing.toReplace(ViewPage(ratableID))
+            })
+          ),
+          button(
+            cls := "btn btn-outline",
+            "Cancel and view submissions",
+            onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
           )
         )
       )

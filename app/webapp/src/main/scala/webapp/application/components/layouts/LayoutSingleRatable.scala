@@ -19,18 +19,11 @@ import kofre.base.*
 import outwatch.BasicVNode
 
 def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: Services) =
-  // val ratableSignal = services.state.ratables.listen(ratableID)
-  
-  // invalid id handling currently not implemented
-  // ratableSignal.filter(_.isEmpty).foreach(_ => services.routing.to(HomePage()))
-  
-  // ratableSignal.foreach(_.changed.filter(_.isEmpty).observe(_ => services.routing.to(HomePage())))
-
   layoutComponent(
     div(
       cls := "flex-grow flex flex-col",
       services.state.ratables.map(ratableID)(
-        centerContentComponent(
+        contentFullCenterComponent(
           div(
             cls := "flex flex-col space-y-8 items-center",
             div(
@@ -42,7 +35,7 @@ def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using service
             )
           )
         ),
-        centerContentComponent(
+        contentFullCenterComponent(
           div(
             cls := "flex flex-col space-y-8 items-center",
             titleComponent("Ratable not found"),

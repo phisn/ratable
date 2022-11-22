@@ -17,16 +17,11 @@ case class ViewPage(
 ) extends Page:
   def render(using services: Services): VNode =
     layoutSingleRatable(ratableID)(ratable =>
-      div(
-        cls := "flex-grow flex justify-center p-4 md:p-12",
-        div(
-          cls := "flex flex-col space-y-6 w-[40rem]",
-          
-          titleComponent(ratable.title),
-          badgesComponent(ratable),
-          viewRatingsComponent(ratable)(
-            cls := "md:pt-6"
-          )
+      contentHorizontalCenterComponent(
+        titleComponent(ratable.title),
+        badgesComponent(ratable),
+        viewRatingsComponent(ratable)(
+          cls := "md:pt-6"
         )
       )
     )

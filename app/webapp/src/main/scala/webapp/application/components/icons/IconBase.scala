@@ -14,7 +14,7 @@ def iconBase(using services: Services) =
   svg(
     services.config.darkMode.map( darkMode => 
       if darkMode then      
-        style := "filter: invert(1)"
+        style := "filter: invert(0.75)"
       else
         style := ""
     )
