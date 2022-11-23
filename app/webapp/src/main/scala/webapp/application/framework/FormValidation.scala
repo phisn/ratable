@@ -5,24 +5,23 @@ import rescala.default.*
 enum ValidationState:
   case None, Error
 
-class FormValidation(
-  val aggregation: Evt[Unit => Boolean] = Evt()
-):
-  // Combination is done with & instead of && to avoid short-circuiting
-  private val validator = aggregation.fold[Unit => Boolean](_ => true)((a, b) => _ => a(()) & b(()))
+class FormValidation:  // Combination is done with & instead of && to avoid short-circuiting
+  private val validators = collection.mutable.Set[() => Boolean]()
   
   def validate: Boolean =
-    val helper: Unit => Boolean = validator.now
-    helper(())
+    // Run all validators without short-circuiting
+    validators.foldLeft(true) { (acc, validator) =>
+      acc & validator()
+    }
 
-  def validate[A](default: A, validator: A => Boolean): VarWithValidation[A] =
-    validate(Var(default), validator)
+  def validateVar[A](default: A, validator: A => Boolean): VarWithValidation[A] =
+    validateVar(Var(default), validator)
 
-  def validate[A](default: Var[A], validator: A => Boolean): VarWithValidation[A] =
+  def validateVar[A](default: Var[A], validator: A => Boolean): VarWithValidation[A] =
     val value = default
     val state = Var(ValidationState.None)
 
-    aggregation.fire(_ =>
+    validators += (() =>
       val valid = validator(value.now)
 
       state.set(

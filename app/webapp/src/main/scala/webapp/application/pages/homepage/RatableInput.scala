@@ -15,7 +15,7 @@ import webapp.application.usecases.ratable.*
 def ratableInputComponent(using services: Services) = 
   implicit val form = FormValidation()
 
-  val title = form.validate("", _.length > 0)
+  val title = form.validateVar("", _.length > 0)
 
   div(
     cls := "form-control md:w-[40rem]",

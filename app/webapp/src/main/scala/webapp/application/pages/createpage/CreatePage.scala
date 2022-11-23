@@ -20,7 +20,7 @@ case class CreatePage(val title: String) extends Page:
   def render(using services: Services): VNode =
     implicit val form = FormValidation()
 
-    val titleVar = form.validate(title, _.length > 0)
+    val titleVar = form.validateVar(title, _.length > 0)
     val categoriesVar = Var(List(categoryVar("")))
 
     layoutComponent(
