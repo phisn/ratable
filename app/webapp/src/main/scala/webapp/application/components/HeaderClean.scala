@@ -18,7 +18,8 @@ def headerCleanComponent(using services: Services) =
     div(
       cls := "flex-none",
       button(
-        cls := "btn btn-square btn-ghost",
+        cls := "drawer-button btn btn-square btn-ghost",
+        forId := "main-drawer",
         iconSearch(
           cls := "w-8 h-8",
         )

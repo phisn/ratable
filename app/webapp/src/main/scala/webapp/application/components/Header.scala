@@ -29,8 +29,9 @@ def headerComponent(using services: Services) =
     ),
     div(
       cls := "flex-none",
-      button(
-        cls := "btn btn-ghost btn-square",
+      label(
+        cls := "drawer-button btn btn-ghost btn-square",
+        forId := "main-drawer",
         iconSearch(
           cls := "w-8 h-8",
         )
