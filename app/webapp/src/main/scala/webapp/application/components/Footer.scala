@@ -15,10 +15,13 @@ def footerComponent(using services: Services) =
     cls := "footer grid-cols-3 bg-base-200 p-2",
     div(
       cls := "flex self-center p-2",
+      /*
       a(
         "Privacy Policy",
         href := services.routing.linkPath(PrivacyPage())
       )
+      */
+      ""
     ),
     div(
       cls := "flex place-self-center",
