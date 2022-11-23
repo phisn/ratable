@@ -1,4 +1,4 @@
-package webapp.application.pages.createpage
+package webapp.application.components.common
 
 import org.scalajs.dom
 import outwatch.*
@@ -11,9 +11,12 @@ import webapp.application.pages.viewpage.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
 import webapp.application.{given, *}
+import webapp.application.framework.*
 import webapp.application.usecases.ratable.*
 
-def inputComponent(placeholderText: String, labelText: String, inputVar: Var[String]) =
+def inputComponent(
+  placeholderText: String, labelText: String, inputVar: VarWithValidation[String]
+) =
   div(
     cls := "form-control",
     label(
@@ -26,7 +29,13 @@ def inputComponent(placeholderText: String, labelText: String, inputVar: Var[Str
     input(
       cls := "input bg-base-200 w-full",
       placeholder := placeholderText,
-      value <-- inputVar,
-      onInput.value --> inputVar
+      
+      value <-- inputVar.variable,
+      onInput.value --> inputVar.variable,
+      
+      inputVar.state.map {
+        case ValidationState.None  => cls := ""
+        case ValidationState.Error => cls := "border-red-500"
+      },
     )
   )

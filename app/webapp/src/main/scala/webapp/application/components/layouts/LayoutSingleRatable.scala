@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
 import webapp.application.{given, *}
 import webapp.application.components.*
+import webapp.application.components.common.*
 import webapp.application.components.layouts.*
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*

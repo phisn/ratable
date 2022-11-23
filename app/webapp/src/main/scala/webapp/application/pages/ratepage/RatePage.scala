@@ -5,6 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.application.components.*
+import webapp.application.components.common.*
 import webapp.application.components.layouts.*
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*

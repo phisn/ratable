@@ -1,4 +1,4 @@
-package webapp.application.components.layouts
+package webapp.application.components
 
 import org.scalajs.dom
 import outwatch.*

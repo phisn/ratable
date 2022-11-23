@@ -7,6 +7,7 @@ import rescala.default.*
 import webapp.*
 import webapp.application.components.*
 import webapp.application.components.layouts.*
+import webapp.application.framework.*
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
@@ -15,8 +16,8 @@ import webapp.application.{given, *}
 import webapp.application.usecases.ratable.*
 
 def categorySelectionComponent(
-  categories: Var[List[Var[String]]]
-) =
+  categories: Var[List[VarWithValidation[String]]]
+)(using form: FormValidation) =
   div(
     cls := "space-y-6",
     div(
@@ -28,7 +29,7 @@ def categorySelectionComponent(
       button(
         cls := "btn btn-outline",
         "Add category",
-        onClick.foreach(_ => categories.transform(_ :+ Var(""))),
+        onClick.foreach(_ => categories.transform(_ :+ categoryVar(""))),
 
         categories
           .map(_.size >= 3)

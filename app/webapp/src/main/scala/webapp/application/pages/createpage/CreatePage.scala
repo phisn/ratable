@@ -6,7 +6,9 @@ import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
 import webapp.application.components.*
+import webapp.application.components.common.*
 import webapp.application.components.layouts.*
+import webapp.application.framework.*
 import webapp.application.pages.sharepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
@@ -14,15 +16,12 @@ import webapp.state.framework.{given, *}
 import webapp.application.{given, *}
 import webapp.application.usecases.ratable.*
 
-class FormValidation:
-  val validateEvent = Evt[Unit]()
-
 case class CreatePage(val title: String) extends Page:
   def render(using services: Services): VNode =
-    val titleVar = Var(title)
+    implicit val form = FormValidation()
 
-    val validateForm = Evt[Unit]()
-    val categoriesVar = Var(List(Var("")))
+    val titleVar = form.validate(title, _.length > 0)
+    val categoriesVar = Var(List(categoryVar("")))
 
     layoutComponent(
       contentHorizontalCenterComponent(
@@ -31,13 +30,15 @@ case class CreatePage(val title: String) extends Page:
           "Title of your Ratable", 
           titleVar
         ),
-        categorySelectionComponent(categoriesVar),
+        categorySelectionComponent(
+          categoriesVar
+        ),
         div(
           button(
             cls := "btn btn-primary w-full md:w-auto",
             "Create",
-            onClick.foreach(_ =>
-              val id = createRatable(titleVar.now, categoriesVar.now.map(_.now))
+            onClick.filter(_ => form.validate).foreach(_ =>
+              val id = createRatable(titleVar.variable.now, categoriesVar.now.map(_.variable.now))
               services.routing.to(SharePage(id), true)
             )
           )
