@@ -6,6 +6,7 @@ import colibri.router.Router
 import org.scalajs.dom.window
 import outwatch.*
 import rescala.default.*
+import webapp.application.pages.*
 import webapp.application.pages.createpage.*
 import webapp.application.pages.debugpage.*
 import webapp.application.pages.homepage.*
@@ -21,6 +22,7 @@ object Routes:
     case Root / "share"  / id    => SharePage(id)
     case Root / "rate"   / id    => RatePage(id)
     case Root / "view"   / id    => ViewPage(id)
+    case Root / "privacy"        => PrivacyPage()
      
     case Root / "debug"          => DebugPage()
 
@@ -30,5 +32,6 @@ object Routes:
     case SharePage(id)     => Root / "share" / id
     case RatePage(id)      => Root / "rate"  / id
     case ViewPage(id)      => Root / "view"  / id
+    case PrivacyPage()     => Root / "privacy"
 
     case DebugPage()       => Root / "debug"

@@ -5,6 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.application.components.icons.*
+import webapp.application.pages.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
@@ -13,7 +14,14 @@ def footerComponent(using services: Services) =
   footer(
     cls := "footer grid-cols-3 bg-base-200 p-2",
     div(
-      cls := "col-start-2 flex place-self-center",
+      cls := "flex self-center p-2",
+      a(
+        "Privacy Policy",
+        href := services.routing.linkPath(PrivacyPage())
+      )
+    ),
+    div(
+      cls := "flex place-self-center",
       div(
         "made by ",
         a(
