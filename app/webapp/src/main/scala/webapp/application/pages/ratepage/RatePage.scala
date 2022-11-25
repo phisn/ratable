@@ -7,6 +7,7 @@ import rescala.default.*
 import webapp.application.components.*
 import webapp.application.components.common.*
 import webapp.application.components.layouts.*
+import webapp.application.framework.*
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
@@ -18,7 +19,7 @@ case class RatePage(
   ratableID: String
 ) extends Page:
   def render(using services: Services): VNode =
-    val ratingForCategorySignal = Var(Map[Int, Int]())
+    val ratingForCategorySignal = PromiseSignal(Map[Int, Int]())
 
     layoutSingleRatable(ratableID)(ratable =>
       contentHorizontalCenterComponent(

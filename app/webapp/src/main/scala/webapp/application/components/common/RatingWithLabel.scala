@@ -7,16 +7,21 @@ import rescala.default.*
 import scala.util.*
 import webapp.*
 import webapp.application.{given, *}
+import webapp.application.framework.*
 import webapp.services.*
 import webapp.state.framework.*
 
-private def starInputComponent(id: String, value: Int, isChecked: Boolean, changeVar: Var[Int]) = 
+private def starInputComponent(
+  uniqueId: String, 
+  isChecked: Boolean, 
+  onClickEvt: Evt[Unit]
+) = 
   input(
     cls := "mask mask-star-2 bg-accent bg w-10 h-10",
     tpe := "radio",
-    name := id,
+    name := uniqueId,
     checked := isChecked,
-    onClick.as(value) --> changeVar
+    onClick.as(()) --> onClickEvt
   )
 
 private def starComponent(isChecked: Boolean) = 
@@ -31,18 +36,20 @@ private def starComponent(isChecked: Boolean) =
 
 def ratingWithLabelComponent(
   label: String, 
-  defaultValue: Option[Int] = None, 
-  isReadOnly: Boolean = false, 
-  stars: Int = 5,
-  changeVar: Var[Int] = Var(0)
+  promise: PromiseSignal[Int],
+  isReadOnly: Boolean = false 
 ) =
-  val name = Random.alphanumeric.take(16).mkString
-  val defaultIndex: Int = defaultValue match {
-    case None => (math.ceil(stars / 2.0) - 1).toInt
-    case Some(value) => value - 1
-  }
+  val uniqueId = Random.alphanumeric.take(16).mkString
 
-  changeVar.set(defaultIndex + 1)
+  val stars = 5
+  val defaultStars = promise.default.getOrElse(3)
+
+  val events = (0 until stars).map(_ => Evt[Unit]())
+
+  promise :=
+    Events.foldAll(defaultStars) { _ =>
+      events.zipWithIndex.map((evt, index) => evt.act2(_ => index + 1))
+    }.value
 
   div(
     cls := "flex flex-col space-y-2",
@@ -54,9 +61,9 @@ def ratingWithLabelComponent(
       cls := "rating",
       Range(0, stars).map { i => 
         if isReadOnly then
-          starComponent(i > defaultIndex)
+          starComponent(i > defaultStars - 1)
         else
-          starInputComponent(name, i + 1, i == defaultIndex, changeVar)
+          starInputComponent(uniqueId, i == defaultStars - 1, events(i))
       }
     )
   )

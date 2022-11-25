@@ -8,6 +8,7 @@ import rescala.default.*
 import webapp.application.components.*
 import webapp.application.components.common.*
 import webapp.application.components.layouts.*
+import webapp.application.framework.*
 import webapp.application.pages.ratepage.*
 import webapp.services.*
 import webapp.state.framework.*
@@ -28,7 +29,11 @@ def viewRatingsComponent(ratable: Ratable)(using services: Services) =
 
     div(
       cls := "flex flex-col space-y-4 items-center md:items-start",
-      ratingWithLabelComponent("Overall", Some(overallRating), true),
+      ratingWithLabelComponent(
+        "Overall", 
+        PromiseSignal(overallRating),
+        true
+      ),
       div(
         cls := "divider"
       ),
@@ -38,7 +43,8 @@ def viewRatingsComponent(ratable: Ratable)(using services: Services) =
           .map{ case (index, (category, value)) =>
             ratingWithLabelComponent(
               category.title.map(_.value).getOrElse(""),
-              Some(value), true
+              PromiseSignal(value),
+              true
             )
           }
       )
