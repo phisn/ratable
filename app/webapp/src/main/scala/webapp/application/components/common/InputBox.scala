@@ -15,7 +15,7 @@ import webapp.application.framework.*
 import webapp.application.usecases.ratable.*
 
 def inputComponent(
-  placeholderText: String, labelText: String, inputVar: VarWithValidation[String]
+  placeholderText: String, labelText: String, inputVar: PromiseSignalWithValidation[String]
 ) =
   div(
     cls := "form-control",
@@ -30,8 +30,8 @@ def inputComponent(
       cls := "input bg-base-200 w-full",
       placeholder := placeholderText,
       
-      value <-- inputVar.variable,
-      onInput.value --> inputVar.variable,
+      value <-- inputVar.signal,
+      onInput.value --> inputVar.signal,
       
       inputVar.state.map {
         case ValidationState.None  => cls := ""

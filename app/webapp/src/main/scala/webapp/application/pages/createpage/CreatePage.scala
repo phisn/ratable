@@ -20,8 +20,8 @@ case class CreatePage(val title: String) extends Page:
   def render(using services: Services): VNode =
     implicit val form = FormValidation()
 
-    val titleVar = form.validateVar(title, _.length > 0)
-    val categoriesVar = Var(List(categoryVar("")))
+    val titleVar = form.validatePromise(title, _.length > 0)
+    val categoriesVar = PromiseSignal(List(""))
 
     layoutComponent(
       contentHorizontalCenterComponent(
@@ -38,7 +38,7 @@ case class CreatePage(val title: String) extends Page:
             cls := "btn btn-primary w-full md:w-auto",
             "Create",
             onClick.filter(_ => form.validate).foreach(_ =>
-              val id = createRatable(titleVar.variable.now, categoriesVar.now.map(_.variable.now))
+              val id = createRatable(titleVar.signal.now, categoriesVar.now)
               services.routing.to(SharePage(id), true)
             )
           )

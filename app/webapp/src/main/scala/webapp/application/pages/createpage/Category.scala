@@ -16,7 +16,7 @@ import webapp.state.framework.{given, *}
 import webapp.application.{given, *}
 import webapp.application.usecases.ratable.*
 
-def categoryComponent(categoryTitle: VarWithValidation[String])(using form: FormValidation) =
+def categoryComponent(categoryTitle: PromiseSignalWithValidation[String])(using form: FormValidation) =
   inputComponent(
     "Category the user can rate your ratable in",
     "Category title", 

@@ -7,7 +7,7 @@ object Dependencies {
   lazy val versions = new {
     val scalajs   = "1.1.0"
     val jsoniter  = "2.17.6"
-    val rescala   = "6d9019e946"
+    val rescala   = "085d4cdbe8"
     val sttp      = "3.8.3"
     val colibri   = "0.7.1"
     val outwatch  = "1.0.0-RC10"

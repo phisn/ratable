@@ -14,15 +14,15 @@ class FormValidation:  // Combination is done with & instead of && to avoid shor
       acc & validator()
     }
 
-  def validateVar[A](default: A, validator: A => Boolean): VarWithValidation[A] =
-    validateVar(Var(default), validator)
+  def validatePromise[A](default: A, f: A => Boolean): PromiseSignalWithValidation[A] =
+    validatePromise(PromiseSignal(default), f)
 
-  def validateVar[A](default: Var[A], validator: A => Boolean): VarWithValidation[A] =
+  def validatePromise[A](default: PromiseSignal[A], f: A => Boolean): PromiseSignalWithValidation[A] =
     val value = default
     val state = Var(ValidationState.None)
 
-    validators += (() =>
-      val valid = validator(value.now)
+    val validator = () =>
+      val valid = f(value.now)
 
       state.set(
         if valid then ValidationState.None
@@ -30,7 +30,8 @@ class FormValidation:  // Combination is done with & instead of && to avoid shor
       )
 
       valid
-    )
 
-    VarWithValidation(value, state)
+    validators += validator
+
+    PromiseSignalWithValidation(value, state, () => validators -= validator)
 

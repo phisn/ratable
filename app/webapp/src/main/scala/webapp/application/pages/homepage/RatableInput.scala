@@ -15,7 +15,7 @@ import webapp.application.usecases.ratable.*
 def ratableInputComponent(using services: Services) = 
   implicit val form = FormValidation()
 
-  val title = form.validateVar("", _.length > 0)
+  val title = form.validatePromise("", _.length > 0)
 
   div(
     cls := "form-control md:w-[40rem]",
@@ -36,13 +36,13 @@ def ratableInputComponent(using services: Services) =
         cls := "input bg-base-200 w-full",
         placeholder := "Rating of this great chinese food place",
 
-        onInput.value --> title.variable
+        onInput.value --> title.signal
       ),
       button(
         cls := "btn btn-primary",
         "Create",
         onClick.filter(_ => form.validate).foreach(_ =>
-          services.routing.to(CreatePage(title.variable.now), true)
+          services.routing.to(CreatePage(title.signal.now), true)
         )
       )
     )

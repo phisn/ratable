@@ -34,7 +34,7 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
         cls := "drawer-overlay"
       ),
       div(
-        cls := "p-4 w-80 bg-base-100 text-base-content",
+        cls := "p-4 w-100 md:w-80 bg-base-100 text-base-content",
         label(
           cls := "drawer-button btn btn-ghost btn-square",
           forId := "main-drawer",
