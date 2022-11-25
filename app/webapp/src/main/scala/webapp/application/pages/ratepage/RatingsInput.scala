@@ -28,9 +28,9 @@ def ratingsInputComponent(ratable: Ratable, ratingForCategorySignal: PromiseSign
     cls := "flex flex-col space-y-6 items-center md:items-start",
     ratable.categories.toList.sortBy(_._1)
       .map((index, category) =>
-        ratingWithLabelComponent(
+        ratingWithLabelInputComponent(
           category.title.map(_.value).getOrElse(""),
-          ratings(index),
+          ratings(index)
         )
       )
   )

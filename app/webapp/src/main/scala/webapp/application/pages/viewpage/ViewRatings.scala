@@ -31,8 +31,7 @@ def viewRatingsComponent(ratable: Ratable)(using services: Services) =
       cls := "flex flex-col space-y-4 items-center md:items-start",
       ratingWithLabelComponent(
         "Overall", 
-        PromiseSignal(overallRating),
-        true
+        overallRating
       ),
       div(
         cls := "divider"
@@ -43,8 +42,7 @@ def viewRatingsComponent(ratable: Ratable)(using services: Services) =
           .map{ case (index, (category, value)) =>
             ratingWithLabelComponent(
               category.title.map(_.value).getOrElse(""),
-              PromiseSignal(value),
-              true
+              value
             )
           }
       )
