@@ -17,11 +17,6 @@ import webapp.state.framework.*
 def copyBoxComponent(title: String, page: Page)(using services: Services) = 
   val link = services.routing.link(page)
   val displayValue = link.stripPrefix("https://").stripPrefix("http://")
-  val clickEvt = Evt[Unit]()
-
-  clickEvt.observe { _ =>
-    services.routing.to(page)
-  }
 
   div(
     cls := "form-control",
@@ -34,7 +29,7 @@ def copyBoxComponent(title: String, page: Page)(using services: Services) =
     ),
     div(
       cls := "input-group",
-      linkComponent(displayValue, clickEvt),
+      linkComponent(displayValue, page),
       button(
         cls := "btn btn-square btn-primary",
         onClick.foreach(_ => 
@@ -47,24 +42,32 @@ def copyBoxComponent(title: String, page: Page)(using services: Services) =
     )
   )
 
-def linkComponent(label: String, clickEvt: Evt[Unit]) =
+def linkComponent(label: String, page: Page)(using services: Services) =
   val labelMaxLength = 25
+
+  // We route manually (not via a href) to prevent unnecessary page reloads. We still
+  // provide a href for opening in a new tab option.
+
+  def routeToPage =
+    services.routing.to(page)
 
   div(
     cls := "input flex items-center bg-base-200 text-lg w-full",
     readOnly := true,
     a(
       cls := "transition hover:text-secondary hover:cursor-pointer md:hidden",
+      href := services.routing.link(page),
       label.size > labelMaxLength match
         case true  => label.take(labelMaxLength) + "..."
         case false => label,
-      onClick.as(()) --> clickEvt
+      onClick.preventDefault.foreach(_ => routeToPage)
     ),
     a(
       cls := "transition hover:text-secondary hover:cursor-pointer hidden md:block",
+      href := services.routing.link(page),
       label.size > labelMaxLength match
         case true  => label.take(labelMaxLength * 2) + "..."
         case false => label,
-      onClick.as(()) --> clickEvt
+      onClick.preventDefault.foreach(_ => routeToPage)
     )
   )
