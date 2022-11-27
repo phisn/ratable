@@ -26,7 +26,7 @@ class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
   def backendUrl = if dom.window.location.hostname.contains("localhost") then
     "http://localhost:7071/api/"
   else
-    "https://func-ratable-core.azurewebsites.net/api/"
+    "https://api.ratable.org/api/"
 
   def darkMode = Var(false)
 
