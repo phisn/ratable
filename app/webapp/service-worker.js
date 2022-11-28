@@ -1,7 +1,7 @@
 import { clientsClaim } from 'workbox-core';
 import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+import { NetworkFirst } from 'workbox-strategies';
 import { offlineFallback, staticResourceCache } from 'workbox-recipes';
 
 clientsClaim();
@@ -22,10 +22,12 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 /**
  * @see https://developer.chrome.com/docs/workbox/modules/workbox-strategies/#stale-while-revalidate
+ * @see https://developer.chrome.com/docs/workbox/modules/workbox-strategies/#network-first-network-falling-back-to-cache
  */
 registerRoute(
   /.*/,
-  new StaleWhileRevalidate({
+  // new StaleWhileRevalidate({
+  new NetworkFirst({
     cacheName: 'static-resources',
   })
 );
