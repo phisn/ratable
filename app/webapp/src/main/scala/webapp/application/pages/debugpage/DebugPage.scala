@@ -6,6 +6,9 @@ import outwatch.dsl.*
 import rescala.default.*
 import scala.util.*
 import webapp.{given, *}
+import webapp.application.*
+import webapp.application.framework.given
+import webapp.application.services.*
 import webapp.services.*
 import webapp.state.framework.*
 
@@ -13,7 +16,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 case class DebugPage() extends Page:
-  def render(using services: Services): VNode =
+  def render(using services: ServicesWithApplication): VNode =
     div(
       cls := "p-4 space-y-16",
       clickCounter,

@@ -4,16 +4,19 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.*
 import webapp.application.components.*
 import webapp.application.components.icons.*
 import webapp.application.components.layouts.*
 import webapp.application.components.popups.*
+import webapp.application.framework.given
+import webapp.application.services.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
 case class HomePage() extends Page:
-  def render(using services: Services): VNode =
+  def render(using services: ServicesWithApplication): VNode =
     if dom.window.localStorage.getItem("wasOpened") == null then
       val popup = InfoPopup()
 
@@ -32,7 +35,7 @@ case class HomePage() extends Page:
           h1(
             // Title
             cls := "text-5xl font-bold text-center",
-            "Create your own Ratable"
+            services.local.get("page.home.header")
           ),
           ratableInputComponent,
           div(

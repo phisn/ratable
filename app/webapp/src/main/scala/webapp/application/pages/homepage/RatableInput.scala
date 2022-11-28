@@ -5,14 +5,15 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.framework.*
 import webapp.application.pages.createpage.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.application.usecases.ratable.*
 
-def ratableInputComponent(using services: Services) = 
+def ratableInputComponent(using services: ServicesWithApplication) = 
   implicit val form = FormValidation()
 
   val title = form.validatePromise("", _.length > 0)
@@ -23,7 +24,7 @@ def ratableInputComponent(using services: Services) =
       cls := "label",
       span(
         cls := "label-text",
-        "Title of your Ratable"
+        services.local.get("page.home.input.label")
       ),
     ),
     div(
@@ -34,13 +35,16 @@ def ratableInputComponent(using services: Services) =
           case ValidationState.Error => cls := "border-red-500 border-2"
         },
         cls := "input bg-base-200 w-full",
-        placeholder := "This great chinese food place",
+        
+        services.local.get("page.home.input.placeholder").map(
+          placeholder := _
+        ),
 
         onInput.value --> title.signal
       ),
       button(
         cls := "btn btn-primary",
-        "Create",
+        services.local.get("page.home.input.button"),
         onClick.filter(_ => form.validate).foreach(_ =>
           services.routing.to(CreatePage(title.signal.now), true)
         )

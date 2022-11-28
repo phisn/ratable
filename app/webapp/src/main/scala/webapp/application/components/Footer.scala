@@ -4,15 +4,17 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.*
 import webapp.application.components.icons.*
+import webapp.application.framework.given
 import webapp.application.pages.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def footerComponent(using services: Services) =
+def footerComponent(using services: ServicesWithApplication) =
   footer(
-    cls := "footer grid-cols-3 bg-base-200 p-1 px-2 md:p-2",
+    cls := "footer grid-cols-4 bg-base-200 p-1 px-2 md:p-2",
     div(
       cls := "flex self-center p-2",
       /*
@@ -24,9 +26,9 @@ def footerComponent(using services: Services) =
       ""
     ),
     div(
-      cls := "flex place-self-center",
+      cls := "flex place-self-center col-span-2",
       div(
-        "made by ",
+        services.local.get("component.footer"),
         a(
           cls := "font-bold",
           href := "https://github.com/phisn",
@@ -36,7 +38,7 @@ def footerComponent(using services: Services) =
       )
     ),
     div(
-      cls := "col-start-3 grid-flow-col justify-self-end",
+      cls := "grid-flow-col justify-self-end",
       a(
         cls := "transition hover:bg-gray-400 rounded p-1 md:p-2",
         href := "https://github.com/phisn/local-rating",

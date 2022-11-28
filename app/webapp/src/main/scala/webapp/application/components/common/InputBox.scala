@@ -10,7 +10,7 @@ import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
-import webapp.application.{given, *}
+import webapp.application.framework.{given, *}
 import webapp.application.framework.*
 import webapp.application.usecases.ratable.*
 

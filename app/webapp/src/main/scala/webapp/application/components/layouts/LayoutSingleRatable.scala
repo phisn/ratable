@@ -7,7 +7,8 @@ import outwatch.dsl.*
 import rescala.default.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.components.*
 import webapp.application.components.common.*
 import webapp.application.components.layouts.*
@@ -19,7 +20,7 @@ import webapp.state.framework.{given, *}
 import kofre.base.*
 import outwatch.BasicVNode
 
-def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: Services) =
+def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: ServicesWithApplication) =
   layoutComponent(
     div(
       cls := "flex-grow flex flex-col",

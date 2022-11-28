@@ -1,5 +1,8 @@
 package webapp
 
+import webapp.application.*
+import webapp.application.framework.given
+import webapp.application.services.*
 import webapp.services.*
 import webapp.state.*
 import webapp.state.services.*
@@ -16,11 +19,8 @@ trait Services:
   // State handling should be running from the start to setup connection to server
   // Instatiation starts from StateProvider
   val state: StateProvider
-  
-  lazy val routing: RoutingService
-  lazy val popup: PopupService
 
-object ServicesDefault extends Services, StateServices, DeviceServices:
+object ServicesDefault extends Services, ApplicationServices, DeviceServices, StateServices:
   // Device
   val applicationInitializer = ApplicationInitializer(this)
   
@@ -39,8 +39,10 @@ object ServicesDefault extends Services, StateServices, DeviceServices:
 
   val state = StateProvider(this)
 
-  lazy val routing = RoutingService(this)
+  // Application
   lazy val popup = PopupService(this)
+  lazy val local = LocalizationService(this)
+  lazy val routing = RoutingService(this)
   
   // State
   lazy val aggregateFacadeProvider = AggregateFacadeProvider(this)

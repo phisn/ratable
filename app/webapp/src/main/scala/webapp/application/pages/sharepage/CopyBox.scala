@@ -5,16 +5,19 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.components.*
 import webapp.application.components.icons.*
 import webapp.application.components.layouts.*
 import webapp.application.pages.ratepage.*
 import webapp.application.pages.viewpage.*
+import webapp.application.framework.given
+import webapp.application.services.*
 import webapp.services.*
 import webapp.state.framework.*
 
-def copyBoxComponent(title: String, page: Page)(using services: Services) = 
+def copyBoxComponent(title: String, page: Page)(using services: ServicesWithApplication) = 
   val link = services.routing.link(page)
   val displayValue = link.stripPrefix("https://").stripPrefix("http://")
 
@@ -42,7 +45,7 @@ def copyBoxComponent(title: String, page: Page)(using services: Services) =
     )
   )
 
-def linkComponent(label: String, page: Page)(using services: Services) =
+def linkComponent(label: String, page: Page)(using services: ServicesWithApplication) =
   val labelMaxLength = 25
 
   // We route manually (not via a href) to prevent unnecessary page reloads. We still

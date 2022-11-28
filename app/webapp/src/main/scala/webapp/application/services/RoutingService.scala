@@ -1,4 +1,4 @@
-package webapp.services
+package webapp.application.services
 
 import colibri.*
 import colibri.router.*
@@ -11,12 +11,14 @@ import rescala.default.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
 import webapp.*
-import webapp.application.{given, *}
+import webapp.services.*
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.pages.*
 import webapp.device.services.*
 
 trait Page:
-  def render(using services: Services): VNode
+  def render(using services: ServicesWithApplication): VNode
   
 class RoutingState(
   // if canReturn is true then the page will show in mobile mode
@@ -31,7 +33,7 @@ class RoutingService(services: {
 }):
   private val page = Var[Page](Routes.fromPath(Path(services.window.routePath)))
 
-  def render(using services: Services): Signal[VNode] =
+  def render(using services: ServicesWithApplication): Signal[VNode] =
     page.map(_.render)
 
   def to(newPage: Page, preventReturn: Boolean = false) =

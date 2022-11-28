@@ -5,13 +5,14 @@ import org.scalajs.dom.*
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.*
 import webapp.application.components.icons.*
 import webapp.application.pages.homepage.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def headerComponent(using services: Services) =
+def headerComponent(using services: ServicesWithApplication) =
   div(
     cls := "navbar bg-base-200",
     div(
@@ -39,7 +40,7 @@ def headerComponent(using services: Services) =
     )
   )
 
-private def logoComponent(using services: Services) =
+private def logoComponent(using services: ServicesWithApplication) =
   a(
     cls := "btn btn-ghost normal-case text-2xl",
     "Ratable",

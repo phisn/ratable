@@ -5,22 +5,23 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.*
 import webapp.application.components.*
 import webapp.application.components.common.*
 import webapp.application.components.layouts.*
-import webapp.application.framework.*
+import webapp.application.framework.given
 import webapp.application.pages.ratepage.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def viewRatingsComponent(ratable: Ratable)(using services: Services) =
+def viewRatingsComponent(ratable: Ratable)(using services: ServicesWithApplication) =
   val categoriesWithRating = ratable.categoriesWithRating
 
   if categoriesWithRating.isEmpty then
     div(
       cls := "text-2xl font-bold",
-      "There are no ratings for this ratable yet."
+      services.local.get("page.view.noResultsHeader")
     )
   else
     val overallRating = categoriesWithRating
@@ -29,9 +30,11 @@ def viewRatingsComponent(ratable: Ratable)(using services: Services) =
 
     div(
       cls := "flex flex-col space-y-4 items-center md:items-start",
-      ratingWithLabelComponent(
-        "Overall", 
-        overallRating
+      services.local.get("page.view.overall").map(label =>
+        ratingWithLabelComponent(
+          label, 
+          overallRating
+        ),
       ),
       div(
         cls := "divider"

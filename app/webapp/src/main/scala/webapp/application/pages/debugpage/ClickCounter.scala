@@ -5,7 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.framework.{given, *}
 
 import scala.util.*
 

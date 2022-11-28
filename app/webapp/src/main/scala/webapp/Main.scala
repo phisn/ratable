@@ -9,7 +9,8 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.pages.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
@@ -19,7 +20,7 @@ def main(): Unit =
   implicit val services = ServicesDefault
   Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
-def app(using services: Services) =
+def app(using services: ServicesWithApplication) =
   // Need body wrapper because renderReplace can not directly 
   // take (or I do not know how) a colibri.Source / rescala.Signal
   body(

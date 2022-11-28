@@ -6,11 +6,12 @@ import outwatch.dsl.*
 import rescala.default.*
 import scala.util.*
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.services.*
 import webapp.state.framework.*
 
-def createRating(using Services) = 
+def createRating(using ServicesWithApplication) = 
   val clickEvent = Evt[Int]()
 
   div(

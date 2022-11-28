@@ -11,7 +11,7 @@ import rescala.default.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
 import webapp.*
-import webapp.application.{given, *}
+import webapp.application.framework.{given, *}
 import webapp.application.pages.*
 import webapp.services.*
 

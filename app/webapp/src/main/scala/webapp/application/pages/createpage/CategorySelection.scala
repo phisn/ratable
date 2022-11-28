@@ -5,6 +5,7 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
+import webapp.application.*
 import webapp.application.components.*
 import webapp.application.components.layouts.*
 import webapp.application.framework.*
@@ -12,12 +13,12 @@ import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
-import webapp.application.{given, *}
+import webapp.application.framework.{given, *}
 import webapp.application.usecases.ratable.*
 
 def categorySelectionComponent(
   categoriesPromise: PromiseSignal[List[String]]
-)(using form: FormValidation) =
+)(using form: FormValidation, services: ServicesWithApplication) =
   def categoryPromise(title: String) = 
     form.validatePromise[String](title, _.length > 0)
 
@@ -38,7 +39,7 @@ def categorySelectionComponent(
       cls := "flex space-x-4",
       button(
         cls := "btn btn-outline",
-        "Add category",
+        services.local.get("page.create.categoryInput.addButton"),
         onClick.foreach(_ => categories.transform(_ :+ categoryPromise(""))),
 
         categories
@@ -47,7 +48,7 @@ def categorySelectionComponent(
       ),
       button(
         cls := "btn btn-outline",
-        "Remove category",
+        services.local.get("page.create.categoryInput.removeButton"),
         
         onClick
           .filter(_ => categories.now.size > 1)

@@ -4,14 +4,15 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
-import webapp.application.{given, *}
+import webapp.application.*
+import webapp.application.framework.{given, *}
 import webapp.application.components.*
 import webapp.application.components.icons.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Services) =
+def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: ServicesWithApplication) =
   div(
     cls := "drawer drawer-end",
     input(
@@ -35,7 +36,7 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
         cls := "drawer-overlay"
       ),
       div(
-        cls := "p-4 w-full md:w-80 bg-base-100 text-base-content",
+        cls := "flex flex-col p-4 w-full md:w-80 bg-base-100 text-base-content",
         div(
           cls := "flex justify-between",
           label(
@@ -61,15 +62,16 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
               cls := "swap-off w-8 h-8",
             ),
           )
+        ),
+        div(
+          cls := "flex-grow",
+          // "content"
+        ),
+        div(
+          cls := "flex justify-evenly",
+          languageSelectButton("English", "en"),
+          languageSelectButton("Deutsch", "de")
         )
-        /*
-        ul(
-          cls := "menu",
-          li(a("test1")),
-          li(a("test2")),
-          li(a("test3")),
-        )
-        */
       )
     ),
     services.popup.render.map(_.map(popup =>
@@ -77,4 +79,22 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
         popup
       )
     ))
+  )
+
+def languageSelectButton(label: String, language: String)(using services: ServicesWithApplication) =
+  button(
+    cls := "btn",
+
+    services.config.language.map(lang =>
+      if lang.contains(language) then
+        cls := "btn-outline"
+      else
+        cls := "btn-ghost"
+    ),
+
+    label,
+
+    onClick.foreach(_ =>
+      services.config.language.set(language)
+    )
   )

@@ -5,14 +5,18 @@ import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
+import webapp.application.*
 import webapp.application.components.icons.*
+import webapp.application.framework.given
+import webapp.application.services.*
+import webapp.application.framework.given
 import webapp.services.*
 
 class InfoPopup extends Popup:
   val closeEvt = Evt[Unit]()
   val closeEvent = closeEvt
   
-  def render(using services: Services) =
+  def render(using services: ServicesWithApplication) =
     div(
       cls := "absolute top-0 left-0 w-full h-full flex items-center justify-center",
       div(
@@ -35,11 +39,11 @@ class InfoPopup extends Popup:
           div(
             cls := "text-xl",
             strong("Ratable"),
-            " is a tool to create and share things that can be rated. It can be a restaurant, a movie, a book or anything else you can think of. Share your Ratable with your friends and let them rate it."
+            services.local.get("component.popup.info.text")
           ),
           div(
             cls := "text-sm",
-            "This is an early version of Ratable. It is not yet released and is still in development.",
+            services.local.get("component.popup.info.hint")
           )
         ),
       ),

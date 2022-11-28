@@ -1,17 +1,18 @@
-package webapp.services
+package webapp.application.services
 
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
 import webapp.*
+import webapp.application.*
 
 trait Popup:
   val closeEvent: Event[Unit]
   
-  def render(using services: Services): VNode
+  def render(using services: ServicesWithApplication): VNode
 
-class PopupService(services: Services):
+class PopupService(services: ServicesWithApplication):
   private val popupQueue = collection.mutable.Queue[Popup]()
   private val popupState = Var[Option[Popup]](None)
 

@@ -4,13 +4,15 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.*
+import webapp.application.components.*
 import webapp.application.components.icons.*
 import webapp.application.components.popups.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
 
-def headerCleanComponent(using services: Services) =
+def headerCleanComponent(using services: ServicesWithApplication) =
   div(
     cls := "navbar",
     div(

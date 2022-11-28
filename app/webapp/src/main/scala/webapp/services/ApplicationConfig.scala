@@ -17,7 +17,10 @@ import rescala.default._
 
 trait ApplicationConfigInterface:
   def backendUrl: String
+  
   def darkMode: Var[Boolean]
+  def language: Var[String]
+
   def websocketReconnectInterval: Int
   def replicaID: String
 
@@ -42,6 +45,20 @@ class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
   )
 
   def darkMode = darkModeVar
+  
+  val languageVar = Var {
+    if window.localStorage.getItem("language") != null then
+      window.localStorage.getItem("language")
+    else
+      window.navigator.language
+  }
+
+  languageVar.changed.observe(lang =>
+    window.localStorage.setItem("language", lang)
+  )
+
+  def language: Var[String] =
+    languageVar
 
   def websocketReconnectInterval = 
     30.seconds.toMillis.toInt
