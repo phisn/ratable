@@ -15,7 +15,7 @@ val dictionary = Map(
   ),
   "page.home.header" -> Map(
     "en" -> "Create your own Ratable",
-    "de" -> "Erstellen dein Ratable "
+    "de" -> "Erstelle dein Ratable"
   ),
   "page.home.input.label" -> Map(
     "en" -> "Title of your Ratable",
