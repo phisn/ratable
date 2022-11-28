@@ -13,7 +13,7 @@ import scala.scalajs.js
 import webapp.*
 import webapp.application.{given, *}
 import webapp.application.pages.*
-import webapp.services.ApplicationConfig
+import webapp.services.*
 
 trait WindowServiceInterface:
   def routeState[A <: js.Any]: A
@@ -29,7 +29,7 @@ trait WindowServiceInterface:
   def eventFromName(name: String): rescala.default.Event[js.Any]
   
 class WindowService(services: {
-  val config: ApplicationConfig
+  val config: ApplicationConfigInterface
 }) extends WindowServiceInterface:
   def routeState[A <: js.Any] =
     window.history.state.asInstanceOf[A]
