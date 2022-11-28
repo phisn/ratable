@@ -9,8 +9,8 @@ module.exports = {
 //      "lofi"
 //      'cupcake',
 //      'autumn',
-        "fantasy"
-//      'dark'
+        "fantasy",
+        'dark'
     ]
   },
 };

@@ -28,7 +28,20 @@ class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
   else
     "https://api.ratable.org/api/"
 
-  def darkMode = Var(false)
+  val darkModeVar = Var {
+    val darkModePreference = dom.window.localStorage.getItem("darkMode")
+
+    if darkModePreference != null then
+      darkModePreference == "true"
+    else
+      dom.window.matchMedia("(prefers-color-scheme: dark)").matches
+  }
+
+  darkModeVar.changed.observe(mode =>
+    dom.window.localStorage.setItem("darkMode", mode.toString)
+  )
+
+  def darkMode = darkModeVar
 
   def websocketReconnectInterval = 
     30.seconds.toMillis.toInt

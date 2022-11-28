@@ -35,13 +35,32 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
         cls := "drawer-overlay"
       ),
       div(
-        cls := "p-4 w-100 md:w-80 bg-base-100 text-base-content",
-        label(
-          cls := "drawer-button btn btn-ghost btn-square",
-          forId := "main-drawer",
-          iconArrowLeftShort(
-            cls := "w-8 h-8",
+        cls := "p-4 w-full md:w-80 bg-base-100 text-base-content",
+        div(
+          cls := "flex justify-between",
+          label(
+            cls := "drawer-button btn btn-ghost btn-square",
+            forId := "main-drawer",
+            iconArrowLeftShort(
+              cls := "w-8 h-8",
+            ),
           ),
+          label(
+            cls := "swap swap-rotate p-2",
+            input(
+              tpe := "checkbox",
+              checked := services.config.darkMode.now,
+              onChange.foreach(_ =>
+                services.config.darkMode.set(!services.config.darkMode.now)
+              )
+            ),
+            iconMoon(
+              cls := "swap-on w-8 h-8",
+            ),
+            iconSun(
+              cls := "swap-off w-8 h-8",
+            ),
+          )
         )
         /*
         ul(

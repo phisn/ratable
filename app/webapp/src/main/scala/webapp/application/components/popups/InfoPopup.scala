@@ -16,7 +16,7 @@ class InfoPopup extends Popup:
     div(
       cls := "absolute top-0 left-0 w-full h-full flex items-center justify-center",
       div(
-        cls := " bg-white rounded-lg shadow-lg m-2 p-4 w-[48rem] z-10",
+        cls := "bg-base-100 rounded-lg shadow-lg m-2 p-4 w-[48rem] z-10",
         div(
           cls := "flex items-center justify-between",
           div(

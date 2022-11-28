@@ -12,9 +12,9 @@ import webapp.state.framework.*
 def iconBase(using services: Services) =
   import svg.* 
   svg(
-    services.config.darkMode.map( darkMode => 
+    services.config.darkMode.map(darkMode => 
       if darkMode then      
-        style := "filter: invert(0.75)"
+        style := ""
       else
         style := ""
     )

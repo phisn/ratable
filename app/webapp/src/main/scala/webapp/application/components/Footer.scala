@@ -12,7 +12,7 @@ import webapp.{*, given}
 
 def footerComponent(using services: Services) =
   footer(
-    cls := "footer grid-cols-3 bg-base-200 p-2",
+    cls := "footer grid-cols-3 bg-base-200 p-1 px-2 md:p-2",
     div(
       cls := "flex self-center p-2",
       /*
@@ -38,11 +38,11 @@ def footerComponent(using services: Services) =
     div(
       cls := "col-start-3 grid-flow-col justify-self-end",
       a(
-        cls := "transition hover:bg-gray-400 rounded p-2",
+        cls := "transition hover:bg-gray-400 rounded p-1 md:p-2",
         href := "https://github.com/phisn/local-rating",
         target := "_blank",
         iconGithub(
-          cls := "w-6 h-6",
+          cls := "w-5 h-5 md:w-6 md:h-6",
         )
       )
     )

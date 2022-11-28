@@ -29,6 +29,11 @@ case class RatePage(
         div(
           cls := "flex flex-col md:flex-row pt-4 space-y-4 md:space-y-0 md:space-x-4",
           button(
+            cls := "btn btn-outline",
+            "Cancel and view submissions",
+            onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
+          ),
+          button(
             cls := "btn btn-primary",
             "Submit",
             onClick.foreach(_ => {
@@ -36,11 +41,6 @@ case class RatePage(
               services.routing.toReplace(ViewPage(ratableID))
             })
           ),
-          button(
-            cls := "btn btn-outline",
-            "Cancel and view submissions",
-            onClick.foreach(_ => services.routing.toReplace(ViewPage(ratableID)))
-          )
         )
       )
     )

@@ -13,6 +13,7 @@ import scala.scalajs.js
 import webapp.*
 import webapp.application.{given, *}
 import webapp.application.pages.*
+import webapp.services.ApplicationConfig
 
 trait WindowServiceInterface:
   def routeState[A <: js.Any]: A
@@ -27,7 +28,9 @@ trait WindowServiceInterface:
 
   def eventFromName(name: String): rescala.default.Event[js.Any]
   
-class WindowService(services: {}) extends WindowServiceInterface:
+class WindowService(services: {
+  val config: ApplicationConfig
+}) extends WindowServiceInterface:
   def routeState[A <: js.Any] =
     window.history.state.asInstanceOf[A]
 
@@ -50,3 +53,12 @@ class WindowService(services: {}) extends WindowServiceInterface:
     val evt = Evt[js.Any]()
     window.addEventListener(name, (e: js.Any) => evt.fire(e))
     evt
+  
+  // Change attribute <html data-theme="dark or fantasy"> ...
+  services.config.darkMode.map(mode =>
+    println(s"Dark mode: ${mode}")
+    if mode then
+      document.documentElement.setAttribute("data-theme", "dark")
+    else
+      document.documentElement.setAttribute("data-theme", "fantasy")
+  )
