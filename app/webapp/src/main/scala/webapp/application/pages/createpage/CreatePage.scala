@@ -26,7 +26,7 @@ case class CreatePage(val title: String) extends Page:
     layoutComponent(
       contentHorizontalCenterComponent(
         inputComponent(
-          "Rating of this great chinese food place", 
+          "This great chinese food place", 
           "Title of your Ratable", 
           titleVar
         ),

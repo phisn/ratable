@@ -1,12 +1,58 @@
 # Development
 ## Prerequisites
-You should make sure that the following components are pre-installed on your machine:
+
+You should make sure that the following components are installed on your machine:
  - [Node.js](https://nodejs.org/en/download/)
  - [Yarn](https://yarnpkg.com/en/docs/install)
  - JDK 11+
- - sbt
+ - [sbt](https://www.scala-sbt.org/download.html)
 
-## Prepare tailwind intellisense
+For azure functions development:
+ - [localtunnel](https://theboroer.github.io/localtunnel-www/)
+ - [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
+
+## Setup
+
+- Run `npm install` in the `./app/` directory
+- Run `lt --port 7071 --print-requests`. The output of this command will be used in setup and running as `tunnel_link`.
+- Create a file `./infrastructure/variables.tfvars` with the following variables:
+```hcl
+webpubsub_tunnel_gateway = <tunnel_link>
+```
+- Ensure that you have a valid Azure subscription and run `az login` to login to Azure
+- Run `terraform apply` to deploy the infrastructure (including test and prod environments)
+- Rename `template-local.settings.json` in `functions/app` to `local.settings.json` and fill the following connection strings.
+  - Run `terraform output -raw webpubsub_test_connection_string` in folder `./infrastructure` and fill in `WebPubSubConnectionString`
+  - Run `terraform output -raw cosmos_test_connection_string` in folder `./infrastructure` and fill in `CosmosDBConnectionString`
+
+## Run
+
+## Working in dev mode
+While developing all the following commands should be run in parallel in different terminals.
+
+For webapp building and testing run
+```sh
+sbt devtest
+```
+
+For functions building and testing run
+```sh
+sbt functions
+```
+
+For running functions run in directory `functions/app`
+```sh
+fun start
+```
+
+For allowing the webpubsub to access the functions run with the `tunnel_link` subdomain from setup
+```sh
+lt --subdomain {sub_domain} --port 7071 --print-requests
+```
+
+Then open `localhost:12345` in your browser. 
+
+## Tailwind intellisense
 Guide written for visual studio code with tailwind css support for outwatch. 
 
 Run
@@ -28,48 +74,6 @@ Install vscode plugin `Tailwind CSS IntelliSense` and paste into plugin configur
     "strings": true
 }
 ```
-
-## Provide Azure services for local azure functions
-See [Link](https://github.com/Azure/azure-webpubsub/tree/main/samples/functions/js/simplechat) for more information.
-
-- Install `npm install -g localtunnel`
-- Run `lt --port 7071 --print-requests` output needed later as `tunnel_link`
-
-To run the functions locally we need access to some Azure services. Currently no custom dev infrastructure exist, so we use the infrastructure from [Deployment](#Deployment). Rename `template-local.settings.json` in `functions/app` to `local.settings.json` and fill the following connection strings.
-
-- Fill connectionstring from `terraform output -raw webpubsub_test_connection_string` in `WebPubSubConnectionString`
-- We need to register a upstream webhook
-  - Go to azure portal `webpubsub -> settings -> +add`
-  - Hub name `distribution`
-  - Add Event handler with URL `{tunnel_link}/runtime/webhooks/webpubsub` with system events `connect, connected, disconnected` and user events `all`
-
-## Working in dev mode
-While developing all the following commands should be run in parallel in different terminals.
-
-For webapp building and testing run
-```sh
-sbt devtest
-```
-
-For functions building and testing run
-```sh
-sbt functions
-```
-
-For running functions run  in directory `functions/app`
-```sh
-fun start
-```
-
-For allowing the webpubsub to access the functions run with the subdomain from [`tunnel_link`](#Provide-Azure-services-for-local-azure-functions)
-```sh
-lt --port 7071 --print-requests
-lt --subdomain {sub_domain} --port 7071 --print-requests
-```
-The domain has to be registered as a eventhandler in the azure portal in the webpubsub.
-
-Then open `localhost:12345` in your browser. 
-
 
 ## Useful tools
 - [Postman](https://www.postman.com/)

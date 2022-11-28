@@ -4,6 +4,7 @@ import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import webapp.application.{given, *}
 import webapp.application.components.*
 import webapp.application.components.icons.*
 import webapp.services.*
@@ -52,4 +53,9 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
         */
       )
     ),
+    services.popup.render.map(_.map(popup =>
+      div(
+        popup
+      )
+    ))
   )

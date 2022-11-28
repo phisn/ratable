@@ -18,7 +18,7 @@ def ratableInputComponent(using services: Services) =
   val title = form.validatePromise("", _.length > 0)
 
   div(
-    cls := "form-control md:w-[40rem]",
+    cls := "form-control",
     label(
       cls := "label",
       span(
@@ -34,7 +34,7 @@ def ratableInputComponent(using services: Services) =
           case ValidationState.Error => cls := "border-red-500 border-2"
         },
         cls := "input bg-base-200 w-full",
-        placeholder := "Rating of this great chinese food place",
+        placeholder := "This great chinese food place",
 
         onInput.value --> title.signal
       ),

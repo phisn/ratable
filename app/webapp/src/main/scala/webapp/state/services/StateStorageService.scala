@@ -7,6 +7,7 @@ import kofre.base.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
+import scala.scalajs.js
 import webapp.device.storage.*
 import webapp.device.services.*
 import webapp.state.framework.*
@@ -15,11 +16,11 @@ import org.scalajs.dom.IDBKeyRange
 class StateStorageService(services: {
   val storage: StorageServiceInterface
 }):
-  val builder = services.storage.openDatabase("state", 2)
+  val builder = services.storage.openDatabase("state", 3)
   val db = builder.assume
 
   def registerAggregateType(aggregateType: AggregateType) =
-    builder.newMigration(2) { migrator =>
+    builder.newMigration(3) { migrator =>
       // Remove old store from previous version
       migrator.remove(aggregateType.name)
 
@@ -34,14 +35,15 @@ class StateStorageService(services: {
       JsAggregateContainer(
         // Funny thing is we can savely deflate before saving because deltas are only infalted
         // because we might expect acknoledgements from the server. 
-        aggregateJson = writeToString(aggregate.deflateDeltas),
+
+        aggregate = aggregate.deflateDeltas.toJs,
         tag = aggregate.maxTag.toDouble
       )
     }
 
   def load[A : JsonValueCodec](gid: AggregateGid): Future[Option[DeltaContainer[A]]] =
     db.get[JsAggregateContainer](gid.aggregateType.name, gid.aggregateId)
-      .map(_.map(container => readFromString(container.aggregateJson)))
+      .map(_.map(container => container.aggregate.toScala))
 
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
     db.all[JsAggregateContainer](aggregateType.name, IndexKeys.tag,
@@ -52,7 +54,7 @@ class StateStorageService(services: {
         case (aggregateId, container) => 
           (
             AggregateGid(aggregateId, aggregateType), 
-            readFromString(container.aggregateJson)
+            container.aggregate.toScala
           )
       })
   
@@ -60,7 +62,7 @@ class StateStorageService(services: {
     val tag = "tag"
     
   class JsAggregateContainer(
-    val aggregateJson: String,
+    val aggregate: js.Any,
 
     // Must be double for js compatibility. Long or Int do not work!
     val tag: Double

@@ -18,6 +18,7 @@ trait Services:
   val state: StateProvider
   
   lazy val routing: RoutingService
+  lazy val popup: PopupService
 
 object ServicesDefault extends Services, StateServices, DeviceServices:
   // Device
@@ -39,6 +40,7 @@ object ServicesDefault extends Services, StateServices, DeviceServices:
   val state = StateProvider(this)
 
   lazy val routing = RoutingService(this)
+  lazy val popup = PopupService(this)
   
   // State
   lazy val aggregateFacadeProvider = AggregateFacadeProvider(this)

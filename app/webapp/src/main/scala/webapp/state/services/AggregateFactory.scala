@@ -90,13 +90,11 @@ class AggregateFactory(services: {
     initial: DeltaContainer[A],
     specification: AggregateSpecificationByEvents[A]
   ) =
-    Events.foldAll(initial) { state => 
-      Seq(
-        specification.mutate.act2(state.mutate(_)),
+    Fold(initial)(
+      specification.mutate.act(current.mutate(_)),
 
-        specification.delta.act2(state.applyDelta(_)),
-        specification.deltaAck.act2(tag => state.acknowledge(tag)),
-        
-        specification.deflateDeltas.act2(_ => state.deflateDeltas),
-      )
-    }
+      specification.delta.act(current.applyDelta(_)),
+      specification.deltaAck.act(tag => current.acknowledge(tag)),
+      
+      specification.deflateDeltas.act(_ => current.deflateDeltas),
+    )
