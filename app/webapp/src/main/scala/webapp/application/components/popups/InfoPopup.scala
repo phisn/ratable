@@ -31,11 +31,15 @@ class InfoPopup extends Popup:
           )
         ),
         div(
-          cls := "p-4",
+          cls := "p-4 space-y-4",
           div(
             cls := "text-xl",
             strong("Ratable"),
             " is a tool to create and share things that can be rated. It can be a restaurant, a movie, a book or anything else you can think of. Share your Ratable with your friends and let them rate it."
+          ),
+          div(
+            cls := "text-sm",
+            "This is an early version of Ratable. It is not yet released and is still in development.",
           )
         ),
       ),
