@@ -24,6 +24,6 @@ def app(using services: ServicesWithApplication) =
   // Need body wrapper because renderReplace can not directly 
   // take (or I do not know how) a colibri.Source / rescala.Signal
   body(
-    cls := "min-h-screen",
+    cls := "min-h-screen overscroll-y-contain",
     services.routing.render
   )

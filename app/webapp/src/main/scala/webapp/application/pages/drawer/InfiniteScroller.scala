@@ -91,13 +91,13 @@ def infiniteScrollerComponent(retrieve: () => Future[Retrievals])(using services
           loadedVar.map(loaded =>
             if loaded then
               div(
-                items.map(item =>
-                  div(
+                items.tail.foldLeft(Seq(items.head))((acc, item) =>
+                  acc.+:(div(
                     item,
                     div(
                       cls := "divider"
                     )
-                  )
+                  ))
                 )
               )
             else
