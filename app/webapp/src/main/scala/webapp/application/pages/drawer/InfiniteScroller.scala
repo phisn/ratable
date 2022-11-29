@@ -78,7 +78,7 @@ def infiniteScrollerComponent(retrieve: () => Future[Retrievals])(using services
   )
 
   div(
-    cls := "flex flex-col items-center space-y-6 md:space-y-6",
+    cls := "flex flex-col items-center",
     Signal { (itemsVar.value, loadedVar.value) }.map((items, loaded) =>
       if loaded && items.size == 0 then
         div(
@@ -91,7 +91,14 @@ def infiniteScrollerComponent(retrieve: () => Future[Retrievals])(using services
           loadedVar.map(loaded =>
             if loaded then
               div(
-                items
+                items.map(item =>
+                  div(
+                    item,
+                    div(
+                      cls := "divider"
+                    )
+                  )
+                )
               )
             else
               import svg.*

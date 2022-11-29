@@ -11,7 +11,14 @@ module.exports = {
 //      'cupcake',
 //      'autumn',
         "fantasy",
-        'dark'
+        {
+          dracula: {
+            ...require("daisyui/src/colors/themes")["[data-theme=dracula]"],
+            "base-100": "#2A303C",
+            "base-200": "#242933",
+            "base-300": "#20252E",
+          },
+        },
     ]
   },
 };

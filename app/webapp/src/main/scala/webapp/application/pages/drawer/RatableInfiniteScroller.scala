@@ -11,6 +11,7 @@ import scala.util.*
 import webapp.{given, *}
 import webapp.application.*
 import webapp.application.components.common.*
+import webapp.application.components.icons.*
 import webapp.application.pages.viewpage.*
 import webapp.application.framework.given
 import webapp.application.services.*
@@ -46,25 +47,38 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
         .sum / categoriesWithRating.size
 
   div(
-    cls := "flex flex-col items-center w-full space-y-2",
-    a(
-      cls := "flex flex-col transition hover:bg-base-200 rounded-xl p-4",
-      div(
-        cls := "text-xl",
-        // with random string added
-        ratable.title
-      ),
-      div(
-        cls := "flex items-center w-full space-x-6",
-        ratingComponent(overallRating),
+    cls := "flex flex-col items-center w-full",
+    div(
+      cls := "flex items-center space-x-4",
+      a(
+        cls := "flex flex-col transition hover:bg-base-300 rounded-xl p-4 space-y-2",
         div(
-          cls := "badge badge-outline",
-          ratable._ratings.size
+          cls := "text-xl",
+          // with random string added
+          ratable.title
+        ),
+        div(
+          cls := "flex items-center w-full",
+          ratingComponent(overallRating)
+        ),
+        div(
+          cls := "py-2",
+          div(
+            cls := "badge badge-outline",
+            s"${ratable._ratings.size} submissions"
+          ),
+        ),
+
+        href := services.routing.link(ViewPage(id)),
+        onClick.preventDefault.foreach(_ =>
+          services.routing.to(ViewPage(id))
         )
       ),
-      href := services.routing.link(ViewPage(id)),
-      onClick.preventDefault.foreach(_ =>
-        services.routing.to(ViewPage(id))
+      button(
+        cls := "btn btn-ghost btn-square hover:btn-warning",
+        iconTrash(
+          cls := "w-8 h-8"
+        )
       )
     )
   )

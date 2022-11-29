@@ -61,8 +61,9 @@ class WindowService(services: {
   // Change attribute <html data-theme="dark or fantasy"> ...
   services.config.darkMode.map(mode =>
     println(s"Dark mode: ${mode}")
+    
     if mode then
-      document.documentElement.setAttribute("data-theme", "dark")
+      document.documentElement.setAttribute("data-theme", "dracula")
     else
       document.documentElement.setAttribute("data-theme", "fantasy")
   )

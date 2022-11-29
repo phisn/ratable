@@ -23,16 +23,16 @@ class InfoPopup extends Popup:
         cls := "bg-base-100 rounded-lg shadow-lg m-2 p-4 w-[48rem] z-10",
         div(
           cls := "flex items-center justify-between",
+          iconInfo(
+            cls := "w-8 h-8 ml-2"
+          ),
           div(
             cls := "btn btn-square btn-ghost",
-            iconArrowLeftShort(
+            iconCross(
               cls := "w-8 h-8",
               onClick.foreach(_ => closeEvt.fire())
             )
           ),
-          iconInfo(
-            cls := "w-8 h-8 mr-4"
-          )
         ),
         div(
           cls := "p-4 space-y-4",
