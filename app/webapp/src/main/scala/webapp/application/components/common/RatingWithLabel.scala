@@ -56,7 +56,7 @@ def ratingComponent(
     cls := "rating",
     Range(0, stars).map(i => 
       div(
-        cls := "mask mask-star-2 bg-primary bg w-6 h-6",
+        cls := "mask mask-star-2 bg-primary bg w-10 h-10",
         
         if i > value - 1 then
           cls := "opacity-20"

@@ -21,6 +21,7 @@ object Dependencies {
     val tailwindcss          = "^3.1.8"
     val autoprefixer         = "^10.4.8"
     val daisyui              = "^2.31.0"
+    val tailwindScrollbar    = "^2.0.1"
     val workboxwebpackplugin = "^6.5.4"
   }
 
@@ -65,6 +66,7 @@ object Dependencies {
     "tailwindcss"            -> npmDevVersions.tailwindcss,
     "autoprefixer"           -> npmDevVersions.autoprefixer,
     "daisyui"                -> npmDevVersions.daisyui,
+    "tailwind-scrollbar"     -> npmDevVersions.tailwindScrollbar,
 
     // Pwa support
     "workbox-webpack-plugin" -> npmDevVersions.workboxwebpackplugin

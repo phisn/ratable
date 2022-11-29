@@ -2,6 +2,7 @@ module.exports = {
   content: ["./*.js"],
   plugins: [
     require('daisyui'),
+    require('tailwind-scrollbar'),
   ],
   daisyui: {
     logs: false, // otherwise daisy logs its ui version

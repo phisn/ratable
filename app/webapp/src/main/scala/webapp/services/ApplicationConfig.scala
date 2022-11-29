@@ -26,6 +26,7 @@ trait ApplicationConfigInterface:
 
 class ApplicationConfig(services: {}) extends ApplicationConfigInterface:
   // Should use a config library but was unable to get it working with scalajs :(
+  // TODO: Use webpack plugin
   def backendUrl = if dom.window.location.hostname.contains("localhost") then
     "http://localhost:7071/api/"
   else

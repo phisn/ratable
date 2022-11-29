@@ -20,7 +20,7 @@ def drawer(using services: ServicesWithApplication) =
       cls := "drawer-overlay"
     ),
     div(
-      cls := "flex flex-col p-4 pr-0 w-full md:w-80 bg-base-100 text-base-content max-h-screen",
+      cls := "flex flex-col p-4 pr-0 w-full md:w-[24rem] bg-base-100 text-base-content max-h-screen",
       div(
         cls := "flex justify-between pr-4",
         label(
@@ -49,6 +49,7 @@ def drawer(using services: ServicesWithApplication) =
       ),
       div(
         cls := "flex-grow overflow-y-auto my-4 pr-4",
+        cls := "md:scrollbar-thin md:scrollbar-track-base-200 md:scrollbar-thumb-base-content",
         infiniteScroll
       ),
       div(

@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "console": "^0.7.2",
-    "daisyui": "^2.33.0"
+    "daisyui": "^2.33.0",
+    "tailwind-scrollbar": "^2.0.1"
   }
 }
