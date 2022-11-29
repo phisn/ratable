@@ -22,7 +22,7 @@ class InfoPopup extends Popup:
       div(
         cls := "bg-base-100 rounded-lg shadow-lg m-2 p-4 w-[48rem] z-10",
         div(
-          cls := "flex items-center justify-between",
+          cls := "flex items-center justify-between px-2 pt-2",
           iconInfo(
             cls := "w-8 h-8 ml-2"
           ),

@@ -41,8 +41,19 @@ def headerComponent(using services: ServicesWithApplication) =
   )
 
 private def logoComponent(using services: ServicesWithApplication) =
-  a(
-    cls := "btn btn-ghost normal-case text-2xl",
-    "Ratable",
-    onClick.foreach(_ => services.routing.to(HomePage()))
+  div(
+    a(
+      cls := "btn btn-ghost normal-case text-2xl hidden md:inline-flex",
+      "Ratable",
+      onClick.foreach(_ => services.routing.to(HomePage()))
+    ),
+    
+    // Very dirty hack to get the logo aligned with side content on mobile
+    a(
+      cls := "btn btn-ghost normal-case text-2xl md:hidden",
+      // Negative left .5 rem to compensate for the padding of the button
+      styleAttr := "margin-left: -0.5rem",
+      "Ratable",
+      onClick.foreach(_ => services.routing.to(HomePage()))
+    )
   )
