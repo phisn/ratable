@@ -58,6 +58,10 @@ val dictionary = Map(
     "en" -> "Create",
     "de" -> "Erstellen"
   ),
+  "page.drawer.badge.submissions" -> Map(
+    "en" -> "Submissions",
+    "de" -> "Bewertungen"
+  ),
   "page.share.title" -> Map(
     "en" -> "Done! Now share your ratable with your friends",
     "de" -> "Fertig! Teile dein Ratable jetzt mit deinen Freunden"

@@ -65,7 +65,9 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
           cls := "py-2",
           div(
             cls := "badge badge-outline",
-            s"${ratable._ratings.size} submissions"
+            services.local.get("page.drawer.badge.submissions").map(label =>
+              s"${ratable._ratings.size} $label"
+            )
           ),
         ),
 
