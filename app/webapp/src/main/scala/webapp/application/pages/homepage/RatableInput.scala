@@ -17,7 +17,10 @@ import webapp.application.usecases.ratable.*
 def ratableInputComponent(using services: ServicesWithApplication) = 
   implicit val form = FormValidation()
 
+  val titleVar = Var("")
   val title = form.validatePromise("", _.length > 0)
+
+  title.signal := titleVar.value
 
   div(
     cls := "form-control",
@@ -41,7 +44,7 @@ def ratableInputComponent(using services: ServicesWithApplication) =
           placeholder := _
         ),
 
-        onInput.value --> title.signal
+        onInput.value --> titleVar
       ),
       button(
         cls := "btn btn-primary",

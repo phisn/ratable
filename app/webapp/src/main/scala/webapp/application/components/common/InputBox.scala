@@ -15,8 +15,12 @@ import webapp.application.framework.*
 import webapp.application.usecases.ratable.*
 
 def inputComponent(
-  placeholderText: String, labelText: String, inputVar: PromiseSignalWithValidation[String]
+  placeholderText: String, labelText: String, promise: PromiseSignalWithValidation[String]
 ) =
+  val inputVar = Var("")
+
+  promise.signal := inputVar.value
+
   div(
     cls := "form-control",
     label(
@@ -30,10 +34,10 @@ def inputComponent(
       cls := "input bg-base-200 w-full",
       placeholder := placeholderText,
       
-      value <-- inputVar.signal,
-      onInput.value --> inputVar.signal,
+      value <-- promise.signal,
+      onInput.value --> inputVar,
       
-      inputVar.state.map {
+      promise.state.map {
         case ValidationState.None  => cls := ""
         case ValidationState.Error => cls := "border-red-500"
       },
