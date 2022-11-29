@@ -49,7 +49,7 @@ case class CreatePage(val title: String) extends Page:
             services.local.get("page.home.input.button"),
             onClick.filter(_ => form.validate).foreach(_ =>
               val id = createRatable(titleVar.signal.now, categoriesVar.now)
-              services.routing.to(SharePage(id), true)
+              services.routing.to(SharePage(id), RoutingState(canReturn = true))
             )
           )
         )

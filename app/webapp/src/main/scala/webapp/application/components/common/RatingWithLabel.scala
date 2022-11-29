@@ -47,6 +47,25 @@ def ratingWithLabelComponent(
     )
   )
 
+def ratingComponent(
+  value: Int
+) =
+  val stars = 5
+  
+  div(
+    cls := "rating",
+    Range(0, stars).map(i => 
+      div(
+        cls := "mask mask-star-2 bg-primary bg w-6 h-6",
+        
+        if i > value - 1 then
+          cls := "opacity-20"
+        else
+          cls := ""
+      )
+    )
+  )
+
 def ratingWithLabelContainerComponent(label: String, content: Seq[VNode]) =
   div(
     cls := "flex flex-col space-y-2",

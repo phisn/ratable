@@ -8,9 +8,12 @@ import webapp.application.*
 import webapp.application.framework.{given, *}
 import webapp.application.components.*
 import webapp.application.components.icons.*
+import webapp.application.services.*
+import webapp.application.pages.drawer.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
+import org.scalajs.dom.HTMLInputElement
 
 def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: ServicesWithApplication) =
   div(
@@ -19,6 +22,19 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
       idAttr := "main-drawer",
       tpe := "checkbox",
       cls := "drawer-toggle",
+      services.routing.stateSignal.map(state =>
+        checked := state.drawerOpened || true
+      ),
+      onChange.foreach(event =>
+        if event.target.asInstanceOf[HTMLInputElement].checked then
+          services.routing.toStateOnly(RoutingState(
+            canReturn = services.routing.state.canReturn,
+            drawerOpened = true
+          ))
+        else
+          if services.routing.state.drawerOpened then
+            services.routing.back
+      )
     ),
     div(
       cls := "drawer-content flex flex-col min-h-screen bg-base-100",
@@ -29,72 +45,10 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
       ),
       footerComponent
     ),
-    div(
-      cls := "drawer-side overflow-hidden",
-      label(
-        forId := "main-drawer",
-        cls := "drawer-overlay"
-      ),
-      div(
-        cls := "flex flex-col p-4 w-full md:w-80 bg-base-100 text-base-content",
-        div(
-          cls := "flex justify-between",
-          label(
-            cls := "drawer-button btn btn-ghost btn-square",
-            forId := "main-drawer",
-            iconArrowLeftShort(
-              cls := "w-8 h-8",
-            ),
-          ),
-          label(
-            cls := "swap swap-rotate p-2",
-            input(
-              tpe := "checkbox",
-              checked := services.config.darkMode.now,
-              onChange.foreach(_ =>
-                services.config.darkMode.set(!services.config.darkMode.now)
-              )
-            ),
-            iconMoon(
-              cls := "swap-on w-8 h-8",
-            ),
-            iconSun(
-              cls := "swap-off w-8 h-8",
-            ),
-          )
-        ),
-        div(
-          cls := "flex-grow",
-          // "content"
-        ),
-        div(
-          cls := "flex justify-evenly",
-          languageSelectButton("English", "en"),
-          languageSelectButton("Deutsch", "de")
-        )
-      )
-    ),
+    drawer,
     services.popup.render.map(_.map(popup =>
       div(
         popup
       )
     ))
-  )
-
-def languageSelectButton(label: String, language: String)(using services: ServicesWithApplication) =
-  button(
-    cls := "btn",
-
-    services.config.language.map(lang =>
-      if lang.contains(language) then
-        cls := "btn-outline"
-      else
-        cls := "btn-ghost"
-    ),
-
-    label,
-
-    onClick.foreach(_ =>
-      services.config.language.set(language)
-    )
   )

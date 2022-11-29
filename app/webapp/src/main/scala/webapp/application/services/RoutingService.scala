@@ -23,7 +23,9 @@ trait Page:
 class RoutingState(
   // if canReturn is true then the page will show in mobile mode
   // an go back arrow in the top left corner
-  val canReturn: Boolean
+  val canReturn: Boolean = false,
+  val silent: Boolean = false,
+  val drawerOpened: Boolean = false
 
 ) extends js.Object
 
@@ -33,21 +35,32 @@ class RoutingService(services: {
 }):
   private val page = Var[Page](Routes.fromPath(Path(services.window.routePath)))
 
+  private val popstateEvent = services.window.eventFromName("popstate")
+  private val pushStateEvent = Evt[Unit]()
+
   def render(using services: ServicesWithApplication): Signal[VNode] =
     page.map(_.render)
 
-  def to(newPage: Page, preventReturn: Boolean = false) =
-    services.logger.trace(s"Routing to ${linkPath(newPage)}")
-    services.window.routeTo(RoutingState(!preventReturn), linkPath(newPage))
-    page.set(newPage)
+  // Add new route without changing page
+  def toStateOnly(state: RoutingState) =
+    services.logger.trace(s"Routing silently ${state.silent}")
+    services.window.routeTo(state, services.window.routePath)
+    pushStateEvent.fire(())
 
-  def toReplace(newPage: Page, preventReturn: Boolean = false) =
+  def to(newPage: Page, state: RoutingState = RoutingState()) =
+    services.logger.trace(s"Routing to ${linkPath(newPage)}")
+    services.window.routeTo(state, linkPath(newPage))
+    page.set(newPage)
+    pushStateEvent.fire(())
+
+  def toReplace(newPage: Page, state: RoutingState = RoutingState()) =
     services.logger.trace(s"Routing replace to ${linkPath(newPage)}")
     services.window.routeToInPlace(
-      services.window.routeState[RoutingState], 
+      state, 
       linkPath(newPage)
     )
     page.set(newPage)
+    pushStateEvent.fire(())
 
   def link(newPage: Page) =
     URL(linkPath(newPage), window.location.href).toString
@@ -62,6 +75,14 @@ class RoutingService(services: {
   def state =
     services.window.routeState[RoutingState]
 
+  private val varStateSignal = Fold(state)(
+    popstateEvent.act(_ => state),
+    pushStateEvent.act(_ => state)
+  )
+
+  def stateSignal =
+    varStateSignal
+
   services.logger.trace(s"Routing initial from ${window.location.pathname} to ${linkPath(page.now)}")
 
   // Ensure initial path is correctly set
@@ -70,6 +91,7 @@ class RoutingService(services: {
   services.window.routeToInPlace(RoutingState(false), linkPath(page.now))
 
   // Change path when url changes by user action
-  services.window.eventFromName("popstate").observe(_ =>
-    page.set(Routes.fromPath(Path(services.window.routePath)))
+  popstateEvent.observe(_ =>
+    if !state.silent then
+      page.set(Routes.fromPath(Path(services.window.routePath)))
   )

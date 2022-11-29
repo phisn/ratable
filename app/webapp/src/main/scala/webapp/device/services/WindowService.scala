@@ -18,6 +18,7 @@ import webapp.services.*
 trait WindowServiceInterface:
   def routeState[A <: js.Any]: A
   def routePath: String
+  def routeHash: String
 
   def routeTo(state: js.Any, url: String): Unit
   def routeToInPlace(state: js.Any, url: String): Unit
@@ -36,6 +37,9 @@ class WindowService(services: {
 
   def routePath: String = 
     window.location.pathname
+
+  def routeHash: String = 
+    window.location.hash
 
   def routeTo(state: js.Any, url: String) =
     window.history.pushState(state, "", url)

@@ -8,6 +8,7 @@ import webapp.*
 import webapp.application.*
 import webapp.application.framework.{given, *}
 import webapp.application.framework.*
+import webapp.application.services.*
 import webapp.application.pages.createpage.*
 import webapp.services.*
 import webapp.state.framework.*
@@ -35,7 +36,7 @@ def ratableInputComponent(using services: ServicesWithApplication) =
           case ValidationState.Error => cls := "border-red-500 border-2"
         },
         cls := "input bg-base-200 w-full",
-        
+
         services.local.get("page.home.input.placeholder").map(
           placeholder := _
         ),
@@ -46,7 +47,7 @@ def ratableInputComponent(using services: ServicesWithApplication) =
         cls := "btn btn-primary",
         services.local.get("page.home.input.button"),
         onClick.filter(_ => form.validate).foreach(_ =>
-          services.routing.to(CreatePage(title.signal.now), true)
+          services.routing.to(CreatePage(title.signal.now), RoutingState(canReturn = true))
         )
       )
     )
