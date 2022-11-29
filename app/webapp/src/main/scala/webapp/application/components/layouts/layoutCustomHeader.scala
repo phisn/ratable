@@ -23,9 +23,11 @@ def layoutCustomHeaderComponent(header: VNode)(body: VNode)(using services: Serv
       tpe := "checkbox",
       cls := "drawer-toggle",
       services.routing.stateSignal.map(state =>
-        checked := state.drawerOpened || true
+        services.logger.log(s"LayoutCustomHeaderComponent: state = ${state.drawerOpened}")
+        checked := state.drawerOpened
       ),
       onChange.foreach(event =>
+        services.logger.log("LayoutCustomHeaderComponent: drawer toggle changed")
         if event.target.asInstanceOf[HTMLInputElement].checked then
           services.routing.toStateOnly(RoutingState(
             canReturn = services.routing.state.canReturn,

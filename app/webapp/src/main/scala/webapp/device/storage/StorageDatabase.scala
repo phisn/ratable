@@ -18,6 +18,7 @@ case class IndexBoundLower(lower: Int)
 trait StorageDatabaseInterface:
   def put[A <: js.Any](name: String, key: String)(value: A): Future[Unit]
   def get[A <: js.Any](name: String, key: String): Future[Option[A]]
+  def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]]
   def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): Future[Seq[(String, A)]]
 
 class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends StorageDatabaseInterface:
@@ -58,6 +59,38 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
         services.logger.error(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}")
         promise.failure(Exception(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}"))
 
+      promise
+    }
+
+  def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]] =
+    services.logger.trace(s"IndexedDB: Getting all from $name")
+
+    openStoreFor(name, IDBTransactionMode.readonly) { store =>
+      services.logger.trace(s"Processing")
+
+      val promise = Promise[Seq[(String, A)]]()
+      val request = store.openCursor()
+
+      val buffer  = collection.mutable.Buffer[(String, A)]()
+
+      request.onsuccess = event =>
+        if request.result == null then
+          services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
+          promise.success(buffer.toSeq)
+        else
+          buffer.append((
+            request.result.primaryKey.asInstanceOf[String],
+            request.result.value.asInstanceOf[A]
+          ))
+
+          request.result.continue()
+
+      request.onerror = event =>
+        services.logger.error(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}"))
+
+      
+      services.logger.trace(s"Processing end")
       promise
     }
 

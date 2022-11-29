@@ -50,8 +50,8 @@ class RoutingService(services: {
   def to(newPage: Page, state: RoutingState = RoutingState()) =
     services.logger.trace(s"Routing to ${linkPath(newPage)}")
     services.window.routeTo(state, linkPath(newPage))
-    page.set(newPage)
     pushStateEvent.fire(())
+    page.set(newPage)
 
   def toReplace(newPage: Page, state: RoutingState = RoutingState()) =
     services.logger.trace(s"Routing replace to ${linkPath(newPage)}")
@@ -59,8 +59,8 @@ class RoutingService(services: {
       state, 
       linkPath(newPage)
     )
-    page.set(newPage)
     pushStateEvent.fire(())
+    page.set(newPage)
 
   def link(newPage: Page) =
     URL(linkPath(newPage), window.location.href).toString
@@ -73,7 +73,10 @@ class RoutingService(services: {
     services.window.routeBack
 
   def state =
-    services.window.routeState[RoutingState]
+    if services.window.routeState == null then
+      RoutingState()
+    else
+      services.window.routeState[RoutingState]
 
   private val varStateSignal = Fold(state)(
     popstateEvent.act(_ => state),

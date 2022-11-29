@@ -50,7 +50,7 @@ def drawer(using services: ServicesWithApplication) =
       div(
         cls := "flex-grow overflow-y-auto my-4 pr-4",
         cls := "md:scrollbar-thin md:scrollbar-track-base-200 md:scrollbar-thumb-base-content",
-        infiniteScroll
+        ratableInfiniteScrollerComponent
       ),
       div(
         cls := "flex justify-evenly pr-4",

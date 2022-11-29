@@ -57,9 +57,20 @@ class StateStorageService(services: {
             container.aggregate.toScala
           )
       })
+
+  def all[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
+    db.all[JsAggregateContainer](aggregateType.name, IndexKeys.id)
+      .map(_.map {
+        case (aggregateId, container) => 
+          (
+            AggregateGid(aggregateId, aggregateType), 
+            container.aggregate.toScala
+          )
+      })
   
   object IndexKeys:
     val tag = "tag"
+    val id = "id"
     
   class JsAggregateContainer(
     val aggregate: js.Any,

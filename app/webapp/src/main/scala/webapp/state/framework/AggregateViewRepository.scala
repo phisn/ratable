@@ -1,11 +1,13 @@
 package webapp.state.framework
 
+import core.messages.common.*
 import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.*
 
 trait AggregateViewRepository[A]:
+  def all: Future[Seq[(AggregateGid, A)]]
   def create(id: String, aggregate: A): AggregateView[A]
   def get(id: String): Future[Option[AggregateView[A]]]
 

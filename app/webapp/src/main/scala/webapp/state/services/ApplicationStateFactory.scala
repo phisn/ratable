@@ -45,6 +45,10 @@ class ApplicationStateFactory(services: {
 
   def newAggregateRepository[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType): AggregateViewRepository[A] =
     new AggregateViewRepository:
+      def all: Future[Seq[(AggregateGid, A)]] =
+        services.stateStorage.all(aggregateType)
+          .map(_.map((a, b) => (a, b.inner)))
+
       def create(id: String, aggregate: A): AggregateView[A] =
         services.aggregateFacadeProvider
           .fromInitial(AggregateGid(id, aggregateType), aggregate)
