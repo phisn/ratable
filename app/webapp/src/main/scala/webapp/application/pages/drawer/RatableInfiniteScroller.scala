@@ -22,9 +22,7 @@ def ratableInfiniteScrollerComponent(using services: ServicesWithApplication): V
   infiniteScrollerComponent(() => 
     services.state.ratables.all.map(ratables =>
       Retrievals(
-        ratables.map((id, ratable) =>
-          ratableEntryComponent(id.aggregateId, ratable)
-        ),
+        ratables.map(ratableEntryComponent),
         false
       )
     ).andThen {
@@ -65,7 +63,12 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
           cls := "py-2",
           div(
             cls := "badge badge-outline",
-            services.local.get("page.drawer.badge.submissions").map(label =>
+            services.local.get(
+            if ratable._ratings.size == 1 then
+              "page.drawer.badge.submissions.singular"
+            else
+              "page.drawer.badge.submissions"
+            ).map(label =>
               s"${ratable._ratings.size} $label"
             )
           ),
@@ -80,6 +83,9 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
         cls := "btn btn-ghost btn-square hover:btn-warning",
         iconTrash(
           cls := "w-8 h-8"
+        ),
+        onClick.foreach(_ =>
+          services.state.ratables.remove(id)
         )
       )
     )

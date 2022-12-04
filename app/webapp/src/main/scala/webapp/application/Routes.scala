@@ -21,12 +21,16 @@ object Routes:
   val fromPath: Path => Page =
     case Root                    => HomePage()
     case Root / "create" / title => CreatePage(title)
+    case Root / "create"         => CreatePage("")
     case Root / "share"  / id    => SharePage(id)
     case Root / "rate"   / id    => RatePage(id)
     case Root / "view"   / id    => ViewPage(id)
     case Root / "privacy"        => PrivacyPage()
      
     case Root / "debug"          => DebugPage()
+
+    // Route for page not found
+    case _ => HomePage()
 
   val toPath: Page => Path =
     case HomePage()        => Root / ""

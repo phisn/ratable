@@ -20,6 +20,7 @@ trait StorageDatabaseInterface:
   def get[A <: js.Any](name: String, key: String): Future[Option[A]]
   def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]]
   def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): Future[Seq[(String, A)]]
+  def remove(name: String, key: String): Future[Unit]
 
 class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends StorageDatabaseInterface:
   def put[A <: js.Any](name: String, key: String)(value: A) =
@@ -64,50 +65,40 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
 
   def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]] =
     services.logger.trace(s"IndexedDB: Getting all from $name")
-
-    openStoreFor(name, IDBTransactionMode.readonly) { store =>
-      services.logger.trace(s"Processing")
-
-      val promise = Promise[Seq[(String, A)]]()
-      val request = store.openCursor()
-
-      val buffer  = collection.mutable.Buffer[(String, A)]()
-
-      request.onsuccess = event =>
-        if request.result == null then
-          services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
-          promise.success(buffer.toSeq)
-        else
-          buffer.append((
-            request.result.primaryKey.asInstanceOf[String],
-            request.result.value.asInstanceOf[A]
-          ))
-
-          request.result.continue()
-
-      request.onerror = event =>
-        services.logger.error(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}"))
-
-      
-      services.logger.trace(s"Processing end")
-      promise
-    }
+    allFromCursor(name, _.openCursor())
 
   def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): Future[Seq[(String, A)]] =
-    services.logger.trace(s"IndexedDB: Getting all from $name")
+    services.logger.trace(s"IndexedDB: Getting all from $name in range $range")
+    allFromCursor(name, _.index(index).openCursor(range))
+  
+  def remove(name: String, key: String) =
+    openStoreFor(name, IDBTransactionMode.readwrite) { store =>
+      val promise = Promise[Unit]()
+      val request = store.delete(key)
 
+      request.onsuccess = event =>
+        services.logger.trace(s"IndexedDB: Removed $key from $name")
+        promise.success(())
+
+      request.onerror = event =>
+        services.logger.error(s"IndexedDB: Transaction failed while removing $key from $name: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: Transaction failed while removing $key from $name: ${request.error.message}"))
+
+      promise
+    }
+
+  private def allFromCursor[A <: js.Any, B](name: String, openCursor: IDBObjectStore => IDBRequest[B, IDBCursorWithValue[B]]): Future[Seq[(String, A)]] =
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       services.logger.trace(s"Processing")
 
       val promise = Promise[Seq[(String, A)]]()
-      val request = store.index(index).openCursor(range)
+      val request = openCursor(store)
 
       val buffer  = collection.mutable.Buffer[(String, A)]()
 
       request.onsuccess = event =>
         if request.result == null then
-          services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
+          services.logger.trace(s"IndexedDB: OpenStoreGetFromCursor all from $name from index n=${buffer.size}")
           promise.success(buffer.toSeq)
         else
           buffer.append((
@@ -118,17 +109,12 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
           request.result.continue()
 
       request.onerror = event =>
-        services.logger.error(s"IndexedDB: Transaction failed while testing $name $index $range: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while testing $name $index $range: ${request.error.message}"))
+        services.logger.error(s"IndexedDB: (openStoreGetFromCursor) Transaction failed while testing $name: ${request.error.message}")
+        promise.failure(Exception(s"IndexedDB: (openStoreGetFromCursor) Transaction failed while testing $name: ${request.error.message}"))
 
       
       services.logger.trace(s"Processing end")
       promise
-    }
-
-  private def customDelay(f: => Unit) =
-    scala.scalajs.js.timers.setTimeout(2000) {
-      f
     }
 
   private def openStoreFor[R](name: String, mode: IDBTransactionMode)(f: IDBObjectStore => Promise[R]): Future[R] =

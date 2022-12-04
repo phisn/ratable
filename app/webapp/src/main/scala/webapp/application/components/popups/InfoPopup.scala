@@ -17,6 +17,7 @@ class InfoPopup extends Popup:
   val closeEvent = closeEvt
   
   def render(using services: ServicesWithApplication) =
+    // TODO: Popup should be closable with back button on mobile
     div(
       cls := "absolute top-0 left-0 w-full h-full flex items-center justify-center",
       div(

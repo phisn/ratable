@@ -62,6 +62,10 @@ val dictionary = Map(
     "en" -> "Submissions",
     "de" -> "Bewertungen"
   ),
+  "page.drawer.badge.submissions.singular" -> Map(
+    "en" -> "Submission",
+    "de" -> "Bewertung"
+  ),
   "page.share.title" -> Map(
     "en" -> "Done! Now share your ratable with your friends",
     "de" -> "Fertig! Teile dein Ratable jetzt mit deinen Freunden"
@@ -86,9 +90,17 @@ val dictionary = Map(
     "en" -> "Submissions",
     "de" -> "Bewertungen"
   ),
+  "page.view.badge.submissions.singular" -> Map(
+    "en" -> "Submission",
+    "de" -> "Bewertung"
+  ),
   "page.view.badge.comments" -> Map(
     "en" -> "Comments",
     "de" -> "Kommentare"
+  ),
+  "page.view.badge.comments.singular" -> Map(
+    "en" -> "Comment",
+    "de" -> "Kommentar"
   ),
   "page.view.badge.days" -> Map(
     "en" -> "days",

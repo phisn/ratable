@@ -24,6 +24,8 @@ def app(using services: ServicesWithApplication) =
   // Need body wrapper because renderReplace can not directly 
   // take (or I do not know how) a colibri.Source / rescala.Signal
   body(
+    // Prevent accidental webpage reload on mobile devices
+    // https://stackoverflow.com/questions/52342200/how-to-prevent-pull-to-refresh-in-pwa-progressive-web-apps
     cls := "min-h-screen overscroll-y-contain",
     services.routing.render
   )

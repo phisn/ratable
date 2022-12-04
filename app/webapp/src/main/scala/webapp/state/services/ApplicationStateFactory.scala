@@ -45,9 +45,9 @@ class ApplicationStateFactory(services: {
 
   def newAggregateRepository[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType): AggregateViewRepository[A] =
     new AggregateViewRepository:
-      def all: Future[Seq[(AggregateGid, A)]] =
+      def all: Future[Seq[(String, A)]] =
         services.stateStorage.all(aggregateType)
-          .map(_.map((a, b) => (a, b.inner)))
+          .map(_.map((a, b) => (a.aggregateId, b.inner)))
 
       def create(id: String, aggregate: A): AggregateView[A] =
         services.aggregateFacadeProvider
@@ -65,6 +65,9 @@ class ApplicationStateFactory(services: {
             case Failure(exception) =>
               services.logger.error(s"ApplicationStateFactory: Error getting aggregate facade for $id with $exception")
           }
+
+      def remove(id: String): Future[Unit] =
+        services.stateStorage.remove(AggregateGid(id, aggregateType))
 
   def distributeUnacknowledged[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType) =
     services.stateStorage.unacknowledged[A](aggregateType)

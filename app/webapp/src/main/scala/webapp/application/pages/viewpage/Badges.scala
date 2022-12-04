@@ -18,10 +18,20 @@ def badgesComponent(ratable: Ratable)(using services: ServicesWithApplication) =
   div(
     cls := "flex space-x-2 md:space-x-4",
 
-    services.local.get("page.view.badge.submissions").map(label =>
+    services.local.get(
+      if ratable._ratings.size == 1 then
+        "page.view.badge.submissions.singular"
+      else
+        "page.view.badge.submissions"
+    ).map(label =>
       badgeComponent(s"${ratable._ratings.size} $label")
     ),
-    services.local.get("page.view.badge.comments").map(label =>
+    services.local.get(
+      if 0 == 1 then
+        "page.view.badge.comments.singular"
+      else
+        "page.view.badge.comments"
+    ).map(label =>
       badgeComponent(s"0 $label")
     ),
     services.local.get("page.view.badge.days").map(label =>

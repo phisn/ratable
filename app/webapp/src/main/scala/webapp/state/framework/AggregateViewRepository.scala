@@ -7,9 +7,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.*
 
 trait AggregateViewRepository[A]:
-  def all: Future[Seq[(AggregateGid, A)]]
+  def all: Future[Seq[(String, A)]]
   def create(id: String, aggregate: A): AggregateView[A]
   def get(id: String): Future[Option[AggregateView[A]]]
+  def remove(id: String): Future[Unit]
 
   def map[B](id: String)(loading: B, notFound: B, found: A => B): Signal[B] =
     Signals.fromFuture(get(id))

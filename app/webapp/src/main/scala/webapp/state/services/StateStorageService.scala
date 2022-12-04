@@ -67,6 +67,9 @@ class StateStorageService(services: {
             container.aggregate.toScala
           )
       })
+
+  def remove(gid: AggregateGid) =
+    db.remove(gid.aggregateType.name, gid.aggregateId)
   
   object IndexKeys:
     val tag = "tag"
