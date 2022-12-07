@@ -1,9 +1,14 @@
-package core.scala.framework
+package core.framework
 
-import org.scalajs.*
+import scala.concurrent.*
 
-trait Crypt
+case class CryptKeyValuePair(
+  val privateKey: Array[Byte],
+  val publicKey: Array[Byte]
+)
 
-given Crypt with
-  def encrypt(key: String, plainText: String): String =
-    ???
+trait Crypt:
+  def generateKey: Future[CryptKeyValuePair]
+
+  def sign(key: Array[Byte], content: String): Future[Array[Byte]]
+  def verify(key: Array[Byte], content: String, signature: Array[Byte]): Future[Boolean]

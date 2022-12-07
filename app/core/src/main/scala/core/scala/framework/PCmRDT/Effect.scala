@@ -1,4 +1,4 @@
-package core.scala.framework.CmRDT
+package core.framework.CmRDT
 
 case class Effect[A, R](
   val verify:  (WithContext[A, R]) => Boolean,
@@ -6,7 +6,7 @@ case class Effect[A, R](
 )
 
 def verifyRoles[A, R](source: EventSource[R], roles: R*) =
-  (state: WithContext[A, R]) => source.verifyProofs(state.findRoles(roles: _*))
+  (state: WithContext[A, R]) => source.hasProofs(state.findRoles(roles: _*))
 
 def mutateWithoutContext[A, R](f: A => A) =
   (state: WithContext[A, R]) => state.copy(inner = f(state.inner))

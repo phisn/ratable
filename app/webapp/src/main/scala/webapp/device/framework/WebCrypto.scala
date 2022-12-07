@@ -1,5 +1,6 @@
 package webapp.device.framework
 
+import core.framework.*
 import org.scalajs.*
 import org.scalajs.dom
 import scala.concurrent.*
@@ -8,10 +9,8 @@ import scala.scalajs.js
 import scala.scalajs.js.typedarray.*
 import typings.std.global.TextEncoder
 
-trait Crypt
-
 given Crypt with
-  def generateKey(): Future[(Array[Byte], Array[Byte])] =
+  def generateKey: Future[CryptKeyValuePair] =
     dom.crypto.subtle.generateKey(
         new dom.RsaHashedKeyGenParams {
           val name = "RSASSA-PKCS1-v1_5"
@@ -28,7 +27,7 @@ given Crypt with
         for
           privateKey <- exportKey(pair.privateKey)
           publicKey  <- exportKey(pair.publicKey)
-        yield (privateKey, publicKey)
+        yield CryptKeyValuePair(privateKey = privateKey, publicKey)
       )
 
   def sign(key: Array[Byte], content: String): Future[Array[Byte]] =
@@ -43,17 +42,17 @@ given Crypt with
         .map(new Int8Array(_).toArray)
     )
   
-  def verify(key: Array[Byte], content: String): Future[Boolean] =
+  def verify(key: Array[Byte], content: String, signature: Array[Byte]): Future[Boolean] =
     importKey(key).flatMap(cryptoKey =>
       dom.crypto.subtle.verify(
           "RSASSA-PKCS1-v1_5",
           cryptoKey,
-          TextEncoder().encode(content).buffer
+          signature.toTypedArray.buffer,
+          TextEncoder().encode(content).buffer,
         )
         .toFuture
         .mapTo[Boolean]
     )
-  
 
   private def importKey(key: Array[Byte]): Future[dom.CryptoKey] =
     dom.crypto.subtle.importKey(
