@@ -1,4 +1,4 @@
-package core.framework.CmRDT
+package core.framework.pcmrdt
 
 import core.framework.*
 import scala.concurrent.*

@@ -1,4 +1,4 @@
-package core.scala.customCRDT.v5
+package core.framework.customCRDT.v6
 
 // A role is something that can be required by a event. To be able to create an event, you must prove that you have the required roles.
 case class Role[ID](

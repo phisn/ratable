@@ -44,6 +44,8 @@ object Dependencies {
     // Rescala snapshot with rdt support. needs to be replaced with a release version > 0.31.0
     "com.github.rescala-lang.rescala"       %%% "rescala"                     % versions.rescala,
    ("com.github.rescala-lang.rescala"       %%% "kofre"                       % versions.rescala).cross(CrossVersion.for2_13Use3),
+   
+    "org.scalatest"                 %%% "scalatest"      % versions.scalatest % Test
   ))
 
   val webappDependencies = coreDependencies ++ Seq(Keys.libraryDependencies ++= Seq(
@@ -52,8 +54,6 @@ object Dependencies {
     
     "io.github.outwatch"            %%% "outwatch"       % versions.outwatch,
     "com.github.cornerman"          %%% "colibri-router" % versions.colibri,
-
-    "org.scalatest"                 %%% "scalatest"      % versions.scalatest % Test
   ))
 
   val webappNpmDevDependencies = Seq(

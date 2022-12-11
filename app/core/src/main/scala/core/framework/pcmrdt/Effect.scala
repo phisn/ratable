@@ -1,4 +1,4 @@
-package core.framework.CmRDT
+package core.framework.pcmrdt
 
 case class Effect[A, R](
   val verify:  (WithContext[A, R]) => Boolean,

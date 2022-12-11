@@ -1,4 +1,8 @@
-package core.framework.CmRDT
+package core.framework.pcmrdt
+
+import core.framework.*
+import scala.concurrent.*
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case class WithContext[A, R](
   val inner: A,
@@ -14,6 +18,18 @@ case class WithContext[A, R](
 class PCmRDT[A, R](
   val state: WithContext[A, R]
 )
+
+object PCmRDT:
+  def create[A, R](initial: A, rolesIds: Array[R])(using crypt: Crypt): Future[(PCmRDT[A, R], List[RoleProver[R]])] =
+    Future.sequence(rolesIds.map(Role.create).toList)
+      .map(_.unzip)
+      .map {
+        case (roles, provers) =>
+          (
+            PCmRDT(WithContext(initial, roles)),
+            provers
+          )
+      }
 
 /*
 
