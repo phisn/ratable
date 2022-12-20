@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers.*
 import kofre.base.*
 import _root_.scala.concurrent.*
 import _root_.scala.concurrent.ExecutionContext.Implicits.global
-import core.framework.customCRDT.v16.*
+import core.framework.customCRDT.v17.*
 import _root_.scala.util.Random
 
 given Crypt with
@@ -30,7 +30,7 @@ given Crypt with
     val c3 = key(1) == 2 
     val c4 = signature(2) == content.hashCode.toByte
     
-    println(s"verify: $c1 && $c2 && $c3 && $c4")
+    // println(s"verify: $c1 && $c2 && $c3 && $c4")
 
     Future.successful(
       c1 && c2 && c3 && c4
@@ -38,7 +38,6 @@ given Crypt with
 
 class TestSpec extends AsyncFlatSpec:
   implicit override def executionContext = _root_.scala.concurrent.ExecutionContext.Implicits.global
- 
   main
 
     /*

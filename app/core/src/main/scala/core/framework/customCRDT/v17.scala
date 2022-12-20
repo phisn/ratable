@@ -1,4 +1,4 @@
-package core.framework.customCRDT.v16
+package core.framework.customCRDT.v17
 
 import core.framework.*
 import scala.concurrent.*
@@ -11,9 +11,9 @@ case class Claim[I](
 )
 
 object Claim:
-  def create[C](claimIds: Set[C])(using crypt: Crypt): Future[(List[Claim[C]], List[ClaimProver[C]])] =
+  def create[C](claimIds: Set[C])(using crypt: Crypt): Future[(Set[Claim[C]], Set[ClaimProver[C]])] =
     Future.sequence(
-        claimIds.map(create(_)).toList
+        claimIds.map(create(_))
       )
       .map(_.unzip)
 
@@ -59,9 +59,16 @@ case class EventWithContext[A, C](
 )
 
 case class Effect[A, C](
-  val verify:  (A, C) => Future[Boolean],
+  val verify:  (A, C) => Future[Option[String]],
   val advance: (A, C) => Future[A]
 )
+
+object Effect:
+  def apply[A, C](verify: (A, C) => Future[Option[String]], advance: (A, C) => Future[A]): Effect[A, C] =
+    new Effect(verify, advance)
+
+  def from[A, C](verify: (A, C) => Option[String], advance: (A, C) => A): Effect[A, C] =
+    new Effect((a, c) => Future.successful(verify(a, c)), (a, c) => Future.successful(advance(a, c)))
 
 trait EffectExtender[A, B, C]:
   def extend(inner: Effect[A, C]): Effect[B, C]
@@ -78,25 +85,55 @@ object EffectExtender:
     def extend(effect: Effect[A, C]): Effect[A, C] =
       effect
 
+trait EffectPipelineStage[A, C]:
+  def apply(effect: Effect[A, C]): Effect[A, C]
+
+trait Bottom[A]:
+  def empty: A
+
+trait EffectPipeline[A, C]:
+  def stages: List[EffectPipelineStage[A, C]]
+
+  def combine: EffectPipelineStage[A, C] = 
+    effect => stages.foldLeft(effect)((x, y) => y.apply(x))
+
+case class ECmRDT[A, C](
+  val state: A,
+  val effectPipeline: EffectPipelineStage[A, C]
+):
+  def effect(eventWithContext: EventWithContext[A, C]): Future[Either[String, ECmRDT[A, C]]] =
+    val effect = effectPipeline(eventWithContext.event.asEffect)
+
+    for
+      valid <- effect.verify(state, eventWithContext.context)
+
+      newState <- valid match
+        case Some(error) => Future.successful(Left(error))
+        case None => effect.advance(state, eventWithContext.context).map(Right(_))
+    yield
+      newState.map(x => copy(state = x))
+
+object ECmRDT:
+  def apply[A, C](state: A)(using pipeline: EffectPipeline[A, C]): ECmRDT[A, C] =
+    ECmRDT(state, pipeline.combine)
+
 trait IdentityContext:
   val replicaId: String
 
-trait AsymPermissionContext[I]:
+trait AsymPermissionContextExtension[I]:
   val proofs: Set[ClaimProof[I]]
   def claims = proofs.map(_.id)
-
-case class AsymPermissionStateExtension[A, I](
-  val inner: A,
+  
+trait AsymPermissionStateExtension[I]:
   val claims: Set[Claim[I]]
-)
 
-object AsymPermissionStateExtension:
-  given [A, I, C <: AsymPermissionContext[I] with IdentityContext](using Crypt): EffectExtender[A, AsymPermissionStateExtension[A, I], C] with
-    def extend(inner: Effect[A, C]): Effect[AsymPermissionStateExtension[A, I], C] =
+object AsymPermissionEffectPipeline:
+  def apply[A <: AsymPermissionStateExtension[I], I, C <: AsymPermissionContextExtension[I] with IdentityContext](using Crypt): EffectPipelineStage[A, C] =
+    (effect: Effect[A, C]) =>
       Effect(
-        (state, context) => 
+        (state, context) =>
           // Ensure that all proofs in context are valid.
-          for
+          for                        
             coreValid <- Future.sequence(
               for
                 proof <- context.proofs
@@ -106,40 +143,47 @@ object AsymPermissionStateExtension:
             )
 
             valid <- if coreValid.forall(identity) then 
-              inner.verify(state.inner, context) 
-            else 
-              Future.successful(false)
+              effect.verify(state, context) 
+            else
+              Future.successful(Some("Invalid proof."))
 
           yield
-            valid,
+            valid.orElse(
+              Option.unless(context.proofs.exists(x => state.claims.exists(_.id == x.id)))
+                ("Claim does not exist.")
+            ),
         (state, context) =>
           for
-            inner <- inner.advance(state.inner, context)
+            inner <- effect.advance(state, context)
           yield
-            state.copy(inner = inner)
+            inner
       )
-
+  
 enum CounterRoles:
   case Adder
 
 case class Counter(
-  val value: Int
-)
+  val value: Int,
+  val claims: Set[Claim[CounterRoles]]
+) extends AsymPermissionStateExtension[CounterRoles]
 
-type CounterWithExtensions = AsymPermissionStateExtension[Counter, CounterRoles]
+given (using Crypt): EffectPipeline[Counter, CounterContext] with
+  def stages = List(
+    AsymPermissionEffectPipeline[Counter, CounterRoles, CounterContext]
+  )
 
 case class CounterContext(
   val replicaId: String,
   val proofs: Set[ClaimProof[CounterRoles]]
-) extends IdentityContext with AsymPermissionContext[CounterRoles]
+) extends IdentityContext with AsymPermissionContextExtension[CounterRoles]
 
 case class AddCounterEvent(
   val value: Int
 ) extends Event[Counter, CounterContext]:
   def asEffect: Effect[Counter, CounterContext] =
-    Effect(
-      (state, context) => Future.successful(context.proofs.exists(_.id == CounterRoles.Adder)),
-      (state, context) => Future.successful(state.copy(value = state.value + value))
+    Effect.from(
+      (state, context) => Option.unless(context.proofs.exists(_.id == CounterRoles.Adder))("Missing role."),
+      (state, context) => state.copy(value = state.value + value)
     )
 
 object AddCounterEvent:
@@ -151,7 +195,7 @@ object AddCounterEvent:
         AddCounterEvent(value),
         CounterContext(replicaId, Set(proof))
       )
-    
+
 def main(using Crypt) = 
   val replicaId = "replicaId"
 
@@ -164,20 +208,13 @@ def main(using Crypt) =
         claimProvers.find(_.id == claim).get.prove(replicaId)
 
     // Step 2: Create initial state.
-    state = AsymPermissionStateExtension(Counter(0), claims.toSet)
+    counter = ECmRDT[Counter, CounterContext](Counter(0, claims))
 
     // Step 3: Create event.
     event <- AddCounterEvent.create(replicaId, 5)(using registry)
 
-    // Step 4: Get effect
-    effect = event.event.asEffect
-
-    // Step 5: Extend effect
-    extendedEffect = EffectExtender[Counter, CounterWithExtensions, CounterContext].extend(effect)
-
-    // Step 6: Verify and advance state.
-    valid <- extendedEffect.verify(state, event.context)
-    newState <- extendedEffect.advance(state, event.context)
+    // Step 4: Verify and advance state.
+    newCounter <- counter.effect(event)
 
     // Create and test fake events to verify that the effect verification is working.
     fakeEvent1 = EventWithContext(
@@ -195,22 +232,15 @@ def main(using Crypt) =
       CounterContext(replicaId, Set(ClaimProof("fakeProof".getBytes, CounterRoles.Adder)))
     )
 
-    fakeValid1 <- EffectExtender[Counter, CounterWithExtensions, CounterContext]
-      .extend(fakeEvent1.event.asEffect)
-      .verify(state, fakeEvent1.context)
-    
-    fakeValid2 <- EffectExtender[Counter, CounterWithExtensions, CounterContext]
-      .extend(fakeEvent2.event.asEffect)
-      .verify(state, fakeEvent2.context)
-
-    fakeValid3 <- EffectExtender[Counter, CounterWithExtensions, CounterContext]
-      .extend(fakeEvent3.event.asEffect)
-      .verify(state, fakeEvent3.context)
+    fakeValid1 <- counter.effect(fakeEvent1).map(_.swap.toOption)
+    fakeValid2 <- counter.effect(fakeEvent2).map(_.swap.toOption)
+    fakeValid3 <- counter.effect(fakeEvent3).map(_.swap.toOption)
 
   do
-    println(s"State is valid: $valid")
+    println(s"State is valid: ${newCounter.swap.toOption}")
     println(s"Fake state 1 is valid: $fakeValid1")
     println(s"Fake state 2 is valid: $fakeValid2")
     println(s"Fake state 3 is valid: $fakeValid3")
-    println(s"Old state was: ${state.inner.value}")
-    println(s"New state is: ${newState.inner.value}")
+    println(s"Old state was: ${counter.state.value}")
+    println(s"New state is: ${newCounter.map(_.state.value)}")
+    println(s"v17")
