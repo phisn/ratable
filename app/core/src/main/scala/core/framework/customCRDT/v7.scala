@@ -32,6 +32,7 @@ trait StateFeaturePermission[R]:
 
 trait PermissionEvent
 
+/*
 case class AssignRoleEvent[A <: StateFeaturePermission[R], C, R](
   val replicaId: String,
   val proofs: List[RoleProof[R]],
@@ -42,7 +43,7 @@ case class AssignRoleEvent[A <: StateFeaturePermission[R], C, R](
       (state: A) => 
       (state: A) => state
     )
-
+*/
 def newPermissionCmRDT =
   ???
 

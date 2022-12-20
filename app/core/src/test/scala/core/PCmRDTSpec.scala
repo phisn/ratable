@@ -9,84 +9,37 @@ import org.scalatest.matchers.should.Matchers.*
 import kofre.base.*
 import _root_.scala.concurrent.*
 import _root_.scala.concurrent.ExecutionContext.Implicits.global
-
-enum CounterRoles:
-  case Adder
-
-case class Counter(
-  val value: Int
-)
-
-trait CounterEvent extends GenericEvent[Counter, CounterRoles]
-
-case class AddEvent(
-  val value: Int
-):
-  def asEffect(source: EventSource[CounterRoles]): Effect[Counter, CounterRoles] =
-    Effect(
-      verifyRoles(source, CounterRoles.Adder),
-      mutateWithoutContext(state =>
-        state.copy(value = state.value + value)
-      )
-
-//      (state) => source.verifyProofs(state.findRoles(CounterRoles.Adder)),
-//      (state) => WithContext(state.inner.copy(value = state.inner.value + value), state.roles)
-    )
+import core.framework.customCRDT.v16.*
+import _root_.scala.util.Random
 
 given Crypt with
   def generateKey: Future[CryptKeyValuePair] =
+    val r = Random.nextInt().toByte
     Future.successful(
-      CryptKeyValuePair(Array[Byte](1), Array[Byte](2)) 
+      CryptKeyValuePair(Array[Byte](r, 1), Array[Byte](r, 2)) 
     )
 
   def sign(key: Array[Byte], content: String): Future[Array[Byte]] =
     Future.successful(
-      Array[Byte](key(0), content.hashCode.toByte)
+      Array[Byte](key(0), key(1), content.hashCode.toByte)
     )
 
   def verify(key: Array[Byte], content: String, signature: Array[Byte]): Future[Boolean] =
+    val c1 = signature(0) == key(0)
+    val c2 = signature(1) == 1
+    val c3 = key(1) == 2 
+    val c4 = signature(2) == content.hashCode.toByte
+    
+    println(s"verify: $c1 && $c2 && $c3 && $c4")
+
     Future.successful(
-      signature(0) == key(0) && signature(1) == content.hashCode.toByte
+      c1 && c2 && c3 && c4
     )
 
 class TestSpec extends AsyncFlatSpec:
   implicit override def executionContext = _root_.scala.concurrent.ExecutionContext.Implicits.global
-
-  def prepare(replicaId: String) =
-    for
-      (counter, provers) <- PCmRDT.create(Counter(0), CounterRoles.values)
-      proofs <- Future.sequence(provers.map(_.prove(replicaId)))
-    yield
-      (counter, EventSource[CounterRoles](replicaId, proofs), provers)
-
-  "PCmRDT" should "be created and advance with effect" in {
-    for
-      (counter, source, provers) <- prepare("replicaId")
-
-      addEvent = AddEvent(1)
-      addEffect = addEvent.asEffect(source)
-
-      newCounter = addEffect.advance(counter.state)
-
-      newCounter2 = addEffect.advance(newCounter)
-    yield
-      newCounter.inner.value should be (1)
-      newCounter2.inner.value should be (2)
-  }
-
-  "Effect" should "verify proof" in {
-    for
-      (counter, source, provers) <- prepare("replicaId")
-
-      addEvent = AddEvent(1)
-      addEffect = addEvent.asEffect(source)
-
-      verifyEffect <- addEffect.verify(counter.state)
-
-
-    yield
-  }
-    
+ 
+  main
 
     /*
     // ! start

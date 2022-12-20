@@ -75,6 +75,7 @@ case class PermissionExtension[A, I](
   val claims: Set[Claim[I]]
 )
 
+/*
 given [A, C, I]: EventExtender[A, PermissionExtension[A, I], C, PermissionExtensionContext[C, I]] with
   def extend(event: Event[A, C], context: PermissionExtensionContext[C, I]): Event[PermissionExtensionContext[C, I], PermissionExtension[A, I]] =
     Event(
@@ -94,5 +95,5 @@ given [A, C, I]: EventExtender[A, PermissionExtension[A, I], C, PermissionExtens
 
   def dumpDown(context: PermissionExtensionContext[C, I]): C =
     context.inner
-
+*/
 // val counterState = PermissionExtension[Counter, CounterClaims]

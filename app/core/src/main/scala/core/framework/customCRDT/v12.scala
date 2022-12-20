@@ -11,9 +11,11 @@ case class Effect[A](
 trait CmRDT[A]:
   def effect[C](event: Event[A, C]): CmRDT[A]
 
+  /*
 case class PCmRDT[A](
   val state: A
 ) extends CmRDT[A]
+*/
 
 case class PermissionContext[P](
   val replicaId: String,

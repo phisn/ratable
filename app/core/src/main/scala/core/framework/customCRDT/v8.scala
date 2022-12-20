@@ -61,6 +61,7 @@ type CounterState = WithPermission[Counter, CounterRoles]
 
 trait CounterEvent extends Event[Counter, EventSource]
 
+/*
 case class AddEvent(
   val value: Int
 ) extends CounterEvent:
@@ -70,11 +71,12 @@ case class AddEvent(
       mutateWithoutContext(state =>
         state.copy(value = state.value + value)
       )
+      */
 
 // Same without helpers:
 //      (state) => source.verifyProofs(state.findRoles(CounterRoles.Adder)),
 //      (state) => CounterState(state.inner.copy(value = state.inner.value + value), state.roles)
-    )
+//    )
 
 def main =
   val replicaId = "replicaId"
@@ -88,21 +90,23 @@ def main =
 
   // ! user wants to increment counter
 
-  val addEvent = AddEvent(1)
-  val addEffect = addEvent.asEffect(eventSource)
+//  val addEvent = AddEvent(1)
+//  val addEffect = addEvent.asEffect(eventSource)
 
   // ... using effect
 
-  if !addEffect.verify(counter.state) then
+/*  if !addEffect.verify(counter.state) then
     throw Exception("Event is not valid")
   
   val newCounter = addEffect.advance(counter.state)
-
+*/
   // ... using event
   
+  /*
   val addEventWithSource = WithEventSource(
     addEvent,
     eventSource
   )
+  */
 
   // ? somehow distribute(addEventWithSource)
