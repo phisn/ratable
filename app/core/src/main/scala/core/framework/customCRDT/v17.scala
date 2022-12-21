@@ -70,26 +70,8 @@ object Effect:
   def from[A, C](verify: (A, C) => Option[String], advance: (A, C) => A): Effect[A, C] =
     new Effect((a, c) => Future.successful(verify(a, c)), (a, c) => Future.successful(advance(a, c)))
 
-trait EffectExtender[A, B, C]:
-  def extend(inner: Effect[A, C]): Effect[B, C]
-
-object EffectExtender:
-  def apply[A, B, C](using extender: EffectExtender[A, B, C]): EffectExtender[A, B, C] =
-    extender
-
-  given transitive[X, Y, Z, C](using le: EffectExtender[X, Y, C], re: EffectExtender[Y, Z, C]): EffectExtender[X, Z, C] with
-    def extend(effect: Effect[X, C]): Effect[Z, C] =
-      re.extend(le.extend(effect))
-
-  given identity[A, C]: EffectExtender[A, A, C] with
-    def extend(effect: Effect[A, C]): Effect[A, C] =
-      effect
-
 trait EffectPipelineStage[A, C]:
   def apply(effect: Effect[A, C]): Effect[A, C]
-
-trait Bottom[A]:
-  def empty: A
 
 trait EffectPipeline[A, C]:
   def stages: List[EffectPipelineStage[A, C]]

@@ -9,7 +9,8 @@ import org.scalatest.matchers.should.Matchers.*
 import kofre.base.*
 import _root_.scala.concurrent.*
 import _root_.scala.concurrent.ExecutionContext.Implicits.global
-import core.framework.customCRDT.v17.*
+import core.framework.ecmrdt.*
+import core.framework.ecmrdt.example.*
 import _root_.scala.util.Random
 
 given Crypt with
