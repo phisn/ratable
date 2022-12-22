@@ -16,11 +16,8 @@ trait AsymPermissionContextExtension[I]:
 trait AsymPermissionStateExtension[I]:
   val claims: Set[Claim[I]]
 
-/*
-def verifyEffectPipeline[A, C](effect: Effect[A, C])(validators: (Option[String] | Future[Option[String]])*): (A, C) => Future[Option[String]] =
-  verifyEffectPipeline(effect)(validators.toSet)
-*/
-
+// The Asymmetric Permission Extension allows permission to be aquired by replicas themselves using claim provers
+// aka private keys. This allows for example a data type to be edited via a link that can be shared with other replicas.
 object AsymPermissionEffectPipeline:
   def apply[A <: AsymPermissionStateExtension[I], I, C <: AsymPermissionContextExtension[I] with IdentityContext](using Crypt): EffectPipeline[A, C] =
     verifyEffectPipelineFuture[A, C]((state, context) =>
@@ -32,6 +29,7 @@ object AsymPermissionEffectPipeline:
           Option.unless(_)(s"Invalid proof for claim ${claim.id}.")
         )
 
+      // We want to ensure that there are no unkown proofs because this can hint to a bug.
       x + Future.successful(Option.unless(context.proofs.exists(x => state.claims.exists(_.id == x.id)))
         ("Claim does not exist."))
     )

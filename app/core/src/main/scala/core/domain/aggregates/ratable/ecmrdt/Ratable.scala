@@ -75,11 +75,11 @@ case class RateEvent(
 ) extends RatableEvent:
   def asEffect: Effect[Ratable, RatableContext] =
     Effect.from(
-      (state, context) => context.verifyClaim(RatableClaims.CanRate)/*.map(_.orElse(
+      (state, context) => context.verifyClaim(RatableClaims.CanRate).orElse(
         Option.when(ratingForCategory.size != state.categories.size)(
           s"Rating must contain ${state.categories.size} categories."
         )
-      ))*/,
+      ),
       (state, context) => state.rate(context.replicaId, ratingForCategory)
     )
 

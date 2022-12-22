@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait SingleOwnerStateExtension:
   val replicaId: String
-
+  
 object SingleOwnerEffectPipeline:
   def apply[A <: SingleOwnerStateExtension, C <: IdentityContext with IdentityContext](using Crypt): EffectPipeline[A, C] =
     verifyEffectPipeline[A, C]((state, context) => Set(
