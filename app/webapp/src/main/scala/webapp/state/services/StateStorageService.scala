@@ -45,9 +45,14 @@ class StateStorageService(services: {
       )
     }
 
+  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[EventBufferContainer[A, C]]] =
+    ???
+
+  /*
   def load[A : JsonValueCodec](gid: AggregateGid): Future[Option[DeltaContainer[A]]] =
     db.get[JsAggregateContainer](gid.aggregateType.name, gid.aggregateId)
       .map(_.map(container => container.aggregate.toScala))
+  */
 
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
     db.all[JsAggregateContainer](aggregateType.name, IndexKeys.tag,

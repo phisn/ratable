@@ -20,125 +20,38 @@ class AggregateFacadeProvider(services: {
   val logger: LoggerServiceInterface
   val stateStorage: StateStorageService
 }):
+  val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _]]()
+  val facadesInLoading = collection.mutable.Map[AggregateGid, Future[Option[AggregateFacade[_, _]]]]()
+
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
-    ???
+    facades
+      .get(gid).map(x => Future.successful(Some(x)))
+      .orElse(facadesInLoading.get(gid)) 
+    match
+      case Some(value) => value.asInstanceOf[Future[Option[AggregateFacade[A, C]]]]
+      case None => getFromStorageAndRegister(gid)
 
-//  val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_]]()
-//  val facadesInLoading = collection.mutable.Map[AggregateGid, Future[AggregateFacade[_]]]()
+  def getFromStorageAndRegister[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
+    val aggregateInFuture = getFromStorage[A, C](gid)
+    facadesInLoading(gid) = aggregateInFuture
 
-  /*
-  def get[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid): Future[Option[AggregateFacade[A]]] =
-    // currently hack implemented to get it working. later to be replaced with a proper solution
-    // at serverside
-    facades.get(gid) match
-      case Some(value) => Future.successful(Some(value.asInstanceOf[AggregateFacade[A]]))
-      case None =>
-        // In this hack we want to load aggregate always and later apply it
-        val futureInitialFromNetwork = services.functionsHttpApi.getAggregate(
-          GetAggregateMessage(gid)
-        )
-          .map(_.aggregateJson.map(readFromString[A](_)))
-          .fallbackTo(Future.successful(None))
+    aggregateInFuture.andThen(_ => 
+      facadesInLoading -= gid
+    )
 
-        val futureInitialFromStorage = services.stateStorage
-          .load[A](gid)
-          .andThen {
-            case Success(Some(_)) =>
-              services.logger.trace(s"AggregateViewFactory.initialAggregate: $gid found in storage")
+    aggregateInFuture.andThen {
+      case Success(Some(value)) => facades(gid) = value
+    }
 
-            case Success(None) => 
-              services.logger.trace(s"AggregateViewFactory.initialAggregate: $gid not found")
-          }
-        
-        futureInitialFromStorage.flatMap {
-          case Some(initial) =>
-            val facade = services.aggregateFactory.createSignal(gid, initial)
-            facades += gid -> facade
-            facadesInLoading -= gid
+    aggregateInFuture
 
-            // Now "delta" from server is applied here 
-            futureInitialFromNetwork.andThen {
-              case Success(Some(delta)) =>
-                facade.deltaEvent.fire(delta)
-            }
+  def getFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
+    services.stateStorage.load[A, C](gid).map(_.map(initial =>
+      val aggregate = AggregateFacade(initial)
 
-            Future.successful(Some(facade))
+      aggregate.listen.observe(aggregate =>
+        services.stateStorage.save(gid, aggregate)
+      )
 
-          case None => 
-            futureInitialFromNetwork
-              .map(_.map(DeltaContainer(_)))
-              .map(_.map(services.aggregateFactory.createSignal(gid, _)))
-              .andThen {
-                case Success(Some(facade)) =>
-                  facades += gid -> facade
-                  facadesInLoading -= gid 
-              }
-        }
-  */
-        
-
-    // original
-/* 
-    facades.get(gid) match
-      case Some(value) => Future.successful(Some(value.asInstanceOf[AggregateFacade[A]]))
-      case None =>
-        initialAggregate(gid)
-          .map(_.map(services.aggregateFactory.createSignal(gid, _)))
-          .andThen {
-            case Success(Some(facade)) =>
-              facades += gid -> facade
-              facadesInLoading -= gid 
-          }
-*/
-  
-  /*
-  def fromInitial[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid, initial: A): AggregateFacade[A] =
-    val facade = services.aggregateFactory.createSignal(gid, Bottom[DeltaContainer[A]].empty)
-    facades += gid -> facade
-
-    // Firing initial value as custom mutation to trigger all important side effects
-    facade.mutationEvent.fire(_ => initial)
-
-    facade
-  */
-
-  // There does not seem to be any usecase for this method
-  /*
-  def getWithInitial[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid, initial: DeltaContainer[A]): Future[AggregateFacade[A]] =
-    facades.getOrElseUpdate(
-      gid,
-      services.aggregateFactory.createSignal(gid, initial)
-    ).asInstanceOf[Future[AggregateFacade[A]]]
-  */
-
-  /*
-  private def initialAggregate[A : JsonValueCodec : Bottom : Lattice](
-    gid: AggregateGid
-  ) =
-    services.stateStorage
-      .load[A](gid)
-      .andThen {
-        case Success(Some(_)) =>
-          services.logger.trace(s"AggregateViewFactory.initialAggregate: $gid found in storage")
-
-        case Success(None) => 
-          services.logger.trace(s"AggregateViewFactory.initialAggregate: $gid not found")
-      }
-      .flatMap {
-        case Some(value) => 
-          Future.successful(Some(value))
-        
-        case None =>
-          services.functionsHttpApi.getAggregate(
-            GetAggregateMessage(gid)
-          )
-            .map(_.aggregateJson.map(readFromString[A](_)))
-            .map(_.map(DeltaContainer(_)))
-            .fallbackTo(Future.successful(None))
-      }
-      .andThen {
-        case Failure(exception) =>
-          services.logger.error(s"Failed to load aggregate $gid because ${exception}")
-      }
-
-  */
+      aggregate
+    ))
