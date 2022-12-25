@@ -1,6 +1,6 @@
 package webapp.application.pages.viewpage
 
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -44,7 +44,7 @@ def viewRatingsComponent(ratable: Ratable)(using services: ServicesWithApplicati
         categoriesWithRating.toList.sortBy(_._1)
           .map{ case (index, (category, value)) =>
             ratingWithLabelComponent(
-              category.title.map(_.value).getOrElse(""),
+              category.title,
               value
             )
           }

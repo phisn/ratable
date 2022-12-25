@@ -1,10 +1,10 @@
-package webapp.state_CmRDT.framework
+package webapp.state.framework
 
 import core.framework.ecmrdt.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class EventBufferContainer[A, C](
+case class EventBufferContainer[A, C <: IdentityContext](
   val inner: ECmRDT[A, C],
   val events: Set[ECmRDTEventWrapper[A, C]]
 ):
@@ -45,4 +45,3 @@ case class EventBufferContainer[A, C](
       // All events with time higher than the acknowledged time remain
       events = events.filter(_.time > time)
     )
-      

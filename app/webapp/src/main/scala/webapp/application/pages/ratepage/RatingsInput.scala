@@ -1,6 +1,6 @@
 package webapp.application.pages.ratepage
 
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -29,7 +29,7 @@ def ratingsInputComponent(ratable: Ratable, ratingForCategorySignal: PromiseSign
     ratable.categories.toList.sortBy(_._1)
       .map((index, category) =>
         ratingWithLabelInputComponent(
-          category.title.map(_.value).getOrElse(""),
+          category.title,
           ratings(index)
         )
       )

@@ -1,6 +1,6 @@
 package webapp.application.components.layouts
 
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*

@@ -2,6 +2,7 @@ package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
+import core.framework.ecmrdt.*
 import core.messages.common.*
 import kofre.base.*
 import scala.concurrent.*
@@ -29,6 +30,9 @@ class StateStorageService(services: {
 
   def finishAggregateRegistration =
     builder.build
+
+  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C]) =
+    ???
 
   def save[A : JsonValueCodec : Lattice : Bottom](gid: AggregateGid, aggregate: DeltaContainer[A]) =
     db.put(gid.aggregateType.name, gid.aggregateId) {

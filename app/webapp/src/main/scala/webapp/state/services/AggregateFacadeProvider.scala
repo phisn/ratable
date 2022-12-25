@@ -2,6 +2,7 @@ package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
+import core.framework.ecmrdt.*
 import core.messages.common.*
 import core.messages.http.*
 import kofre.base.*
@@ -14,16 +15,18 @@ import webapp.device.services.*
 import webapp.services.*
 import webapp.state.framework.*
 
-
 class AggregateFacadeProvider(services: {
-  val aggregateFactory: AggregateFactory
   val functionsHttpApi: FunctionsHttpApiInterface
   val logger: LoggerServiceInterface
   val stateStorage: StateStorageService
 }):
-  val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_]]()
-  val facadesInLoading = collection.mutable.Map[AggregateGid, Future[AggregateFacade[_]]]()
+  def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
+    ???
 
+//  val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_]]()
+//  val facadesInLoading = collection.mutable.Map[AggregateGid, Future[AggregateFacade[_]]]()
+
+  /*
   def get[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid): Future[Option[AggregateFacade[A]]] =
     // currently hack implemented to get it working. later to be replaced with a proper solution
     // at serverside
@@ -71,7 +74,7 @@ class AggregateFacadeProvider(services: {
                   facadesInLoading -= gid 
               }
         }
-
+  */
         
 
     // original
@@ -88,6 +91,7 @@ class AggregateFacadeProvider(services: {
           }
 */
   
+  /*
   def fromInitial[A : JsonValueCodec : Bottom : Lattice](gid: AggregateGid, initial: A): AggregateFacade[A] =
     val facade = services.aggregateFactory.createSignal(gid, Bottom[DeltaContainer[A]].empty)
     facades += gid -> facade
@@ -96,6 +100,7 @@ class AggregateFacadeProvider(services: {
     facade.mutationEvent.fire(_ => initial)
 
     facade
+  */
 
   // There does not seem to be any usecase for this method
   /*
@@ -106,6 +111,7 @@ class AggregateFacadeProvider(services: {
     ).asInstanceOf[Future[AggregateFacade[A]]]
   */
 
+  /*
   private def initialAggregate[A : JsonValueCodec : Bottom : Lattice](
     gid: AggregateGid
   ) =
@@ -135,3 +141,4 @@ class AggregateFacadeProvider(services: {
           services.logger.error(s"Failed to load aggregate $gid because ${exception}")
       }
 
+  */

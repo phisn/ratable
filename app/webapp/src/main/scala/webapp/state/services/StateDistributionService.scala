@@ -23,6 +23,7 @@ class StateDistributionService(services: {
 }):
   val messageHandlerMap = collection.mutable.Map[AggregateType, MessageHandlerEntry]()
 
+  /*
   services.functionsSocketApi.listen {
     case ServerSocketMessage.Message.Delta(message) =>
       messageHandlerMap.get(message.gid.aggregateType) match
@@ -82,6 +83,7 @@ class StateDistributionService(services: {
           services.logger.error(s"Failed to dispatch delta gid=$gid delta=$delta because ${exception}")
       }
 
+  */
   case class MessageHandlerEntry(
     deltaMessageHandler: DeltaMessage => Unit,
     acknowledgeDeltaMessageHandler: AcknowledgeDeltaMessage => Unit

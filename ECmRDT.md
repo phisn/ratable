@@ -1,23 +1,28 @@
 # Extendable CmRDT
-ECmRDT is based on the existing concept of CmRDT. Here we mean Operation based CRDT with CmRDT. The goal is to easily and flexibly be able to extend a normal CmRDT with additional functionallity. The need comes from the problem, how to regulate authentication and authorization with CRDT. Here we solve this problem by implementing extensions for our new ECmRDT.
+ECmRDT is based on the existing concept of CmRDT. Here we mean Operation based CRDT with CmRDT. The goal is to easily and flexibly be able to extend a normal CmRDT with additional functionallity. The need comes from the problem in how to regulate authentication and authorization with CRDT. Here we solve this problem by implementing extensions for our ECmRDT.
 
 ## General concepts
 To define a ECmRDT we need a Context, a State, an EffectPipeline and Events. The ECmRDT itself later only consists of the State and a vector clock. Events and Context only exist outside our ECmRDT.
 
-```
+```scala
 case class ECmRDT[A, C <: IdentityContext](
   val state: A,
   val clock: VectorClock = VectorClock(Map.empty)
 )
 ```
 
-An Context (in the following code examples `C`) is always associated with one user created Event and is created with it. The Context contains metadata about the Event that can be used in extensions to verify if an Event was send legitemitly like the user replicaId or some authorization Claims. 
+An Context (in the following code examples `C`) is always associated with one user created Event and is created with it. The Context contains metadata about the Event that can be used in extensions to verify if an Event was send legitemitly like the user replicaId or some authorization Claims or to mutate the State in a specific way. The IdentityContext trait provides a replicaId in our Context.
+
+```scala
+trait IdentityContext:
+  val replicaId: String
+```
 
 The State (in the following code examples `A`) is persistent over time and our core data. It is changed by the combination of a Event and a Context.
 
 An Event is defined by the following. Note that an Event can be converted into an Effect where our logic is implemented.
 
-```
+```scala
 trait Event[A, C]:
   def asEffect: Effect[A, C]
 ```
@@ -29,14 +34,14 @@ Extensions can optionally define an Context trait and optionally an State trait 
 
 An EffectPipeline is definied like the following
 
-```
+```scala
 trait EffectPipeline[A, C]:
   def apply(effect: Effect[A, C]): Effect[A, C]
 ```
 
 The EffectPipeline itself is a function that transfroms an existing Effect into a new Effect. An Effect here is a combination of a verify and a advance function.
 
-```
+```scala
 case class Effect[A, C](
   val verify:  (A, C) => Future[Option[String]],
   val advance: (A, C) => Future[A]
@@ -45,7 +50,7 @@ case class Effect[A, C](
 
 The EffectPipeline can freely intercept the verify or / and advance while also accessing the state and context at will by specifying type bounderies. Here we filter for contexts that have the same replicaId than in the state. Its worth noting that we are using an `verifyEffectPipeline` helper to simplify the creation of verify only extensions.
 
-```
+```scala
 trait SingleOwnerStateExtension:
   val replicaId: String
 
@@ -70,14 +75,14 @@ case class CounterContext(val replicaId: String) extends IdentityContext
 
 Because we do not define any Extensions we define an empty EffectPipeline. 
 
-```
+```scala
 object Counter:
   given (using Crypt): EffectPipeline[Counter, CounterContext] = EffectPipeline()
 ```
 
 We have an single Event where our verification is that we want the value to be positive.
 
-```
+```scala
 case class AddCounterEvent(val value: Int) extends Event[Counter, CounterContext]:
   def asEffect: Effect[Counter, CounterContext] =
     Effect.from(
@@ -88,7 +93,7 @@ case class AddCounterEvent(val value: Int) extends Event[Counter, CounterContext
 
 We could additionally define an constructor for our AddEventCounter but with these definitions we could already start creating our ECmRDT.
 
-```
+```scala
 val counter = ECmRDT[Counter, CounterContext](Counter(0))
 ```
 

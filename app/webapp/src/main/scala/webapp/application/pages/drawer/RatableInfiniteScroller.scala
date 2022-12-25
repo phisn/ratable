@@ -1,6 +1,6 @@
 package webapp.application.pages.drawer
 
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -44,7 +44,7 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
     else
       categoriesWithRating
         .map{ case (_, (_, value)) => value }
-        .sum / categoriesWithRating.size
+      .sum / categoriesWithRating.size
 
   div(
     cls := "flex flex-col items-center w-full",
@@ -66,7 +66,7 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
           div(
             cls := "badge badge-outline",
             services.local.get("page.drawer.badge.submissions").map(label =>
-              s"${ratable._ratings.size} $label"
+              s"${ratable.ratings.size} $label"
             )
           ),
         ),

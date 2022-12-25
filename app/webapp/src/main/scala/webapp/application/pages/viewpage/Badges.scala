@@ -1,6 +1,6 @@
 package webapp.application.pages.viewpage
 
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -19,7 +19,7 @@ def badgesComponent(ratable: Ratable)(using services: ServicesWithApplication) =
     cls := "flex space-x-2 md:space-x-4",
 
     services.local.get("page.view.badge.submissions").map(label =>
-      badgeComponent(s"${ratable._ratings.size} $label")
+      badgeComponent(s"${ratable.ratings.size} $label")
     ),
     services.local.get("page.view.badge.comments").map(label =>
       badgeComponent(s"0 $label")

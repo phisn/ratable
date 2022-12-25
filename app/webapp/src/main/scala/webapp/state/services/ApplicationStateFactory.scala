@@ -6,7 +6,7 @@ import core.framework.*
 import core.messages.common.*
 import core.messages.http.*
 import core.messages.socket.*
-import core.domain.aggregates.ratable.*
+import core.domain.aggregates.ratable.ecmrdt.*
 import kofre.base.*
 import rescala.default.*
 import scala.concurrent.*
@@ -26,7 +26,8 @@ class ApplicationStateFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def buildApplicationState: ApplicationState =
+  def buildApplicationState: ApplicationState = ???
+  /*
     val state = ApplicationState(
       registerAggregateRepository[Ratable](AggregateType.Ratable)
     )
@@ -34,7 +35,7 @@ class ApplicationStateFactory(services: {
     services.stateStorage.finishAggregateRegistration
 
     state
-
+  
   def registerAggregateRepository[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType): AggregateViewRepository[A] =
     services.stateStorage.registerAggregateType(aggregateType)
     services.stateDistribution.registerMessageHandler[A](aggregateType)
@@ -76,7 +77,7 @@ class ApplicationStateFactory(services: {
               services.stateDistribution.dispatchToServer(gid, aggregate.mergedDeltas)
           }
       }
-
+  */
   /*
   def newAggregateViewHelper[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType, builder: StorageDatabaseBuilderInterface): AggregateView[A] =
     bootstrapAggregateViewFactory(aggregateType, builder, services.facadeFactory.AggregateView[A])

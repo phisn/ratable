@@ -9,6 +9,7 @@ import scala.util.*
 
 trait AggregateViewRepository[A, C]:
   def all: Future[Seq[(AggregateGid, A)]]
+  
   def create(id: String, aggregate: A): AggregateView[A, C]
   def get(id: String): Future[Option[AggregateView[A, C]]]
 
