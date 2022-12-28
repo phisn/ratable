@@ -27,9 +27,11 @@ object Counter:
     AsymPermissionEffectPipeline[Counter, CounterRoles, CounterContext]
   )
 
+sealed trait CounterEvent extends Event[Counter, CounterContext]
+
 case class AddCounterEvent(
   val value: Int
-) extends Event[Counter, CounterContext]:
+) extends CounterEvent:
   def asEffect: Effect[Counter, CounterContext] =
     Effect.from(
       (state, context) => context.verifyClaim(CounterRoles.Adder),
@@ -57,7 +59,7 @@ def main(using Crypt) =
         claimProvers.find(_.id == claim).get.prove(replicaId)
 
     // Step 2: Create initial state.
-    counter = ECmRDT[Counter, CounterContext](Counter(0, claims))
+    counter = ECmRDT[Counter, CounterContext, CounterEvent](Counter(0, claims))
 
     // Step 3: Create event.
     event <- addCounterEvent(replicaId, 5)(using registry)

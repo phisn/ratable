@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 case class EventBufferContainer[A, C <: IdentityContext](
   val inner: ECmRDT[A, C],
-  val events: Set[ECmRDTEventWrapper[A, C]]
+  val events: Set[ECmRDTEventWrapper[A, C]] = Set[ECmRDTEventWrapper[A, C]]()
 ):
   def effect(eventPrepared: ECmRDTEventWrapper[A, C])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C]]] =
     inner.effect(eventPrepared)

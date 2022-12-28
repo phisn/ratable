@@ -13,6 +13,14 @@ class AggregateFacade[A, C <: IdentityContext](
   private val variable = Var(initial)
   private var aggregateInFuture = Future.successful(initial)
 
+  def view: AggregateView[A, C] =
+    new AggregateView:
+      def listen: Signal[A] = 
+        variable.map(_.inner.state)
+      
+      def effect(event: EventWithContext[A, C])(using EffectPipeline[A, C]): Future[Option[String]] =
+        AggregateFacade.this.effect(event)
+
   def listen: Signal[EventBufferContainer[A, C]] = variable
 
   def mutate(f: EventBufferContainer[A, C] => Future[Either[String, EventBufferContainer[A, C]]]): Future[Either[String, EventBufferContainer[A, C]]] =
@@ -50,3 +58,6 @@ class AggregateFacade[A, C <: IdentityContext](
       case MutationAttempt(newAggregate, None) => Right(newAggregate)
       case MutationAttempt(_, Some(error)) => Left(error)
     }
+
+  def effect(event: EventWithContext[A, C])(using EffectPipeline[A, C]): Future[Option[String]] =
+    mutate(aggregate => aggregate.effect(event)).map(_.left.toOption)

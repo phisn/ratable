@@ -1,5 +1,7 @@
 package core.framework.ecmrdt
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -9,10 +11,13 @@ import scala.util.*
 trait Event[A, C]:
   def asEffect: Effect[A, C]
 
-case class EventWithContext[A, C](
-  val event: Event[A, C],
+case class EventWithContext[A, C, +E <: Event[A, C]](
+  val event: E,
   val context: C
 )
+
+object EventWithContext:
+  given [A : JsonValueCodec, C : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]: JsonValueCodec[EventWithContext[A, C, E]] = JsonCodecMaker.make
 
 case class Effect[A, C](
   val verify:  (A, C) => Future[Option[String]],
@@ -75,16 +80,19 @@ case class VectorClock(
   def verify(replicaId: String, time: Long): Boolean =
     apply(replicaId) == time
 
-case class ECmRDTEventWrapper[A, C](
-  val eventWithContext: EventWithContext[A, C],
+case class ECmRDTEventWrapper[A, C, E <: Event[A, C]](
+  val eventWithContext: EventWithContext[A, C, E],
   val time: Long
 )
 
-case class ECmRDT[A, C <: IdentityContext](
+object ECmRDTEventWrapper:
+  given [A : JsonValueCodec, C : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]: JsonValueCodec[ECmRDTEventWrapper[A, C, E]] = JsonCodecMaker.make
+
+case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
   val state: A,
   val clock: VectorClock = VectorClock(Map.empty)
 ):
-  def prepare(eventWithContext: EventWithContext[A, C])(using effectPipeline: EffectPipeline[A, C]) =
+  def prepare(eventWithContext: EventWithContext[A, C, E])(using effectPipeline: EffectPipeline[A, C]) =
     val effect = effectPipeline(eventWithContext.event.asEffect)
 
     for
@@ -96,7 +104,7 @@ case class ECmRDT[A, C <: IdentityContext](
           ECmRDTEventWrapper(eventWithContext, clock(eventWithContext.context.replicaId))
         )
 
-  def effect(wrapper: ECmRDTEventWrapper[A, C])(using effectPipeline: EffectPipeline[A, C]): Future[Either[String, ECmRDT[A, C]]] =
+  def effect(wrapper: ECmRDTEventWrapper[A, C, E])(using effectPipeline: EffectPipeline[A, C]): Future[Either[String, ECmRDT[A, C, E]]] =
     val effect = effectPipeline(wrapper.eventWithContext.event.asEffect)
 
     println(s"Clocks: ${clock.times}, ${wrapper.time}")
@@ -116,8 +124,11 @@ case class ECmRDT[A, C <: IdentityContext](
         clock = clock.next(wrapper.eventWithContext.context.replicaId)
       ))
 
+object ECmRDT:
+  given [A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]]: JsonValueCodec[ECmRDT[A, C, E]] = JsonCodecMaker.make
+
 // For testing prepare and effect event
-def testingPrepareAndEffect[A, C <: IdentityContext](ecmrdt: ECmRDT[A, C], event: EventWithContext[A, C])(using EffectPipeline[A, C]) =
+def testingPrepareAndEffect[A, C <: IdentityContext, E <: Event[A, C]](ecmrdt: ECmRDT[A, C, E], event: EventWithContext[A, C, E])(using EffectPipeline[A, C]) =
   for
     prepared <- ecmrdt.prepare(event)
     

@@ -6,6 +6,7 @@ import core.messages.common.*
 import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.reflect.Selectable.*
 import scala.util.*
 import webapp.state.framework.*
 
@@ -18,13 +19,19 @@ class AggregateViewRepositoryFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def create[A : JsonValueCodec, C : JsonValueCodec]: AggregateViewRepository[A, C] =
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](aggregateType: AggregateType): AggregateViewRepository[A, C] =
+    services.stateStorage.registerAggregateType(aggregateType)
+    // services.stateDistribution.registerMessageHandler[A, C](aggregateType)
+
     new AggregateViewRepository:
-      def all: Future[Seq[(AggregateGid, A)]] = ???
+      def all: Future[Seq[(AggregateGid, A)]] = 
+        Future.successful(Seq.empty)
       
-      def create(id: String, aggregate: A): AggregateView[A, C] =
-        ???
+      def create(id: String, aggregate: A): Future[AggregateView[A, C]] =
+        services.aggregateFacadeProvider.create(AggregateGid(id, aggregateType), aggregate)
+          .map(_.view)
 
       def get(id: String): Future[Option[AggregateView[A, C]]] =
-        ???
+        services.aggregateFacadeProvider.get[A, C](AggregateGid(id, aggregateType))
+          .map(_.map(_.view))
       

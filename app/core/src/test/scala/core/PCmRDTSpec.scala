@@ -1,5 +1,7 @@
 package core
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.messages.common.*
 import core.framework.{*, given}
 import core.framework.pcmrdt.*
@@ -13,6 +15,7 @@ import core.framework.ecmrdt.*
 import core.framework.ecmrdt.example.*
 import _root_.scala.util.Random
 
+/*
 given Crypt with
   def generateKey: Future[CryptKeyValuePair] =
     val r = Random.nextInt().toByte
@@ -36,10 +39,28 @@ given Crypt with
     Future.successful(
       c1 && c2 && c3 && c4
     )
+*/
+
+sealed trait SomeType:
+  def print: Unit
+
+case class Test1(
+) extends SomeType:
+  def print: Unit =
+    println("test1")
+
+case class Test2(
+) extends SomeType:
+  def print: Unit =
+    println("test2")
+
+given JsonValueCodec[SomeType] = JsonCodecMaker.make
 
 class TestSpec extends AsyncFlatSpec:
   implicit override def executionContext = _root_.scala.concurrent.ExecutionContext.Implicits.global
-  main
+  val t: SomeType = Test1()
+  val k = readFromString[SomeType]("{\"type\":\"Test2\"}")
+  k.print
 
     /*
     // ! start
