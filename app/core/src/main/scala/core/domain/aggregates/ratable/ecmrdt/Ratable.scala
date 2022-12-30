@@ -1,5 +1,7 @@
 package core.domain.aggregates.ratable.ecmrdt
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
 import core.framework.ecmrdt.*
 import scala.concurrent.*
@@ -68,7 +70,10 @@ object Ratable:
     AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
   )
 
-trait RatableEvent extends Event[Ratable, RatableContext]
+sealed trait RatableEvent extends Event[Ratable, RatableContext]
+
+object RatableEvent:
+  given JsonValueCodec[RatableEvent] = JsonCodecMaker.make
 
 case class RateEvent(
   val ratingForCategory: Map[Int, Int]

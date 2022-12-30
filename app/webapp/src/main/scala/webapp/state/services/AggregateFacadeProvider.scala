@@ -6,7 +6,6 @@ import core.framework.ecmrdt.*
 import core.messages.common.*
 import core.messages.http.*
 import kofre.base.*
-import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
@@ -20,29 +19,29 @@ class AggregateFacadeProvider(services: {
   val logger: LoggerServiceInterface
   val stateStorage: StateStorageService
 }):
-  private val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _]]()
-  private val facadesInLoading = collection.mutable.Map[AggregateGid, Future[Option[AggregateFacade[_, _]]]]()
+  private val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _, _]]()
+  private val facadesInLoading = collection.mutable.Map[AggregateGid, Future[Option[AggregateFacade[_, _, _]]]]()
 
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid, initial: A): Future[AggregateFacade[A, C]] =
-    val aggregate = EventBufferContainer(ECmRDT[A, C](initial))
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid, initial: A): Future[AggregateFacade[A, C, E]] =
+    val aggregate = EventBufferContainer(ECmRDT[A, C, E](initial))
 
-    services.stateStorage.save(gid, aggregate).map(_ =>
+    services.stateStorage.save[A, C, E](gid, aggregate).map(_ =>
       val facade = aggregateToFacade(gid, aggregate)
       facades += (gid -> facade)
       facade
     )
 
-  def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
+  def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid): Future[Option[AggregateFacade[A, C, E]]] =
     facades
       .get(gid).map(x => Future.successful(Some(x)))
       .orElse(facadesInLoading.get(gid)) 
     match
-      case Some(value) => value.asInstanceOf[Future[Option[AggregateFacade[A, C]]]]
-      case None => getFacadeFromStorage(gid)
+      case Some(value) => value.asInstanceOf[Future[Option[AggregateFacade[A, C, E]]]]
+      case None => getFacadeFromStorage[A, C, E](gid)
 
-  private def getFacadeFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C]]] =
-    val aggregateInFuture = services.stateStorage.load[A, C](gid)
-      .map(_.map(aggregateToFacade(gid, _)))
+  private def getFacadeFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid): Future[Option[AggregateFacade[A, C, E]]] =
+    val aggregateInFuture = services.stateStorage.load[A, C, E](gid)
+      .map(_.map(aggregateToFacade[A, C, E](gid, _)))
     
     facadesInLoading(gid) = aggregateInFuture
 
@@ -56,11 +55,11 @@ class AggregateFacadeProvider(services: {
 
     aggregateInFuture
 
-  private def aggregateToFacade[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid, initial: EventBufferContainer[A, C]) =
+  private def aggregateToFacade[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid, initial: EventBufferContainer[A, C, E]) =
     val aggregate = AggregateFacade(initial)
 
     aggregate.listen.observe(aggregate =>
-      services.stateStorage.save(gid, aggregate)
+      services.stateStorage.save[A, C, E](gid, aggregate)
     )
 
     aggregate

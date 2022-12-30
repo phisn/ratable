@@ -2,33 +2,33 @@ package webapp.state.framework
 
 import core.framework.*
 import core.framework.ecmrdt.*
-import rescala.default.*
+import rescala.default.{Signal, Var}
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.state.framework.*
 
-class AggregateFacade[A, C <: IdentityContext](
-  private val initial: EventBufferContainer[A, C]
+class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
+  private val initial: EventBufferContainer[A, C, E]
 ):
   private val variable = Var(initial)
   private var aggregateInFuture = Future.successful(initial)
 
-  def view: AggregateView[A, C] =
+  def view: AggregateView[A, C, E] =
     new AggregateView:
       def listen: Signal[A] = 
         variable.map(_.inner.state)
       
-      def effect(event: EventWithContext[A, C])(using EffectPipeline[A, C]): Future[Option[String]] =
+      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
         AggregateFacade.this.effect(event)
 
-  def listen: Signal[EventBufferContainer[A, C]] = variable
+  def listen: Signal[EventBufferContainer[A, C, E]] = variable
 
-  def mutate(f: EventBufferContainer[A, C] => Future[Either[String, EventBufferContainer[A, C]]]): Future[Either[String, EventBufferContainer[A, C]]] =
+  def mutate(f: EventBufferContainer[A, C, E] => Future[Either[String, EventBufferContainer[A, C, E]]]): Future[Either[String, EventBufferContainer[A, C, E]]] =
     // Using mutation attempt because our function has two outputs
     // 1. The result of f to the caller
     // 2. On success the new aggregate value to be used by others as a change in variable
     case class MutationAttempt(
-      val aggregate: EventBufferContainer[A, C],
+      val aggregate: EventBufferContainer[A, C, E],
       val error: Option[String]
     )
 
@@ -59,5 +59,5 @@ class AggregateFacade[A, C <: IdentityContext](
       case MutationAttempt(_, Some(error)) => Left(error)
     }
 
-  def effect(event: EventWithContext[A, C])(using EffectPipeline[A, C]): Future[Option[String]] =
+  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
     mutate(aggregate => aggregate.effect(event)).map(_.left.toOption)

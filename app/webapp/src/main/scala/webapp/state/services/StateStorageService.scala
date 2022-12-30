@@ -31,7 +31,7 @@ class StateStorageService(services: {
   def finishAggregateRegistration =
     builder.build
 
-  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C]): Future[Unit] =
+  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]): Future[Unit] =
     ???
 
   def save[A : JsonValueCodec : Lattice : Bottom](gid: AggregateGid, aggregate: DeltaContainer[A]) =
@@ -45,7 +45,7 @@ class StateStorageService(services: {
       )
     }
 
-  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](gid: AggregateGid): Future[Option[EventBufferContainer[A, C]]] =
+  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid): Future[Option[EventBufferContainer[A, C, E]]] =
     ???
 
   /*

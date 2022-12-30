@@ -4,11 +4,11 @@ import core.framework.ecmrdt.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class EventBufferContainer[A, C <: IdentityContext](
-  val inner: ECmRDT[A, C],
-  val events: Set[ECmRDTEventWrapper[A, C]] = Set[ECmRDTEventWrapper[A, C]]()
+case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
+  val inner: ECmRDT[A, C, E],
+  val events: Set[ECmRDTEventWrapper[A, C, E]] = Set[ECmRDTEventWrapper[A, C, E]]()
 ):
-  def effect(eventPrepared: ECmRDTEventWrapper[A, C])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C]]] =
+  def effect(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
     inner.effect(eventPrepared)
       .map(_.map(newInner =>
         EventBufferContainer(
@@ -17,7 +17,7 @@ case class EventBufferContainer[A, C <: IdentityContext](
         )
       ))
 
-  def effect(event: EventWithContext[A, C])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C]]] =
+  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
     // Prepare event
     inner.prepare(event)
       .flatMap {

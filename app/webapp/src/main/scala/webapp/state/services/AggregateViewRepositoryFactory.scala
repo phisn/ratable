@@ -3,7 +3,6 @@ package webapp.state.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.ecmrdt.*
 import core.messages.common.*
-import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
@@ -19,7 +18,7 @@ class AggregateViewRepositoryFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec](aggregateType: AggregateType): AggregateViewRepository[A, C] =
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](aggregateType: AggregateType): AggregateViewRepository[A, C, E] =
     services.stateStorage.registerAggregateType(aggregateType)
     // services.stateDistribution.registerMessageHandler[A, C](aggregateType)
 
@@ -27,11 +26,11 @@ class AggregateViewRepositoryFactory(services: {
       def all: Future[Seq[(AggregateGid, A)]] = 
         Future.successful(Seq.empty)
       
-      def create(id: String, aggregate: A): Future[AggregateView[A, C]] =
-        services.aggregateFacadeProvider.create(AggregateGid(id, aggregateType), aggregate)
+      def create(id: String, aggregate: A): Future[AggregateView[A, C, E]] =
+        services.aggregateFacadeProvider.create[A, C, E](AggregateGid(id, aggregateType), aggregate)
           .map(_.view)
 
-      def get(id: String): Future[Option[AggregateView[A, C]]] =
-        services.aggregateFacadeProvider.get[A, C](AggregateGid(id, aggregateType))
+      def get(id: String): Future[Option[AggregateView[A, C, E]]] =
+        services.aggregateFacadeProvider.get[A, C, E](AggregateGid(id, aggregateType))
           .map(_.map(_.view))
       
