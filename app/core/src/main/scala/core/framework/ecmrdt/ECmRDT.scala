@@ -69,15 +69,15 @@ def verifyEffectPipelineFuture[A, C](f: (A, C) => Set[Future[Option[String]]]): 
     )
 
 case class VectorClock(
-  val times: Map[String, Long]
+  val times: Map[ReplicaId, Long]
 ):
-  def apply(replicaId: String): Long =
+  def apply(replicaId: ReplicaId): Long =
     times.getOrElse(replicaId, 0L)
 
-  def next(replicaId: String): VectorClock =
+  def next(replicaId: ReplicaId): VectorClock =
     copy(times = times.updated(replicaId, apply(replicaId) + 1))
 
-  def verify(replicaId: String, time: Long): Boolean =
+  def verify(replicaId: ReplicaId, time: Long): Boolean =
     apply(replicaId) == time
 
 case class ECmRDTEventWrapper[A, C, E <: Event[A, C]](
@@ -139,4 +139,4 @@ def testingPrepareAndEffect[A, C <: IdentityContext, E <: Event[A, C]](ecmrdt: E
     newCounter
     
 trait IdentityContext:
-  val replicaId: String
+  val replicaId: ReplicaId

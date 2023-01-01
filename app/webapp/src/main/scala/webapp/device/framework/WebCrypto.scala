@@ -30,25 +30,25 @@ given Crypt with
         yield CryptKeyValuePair(privateKey = privateKey, publicKey)
       )
 
-  def sign(key: Array[Byte], content: String): Future[Array[Byte]] =
+  def sign(key: Array[Byte], content: Array[Byte]): Future[Array[Byte]] =
     importKey(key).flatMap(cryptoKey =>
       dom.crypto.subtle.sign(
           "RSASSA-PKCS1-v1_5",
           cryptoKey,
-          TextEncoder().encode(content).buffer
+          content.toTypedArray.buffer
         )
         .toFuture
         .mapTo[ArrayBuffer]
         .map(new Int8Array(_).toArray)
     )
-  
-  def verify(key: Array[Byte], content: String, signature: Array[Byte]): Future[Boolean] =
+    
+  def verify(key: Array[Byte], content: Array[Byte], signature: Array[Byte]): Future[Boolean] =
     importKey(key).flatMap(cryptoKey =>
       dom.crypto.subtle.verify(
           "RSASSA-PKCS1-v1_5",
           cryptoKey,
           signature.toTypedArray.buffer,
-          TextEncoder().encode(content).buffer,
+          content.toTypedArray.buffer
         )
         .toFuture
         .mapTo[Boolean]

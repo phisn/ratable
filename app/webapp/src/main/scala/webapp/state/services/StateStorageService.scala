@@ -20,7 +20,7 @@ class StateStorageService(services: {
   val builder = services.storage.openDatabase("state", 3)
   val db = builder.assume
 
-  def registerAggregateType(aggregateType: AggregateType) =
+  def migrateAggregateType(aggregateType: AggregateType) =
     builder.newMigration(3) { migrator =>
       // Remove old store from previous version
       migrator.remove(aggregateType.name)

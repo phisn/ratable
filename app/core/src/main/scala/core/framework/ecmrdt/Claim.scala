@@ -32,8 +32,8 @@ case class ClaimProof[C](
   val id: C,
 ):
   // Verifies that proof is the replicaID encrypted with the private key of the claim.
-  def verify(claim: Claim[C], replicaId: String)(using crypt: Crypt): Future[Boolean] =
-    crypt.verify(claim.publicKey, replicaId, proof)
+  def verify(claim: Claim[C], replicaId: ReplicaId)(using crypt: Crypt): Future[Boolean] =
+    crypt.verify(claim.publicKey, replicaId.publicKey, proof)
 
 // A claim prover allows you to prove that any replicaId has a claim.
 case class ClaimProver[ID](
@@ -41,9 +41,9 @@ case class ClaimProver[ID](
   val id: ID
 ):
   // Encrypts the replicaId with the private key of the claim.
-  def prove(replicaId: String)(using crypt: Crypt): Future[ClaimProof[ID]] =
+  def prove(replicaId: ReplicaId)(using crypt: Crypt): Future[ClaimProof[ID]] =
     for
-      proof <- crypt.sign(privateKey, replicaId)
+      proof <- crypt.sign(privateKey, replicaId.publicKey)
     yield
       ClaimProof(proof, id)
 

@@ -8,7 +8,7 @@ case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
   val inner: ECmRDT[A, C, E],
   val events: Set[ECmRDTEventWrapper[A, C, E]] = Set[ECmRDTEventWrapper[A, C, E]]()
 ):
-  def effect(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
+  def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
     inner.effect(eventPrepared)
       .map(_.map(newInner =>
         EventBufferContainer(

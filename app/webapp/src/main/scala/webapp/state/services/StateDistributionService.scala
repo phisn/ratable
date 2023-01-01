@@ -3,11 +3,11 @@ package webapp.state.services
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import collection.immutable.*
 import core.framework.*
+import core.framework.ecmrdt.*
 import core.messages.common.*
 import core.messages.http.*
 import core.messages.socket.*
 import kofre.base.*
-import rescala.default.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
@@ -17,11 +17,43 @@ import webapp.device.services.*
 import webapp.state.framework.*
 
 class StateDistributionService(services: {
-  val aggregateFacadeProvider: AggregateFacadeProvider
+  val aggregateViewProvider: AggregateViewProvider
   val logger: LoggerServiceInterface
   val functionsSocketApi: FunctionsSocketApiInterface
 }):
-  val messageHandlerMap = collection.mutable.Map[AggregateType, MessageHandlerEntry]()
+  val eventMessageHandlers = collection.mutable.Map[AggregateType, EventMessage => Unit]()
+
+  services.functionsSocketApi.listen {
+    case ServerSocketMessage.Message.Events(message) =>
+      message.events.foreach(event =>
+        eventMessageHandlers.get(event.gid.aggregateType) match
+          case Some(handler) => handler(event)
+          case None => services.logger.error(s"DeltaDispatcherService: No handler for aggregate ${event.gid}")
+      )
+  }
+
+  def listenForEvents[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](aggregateType: AggregateType, f: (AggregateGid, ECmRDTEventWrapper[A, C, E]) => Unit)(using Crypt) =
+    eventMessageHandlers += aggregateType -> eventMessageHandler[A, C, E](f)
+
+  private def eventMessageHandler[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+    (eventHandler: (AggregateGid, ECmRDTEventWrapper[A, C, E]) => Unit)(eventMessage: EventMessage)(using crypt: Crypt): Unit =
+
+    val event = readFromString[ECmRDTEventWrapper[A, C, E]](eventMessage.eventJson)
+    val sourceReplicaId = event.eventWithContext.context.replicaId
+    
+    crypt.verify(sourceReplicaId.publicKey, eventMessage.eventJson, eventMessage.signature.bytes).andThen {
+      case Success(true)      => eventHandler(eventMessage.gid, event)
+      case Success(false)     => services.logger.error(s"StateDistributionService: Invalid signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid}")
+      case Failure(exception) => services.logger.error(s"StateDistributionService: Failed to verify signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid} with exception ${exception}")
+    }
+
+  /*
+  def registerMessageHandler[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType) =
+    messageHandlerMap += aggregateType -> MessageHandlerEntry(
+      deltaMessageHandler[A],
+      acknowledgeDeltaMessageHandler[A]
+    )
+  */
 
   /*
   services.functionsSocketApi.listen {
@@ -82,9 +114,8 @@ class StateDistributionService(services: {
         case Failure(exception) =>
           services.logger.error(s"Failed to dispatch delta gid=$gid delta=$delta because ${exception}")
       }
-
   */
   case class MessageHandlerEntry(
-    deltaMessageHandler: DeltaMessage => Unit,
-    acknowledgeDeltaMessageHandler: AcknowledgeDeltaMessage => Unit
+    eventMessageHandler: EventMessage => Unit,
+    acknowledgeEventMessageHandler: AcknowledgeEventMessage => Unit
   )

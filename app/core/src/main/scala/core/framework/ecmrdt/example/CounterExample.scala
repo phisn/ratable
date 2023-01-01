@@ -16,7 +16,7 @@ case class Counter(
 extends AsymPermissionStateExtension[CounterRoles]
 
 case class CounterContext(
-  val replicaId: String,
+  val replicaId: ReplicaId,
   val proofs: Set[ClaimProof[CounterRoles]]
 ) 
 extends IdentityContext 
@@ -38,7 +38,7 @@ case class AddCounterEvent(
       (state, context) => state.copy(value = state.value + value)
     )
 
-def addCounterEvent(replicaId: String, value: Int)(using registry: ClaimRegistry[CounterRoles]) =
+def addCounterEvent(replicaId: ReplicaId, value: Int)(using registry: ClaimRegistry[CounterRoles]) =
   withProofs(CounterRoles.Adder) { proofs => 
     EventWithContext(
       AddCounterEvent(value),
@@ -48,9 +48,9 @@ def addCounterEvent(replicaId: String, value: Int)(using registry: ClaimRegistry
   
 
 def main(using Crypt) = 
-  val replicaId = "replicaId"
-
   for
+    replicaId <- PrivateReplicaId()
+
     // Step 1: Create claims and claimProvers.
     (claims, claimProvers) <- Claim.create(Set(CounterRoles.Adder))
 
@@ -71,10 +71,12 @@ def main(using Crypt) =
       case Left(error) => Future.successful(Left(error))
       case Right(event) => counter.effect(event)
 
+    fakeReplicaId <- PrivateReplicaId()
+
     // Create and test fake events to verify that the effect verification is working.
     fakeEvent1 = EventWithContext(
       AddCounterEvent(5),
-      CounterContext("fakeReplicaId", event.context.proofs)
+      CounterContext(fakeReplicaId, event.context.proofs)
     )
 
     fakeEvent2 = EventWithContext(

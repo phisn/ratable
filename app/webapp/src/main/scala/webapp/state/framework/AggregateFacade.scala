@@ -13,15 +13,10 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
   private val variable = Var(initial)
   private var aggregateInFuture = Future.successful(initial)
 
-  def view: AggregateView[A, C, E] =
-    new AggregateView:
-      def listen: Signal[A] = 
-        variable.map(_.inner.state)
-      
-      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
-        AggregateFacade.this.effect(event)
-
   def listen: Signal[EventBufferContainer[A, C, E]] = variable
+
+  def mutateTrivial(f: EventBufferContainer[A, C, E] => EventBufferContainer[A, C, E]): Future[Either[String, EventBufferContainer[A, C, E]]] =
+    mutate(aggregate => Future.successful(Right(f(aggregate))))
 
   def mutate(f: EventBufferContainer[A, C, E] => Future[Either[String, EventBufferContainer[A, C, E]]]): Future[Either[String, EventBufferContainer[A, C, E]]] =
     // Using mutation attempt because our function has two outputs
@@ -58,6 +53,3 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
       case MutationAttempt(newAggregate, None) => Right(newAggregate)
       case MutationAttempt(_, Some(error)) => Left(error)
     }
-
-  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
-    mutate(aggregate => aggregate.effect(event)).map(_.left.toOption)

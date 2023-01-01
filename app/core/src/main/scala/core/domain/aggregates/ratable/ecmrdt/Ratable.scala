@@ -24,7 +24,7 @@ case class Ratable(
 
   val title: String,
   val categories: Map[Int, Category],
-  val ratings: Map[String, Rating]
+  val ratings: Map[ReplicaId, Rating]
 )
 extends AsymPermissionStateExtension[RatableClaims]:
   def apply(claims: Set[Claim[RatableClaims]], title: String, categories: List[String]): Ratable =
@@ -38,7 +38,7 @@ extends AsymPermissionStateExtension[RatableClaims]:
       Map()
     )
 
-  def rate(replicaId: String, ratingForCategory: Map[Int, Int]): Ratable =
+  def rate(replicaId: ReplicaId, ratingForCategory: Map[Int, Int]): Ratable =
     copy(
       ratings = ratings + (replicaId -> Rating(ratingForCategory))
     )
@@ -59,7 +59,7 @@ extends AsymPermissionStateExtension[RatableClaims]:
       .toMap
 
 case class RatableContext(
-  val replicaId: String,
+  val replicaId: ReplicaId,
   val proofs: Set[ClaimProof[RatableClaims]]
 ) 
 extends IdentityContext 
@@ -88,7 +88,7 @@ case class RateEvent(
       (state, context) => state.rate(context.replicaId, ratingForCategory)
     )
 
-def rateEvent(replicaId: String, ratingForCategory: Map[Int, Int])(using registry: ClaimRegistry[RatableClaims]) =
+def rateEvent(replicaId: ReplicaId, ratingForCategory: Map[Int, Int])(using registry: ClaimRegistry[RatableClaims]) =
   withProofs(RatableClaims.CanRate) { proofs => 
     EventWithContext(
       RateEvent(ratingForCategory),

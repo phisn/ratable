@@ -4,16 +4,21 @@ package core.messages;
 
 import "common.proto";
 
-message GetAggregateMessage {
+message GetAggregateEventsMessage {
   AggregateGid gid = 1;
 }
 
-message GetAggregateResponseMessage {
-  optional string aggregateJson = 1;
+message GetAggregateEventsResponse {
+  repeated EventMessage events = 1;
+}
+
+message RegisterUserMessage {
+  string longUserId = 1;
 }
 
 message ClientHttpMessage {
   oneof message {
-    GetAggregateMessage getAggregate = 1;
+    GetAggregateEventsMessage get = 1;
+    RegisterUserMessage register = 2;
   }
 }

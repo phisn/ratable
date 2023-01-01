@@ -17,9 +17,10 @@ import scala.util.*
 import sttp.client3.*
 import sttp.client3.jsoniter.*
 import webapp.services.*
+import scalapb.*
 
 trait FunctionsHttpApiInterface:
-  def getAggregate(aggregateMessage: GetAggregateMessage): Future[GetAggregateResponseMessage]
+  def getAggregate(aggregateMessage: GetAggregateEventsMessage): Future[GetAggregateEventsResponse]
   def getWebPubSubConnection(): Future[WebPubSubConnectionMessage]
 
 class FunctionsHttpApi(services: {
@@ -28,10 +29,10 @@ class FunctionsHttpApi(services: {
 }) extends FunctionsHttpApiInterface:
   private val backend = FetchBackend()
 
-  def getAggregate(aggregateMessage: GetAggregateMessage) =
+  def getAggregate(aggregateMessage: GetAggregateEventsMessage) =
     services.logger.trace(s"Sending get aggregate message: ${aggregateMessage.gid}")
 
-    protoRequest(ClientHttpMessage.Message.GetAggregate(aggregateMessage))
+    protoRequest[GetAggregateEventsResponse](ClientHttpMessage.Message.Get(aggregateMessage))
       .map {
         case Success(message) =>
           services.logger.trace(s"Received get aggregate response: ${message.toProtoString}")
@@ -55,11 +56,11 @@ class FunctionsHttpApi(services: {
           value
       )
 
-  private def protoRequest(message: ClientHttpMessage.Message) =
+  private def protoRequest[I <: GeneratedMessage](message: ClientHttpMessage.Message)(using companion: GeneratedMessageCompanion[I]) =
     basicRequest.post(uri"${services.config.backendUrl}http")
       .contentType("application/x-protobuf")
       .body(ClientHttpMessage(message).toByteArray)
       .response(asByteArrayAlways)
       .readTimeout(10.seconds)
       .send(backend)
-      .map(response => GetAggregateResponseMessage.validate(response.body))
+      .map(response => companion.validate(response.body))

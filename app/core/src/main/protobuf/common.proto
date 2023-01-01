@@ -15,3 +15,9 @@ message AggregateGid {
   string aggregateId = 1;
   AggregateType aggregateType = 2;
 }
+
+message EventMessage {
+  AggregateGid gid = 1;
+  string eventJson = 2;
+  bytes signature = 3;
+}

@@ -4,45 +4,24 @@ package core.messages;
 
 import "common.proto";
 
-message EventMessage {
+message EventsMessage {
+  repeated EventMessage events = 1;
+}
+
+message AcknowledgeEventMessage {
   AggregateGid gid = 1;
-  string eventJson = 2;
-}
-
-message DeltaMessage {
-  AggregateGid gid = 1;
-  string deltaJson = 2;
-  uint64 tag = 3;
-}
-
-// Associates a replica with a login information. If the login information
-// does not exist, it will be created.
-message AssociateReplicaMessage {
-  string replicaToken = 1;
-  string username = 2;
-  string hashedpassword = 3;
-}
-
-message AcknowledgeDeltaMessage {
-  AggregateGid gid = 1;
-  uint64 tag = 2;
-}
-
-message AnalyticsMessage {
-  string replicaId = 1;
-  
+  uint64 time = 2;
 }
 
 message ClientSocketMessage {
   oneof message {
-    DeltaMessage delta = 1;
-    AssociateReplicaMessage associateReplica = 2;
+    EventsMessage events = 1;
   }
 }
 
 message ServerSocketMessage {
   oneof message {
-    DeltaMessage delta = 1;
-    AcknowledgeDeltaMessage acknowledgeDelta = 2;
+    EventsMessage events = 1;
+    AcknowledgeEventMessage acknowledge = 2;
   }
 }
