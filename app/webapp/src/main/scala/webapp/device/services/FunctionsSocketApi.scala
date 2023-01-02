@@ -16,6 +16,7 @@ import scala.util.*
 import scalapb.*
 import sttp.client3.*
 import sttp.client3.jsoniter.*
+import webapp.device.framework.given
 import webapp.services.*
 
 trait FunctionsSocketApiInterface:
@@ -65,8 +66,8 @@ class FunctionsSocketApi(services: {
         services.logger.error(s"Could not parse server message: $exception")
         exception.printStackTrace()
 
-  private def openWebsocket: Future[WebSocket] =
-    services.functionsHttpApi.getWebPubSubConnection()
+  private def openWebsocket(using Crypt): Future[WebSocket] =
+    services.functionsHttpApi.getWebPubSubConnection
       .flatMap { connection =>
         services.logger.trace("Connecting to websocket")
 

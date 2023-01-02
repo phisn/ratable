@@ -26,7 +26,9 @@ class ApplicationStateFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def buildApplicationState: ApplicationState = ???
+  def buildApplicationState: ApplicationState = 
+    null
+
   /*
     val state = ApplicationState(
       registerAggregateRepository[Ratable](AggregateType.Ratable)

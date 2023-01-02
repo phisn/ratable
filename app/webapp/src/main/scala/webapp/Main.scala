@@ -15,9 +15,22 @@ import webapp.application.pages.*
 import webapp.services.*
 import webapp.state.framework.{given, *}
 
+import webapp.device.framework.given
+import scala.util.Success
+import scala.util.Failure
+import scala.concurrent.ExecutionContext.Implicits.global
+
 @main
 def main(): Unit =
   implicit val services = ServicesDefault
+
+  services.config.replicaId.andThen {
+    case Success(value) => 
+      services.logger.log(s"Replica ID: ${value.publicKey.length}")
+    case Failure(exception) => 
+      services.logger.error(s"Failed to load replica ID: ${exception}")
+  }
+
   Outwatch.renderReplace[SyncIO]("#app", app).unsafeRunSync()
 
 def app(using services: ServicesWithApplication) =

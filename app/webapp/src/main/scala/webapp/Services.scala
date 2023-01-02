@@ -46,6 +46,7 @@ object ServicesDefault extends Services, ApplicationServices, DeviceServices, St
   
   // State
   lazy val aggregateFacadeProvider = AggregateFacadeProvider(this)
+  lazy val aggregateViewProvider = AggregateViewProvider(this)
   lazy val applicationStateFactory = ApplicationStateFactory(this)
   
   lazy val stateDistribution = StateDistributionService(this)

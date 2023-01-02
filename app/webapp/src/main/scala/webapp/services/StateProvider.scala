@@ -18,4 +18,4 @@ class StateProvider(services: {
 
   def ratables = application.ratables
 
-  def uniqueID = services.config.replicaID.take(4) + "-" + UUID.randomUUID()
+  def uniqueID: String = UUID.randomUUID().toString()

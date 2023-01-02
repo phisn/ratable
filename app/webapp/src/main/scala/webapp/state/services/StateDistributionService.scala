@@ -15,9 +15,11 @@ import scala.util.*
 import webapp.services.*
 import webapp.device.services.*
 import webapp.state.framework.*
+import com.google.protobuf.ByteString
 
 class StateDistributionService(services: {
   val aggregateViewProvider: AggregateViewProvider
+  val config: ApplicationConfigInterface
   val logger: LoggerServiceInterface
   val functionsSocketApi: FunctionsSocketApiInterface
 }):
@@ -46,6 +48,35 @@ class StateDistributionService(services: {
       case Success(false)     => services.logger.error(s"StateDistributionService: Invalid signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid}")
       case Failure(exception) => services.logger.error(s"StateDistributionService: Failed to verify signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid} with exception ${exception}")
     }
+
+  def distribute[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+    (gid: AggregateGid, container: EventBufferContainer[A, C, E])(using Crypt): Future[Unit] =
+    for
+      events <- Future.sequence(container.events.map(eventMessageFromEvent(gid)))
+      result <- services.functionsSocketApi.send(ClientSocketMessage.Message.Events(
+        EventsMessage(events.toSeq)
+      ))
+    yield
+      ()
+
+  private def eventMessageFromEvent[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+    (gid: AggregateGid)(event: ECmRDTEventWrapper[A, C, E])(using crypt: Crypt): Future[EventMessage] =
+    val eventJson = writeToString(event)
+
+    // Sanity check
+    if services.config.replicaId != event.eventWithContext.context.replicaId then
+      services.logger.error(s"StateDistributionService: Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}")
+      return Future.failed(new Exception(s"Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}"))
+
+    for
+      replicaId <- services.config.replicaId
+      signature <- crypt.sign(replicaId.privateKey, eventJson)
+    yield
+      EventMessage(
+        gid,
+        eventJson,
+        ByteString.copyFrom(signature)
+      )
 
   /*
   def registerMessageHandler[A : JsonValueCodec : Bottom : Lattice](aggregateType: AggregateType) =

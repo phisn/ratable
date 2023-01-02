@@ -23,7 +23,8 @@ class AggregateViewRepositoryFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](aggregateType: AggregateType)(using EffectPipeline[A, C], Crypt): AggregateViewRepository[A, C, E] =
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+    (aggregateType: AggregateType)(using EffectPipeline[A, C], Crypt): AggregateViewRepository[A, C, E] =
     services.stateStorage.migrateAggregateType(aggregateType)
 
     services.functionsSocketApi.listen {

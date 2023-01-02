@@ -21,7 +21,7 @@ import scalapb.*
 
 trait FunctionsHttpApiInterface:
   def getAggregate(aggregateMessage: GetAggregateEventsMessage): Future[GetAggregateEventsResponse]
-  def getWebPubSubConnection(): Future[WebPubSubConnectionMessage]
+  def getWebPubSubConnection(using Crypt): Future[WebPubSubConnectionMessage]
 
 class FunctionsHttpApi(services: {
   val config: ApplicationConfigInterface
@@ -43,18 +43,23 @@ class FunctionsHttpApi(services: {
           throw exception
       }
 
-  def getWebPubSubConnection() =
+  def getWebPubSubConnection(using Crypt) =
     services.logger.trace("Sending getWebPubSubConnection request")
-
-    basicRequest.get(uri"${services.config.backendUrl}login?userid=${services.config.replicaID}")
-      .response(asJson[WebPubSubConnectionMessage])
-      .send(backend)
-      .map(_.body match
-        case Left(error) => throw error
-        case Right(value) => 
-          services.logger.trace("Received successfull getWebPubSubConnection response")
-          value
-      )
+    
+    for
+      replicaId <- services.config.replicaId
+      
+      result <- basicRequest.get(uri"${services.config.backendUrl}login?userid=${replicaId.publicKey}")
+        .response(asJson[WebPubSubConnectionMessage])
+        .send(backend)
+        .map(_.body match
+          case Left(error) => throw error
+          case Right(value) => 
+            services.logger.trace("Received successfull getWebPubSubConnection response")
+            value
+        )
+    yield
+      result
 
   private def protoRequest[I <: GeneratedMessage](message: ClientHttpMessage.Message)(using companion: GeneratedMessageCompanion[I]) =
     basicRequest.post(uri"${services.config.backendUrl}http")
