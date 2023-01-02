@@ -1,5 +1,6 @@
 package webapp
 
+import core.framework.*
 import webapp.application.*
 import webapp.application.framework.given
 import webapp.application.services.*
@@ -7,6 +8,7 @@ import webapp.services.*
 import webapp.state.*
 import webapp.state.services.*
 import webapp.device.*
+import webapp.device.framework.given
 import webapp.device.services.*
 
 // The Services trait contains core services used by usecases, components and pages
@@ -47,6 +49,7 @@ object ServicesDefault extends Services, ApplicationServices, DeviceServices, St
   // State
   lazy val aggregateFacadeProvider = AggregateFacadeProvider(this)
   lazy val aggregateViewProvider = AggregateViewProvider(this)
+  lazy val aggregateViewRepositoryFactory = AggregateViewRepositoryFactory(this)
   lazy val applicationStateFactory = ApplicationStateFactory(this)
   
   lazy val stateDistribution = StateDistributionService(this)

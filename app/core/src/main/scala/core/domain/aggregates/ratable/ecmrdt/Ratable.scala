@@ -4,10 +4,10 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
 import core.framework.ecmrdt.*
+import core.framework.ecmrdt.extensions.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import core.framework.ecmrdt.extensions.{AsymPermissionContextExtension, AsymPermissionStateExtension, AsymPermissionEffectPipeline}
 case class Category(
   val title: String
 )
@@ -27,17 +27,6 @@ case class Ratable(
   val ratings: Map[ReplicaId, Rating]
 )
 extends AsymPermissionStateExtension[RatableClaims]:
-  def apply(claims: Set[Claim[RatableClaims]], title: String, categories: List[String]): Ratable =
-    Ratable(
-      claims,
-      title,
-      categories
-        .zipWithIndex
-        .map((title, index) => (index, Category(title)))
-        .toMap,
-      Map()
-    )
-
   def rate(replicaId: ReplicaId, ratingForCategory: Map[Int, Int]): Ratable =
     copy(
       ratings = ratings + (replicaId -> Rating(ratingForCategory))
@@ -58,6 +47,24 @@ extends AsymPermissionStateExtension[RatableClaims]:
       )
       .toMap
 
+object Ratable:
+  def apply(claims: Set[Claim[RatableClaims]], title: String, categories: List[String]): Ratable =
+    Ratable(
+      claims,
+      title,
+      categories
+        .zipWithIndex
+        .map((title, index) => (index, Category(title)))
+        .toMap,
+      Map()
+    )
+
+  given (using Crypt): EffectPipeline[Ratable, RatableContext] = EffectPipeline(
+    AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
+  )
+
+  given JsonValueCodec[Ratable] = JsonCodecMaker.make
+
 case class RatableContext(
   val replicaId: ReplicaId,
   val proofs: Set[ClaimProof[RatableClaims]]
@@ -65,10 +72,8 @@ case class RatableContext(
 extends IdentityContext 
    with AsymPermissionContextExtension[RatableClaims]
 
-object Ratable:
-  given (using Crypt): EffectPipeline[Ratable, RatableContext] = EffectPipeline(
-    AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
-  )
+object RatableContext:
+  given JsonValueCodec[RatableContext] = JsonCodecMaker.make
 
 sealed trait RatableEvent extends Event[Ratable, RatableContext]
 

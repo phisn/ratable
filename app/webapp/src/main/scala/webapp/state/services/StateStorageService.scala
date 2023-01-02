@@ -17,45 +17,37 @@ import org.scalajs.dom.IDBKeyRange
 class StateStorageService(services: {
   val storage: StorageServiceInterface
 }):
-  val builder = services.storage.openDatabase("state", 3)
+  val builder = services.storage.openDatabase("state", 4)
   val db = builder.assume
 
   def migrateAggregateType(aggregateType: AggregateType) =
-    builder.newMigration(3) { migrator =>
+    builder.newMigration(4) { migrator =>
       // Remove old store from previous version
       migrator.remove(aggregateType.name)
 
-      migrator.store(aggregateType.name, Set(IndexKeys.tag))
+      migrator.store(aggregateType.name, Set(IndexKeys.pending))
     }
 
   def finishAggregateRegistration =
     builder.build
 
-  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]): Future[Unit] =
-    ???
-
-  def save[A : JsonValueCodec : Lattice : Bottom](gid: AggregateGid, aggregate: DeltaContainer[A]) =
+  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]): Future[Unit] =
     db.put(gid.aggregateType.name, gid.aggregateId) {
       JsAggregateContainer(
         // Funny thing is we can savely deflate before saving because deltas are only infalted
         // because we might expect acknoledgements from the server. 
 
-        aggregate = aggregate.deflateDeltas.toJs,
-        tag = aggregate.maxTag.toDouble
+        aggregate = aggregate.toJs,
+        pending = aggregate.events.size.toDouble
       )
     }
 
-  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C]](gid: AggregateGid): Future[Option[EventBufferContainer[A, C, E]]] =
-    ???
-
-  /*
-  def load[A : JsonValueCodec](gid: AggregateGid): Future[Option[DeltaContainer[A]]] =
+  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): Future[Option[EventBufferContainer[A, C, E]]] =
     db.get[JsAggregateContainer](gid.aggregateType.name, gid.aggregateId)
       .map(_.map(container => container.aggregate.toScala))
-  */
 
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
-    db.all[JsAggregateContainer](aggregateType.name, IndexKeys.tag,
+    db.all[JsAggregateContainer](aggregateType.name, IndexKeys.pending,
       // Lowerbound is closed from 1. This means the first number will be 1.  
       IDBKeyRange.lowerBound(1, open = false)
     )
@@ -78,13 +70,13 @@ class StateStorageService(services: {
       })
   
   object IndexKeys:
-    val tag = "tag"
+    val pending = "pending"
     val id = "id"
     
   class JsAggregateContainer(
     val aggregate: js.Any,
 
     // Must be double for js compatibility. Long or Int do not work!
-    val tag: Double
+    val pending: Double
 
   ) extends scalajs.js.Object

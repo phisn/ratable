@@ -14,6 +14,7 @@ import webapp.application.pages.sharepage.*
 import webapp.application.pages.viewpage.*
 import webapp.application.framework.given
 import webapp.application.services.*
+import webapp.device.framework.given
 import webapp.services.*
 import webapp.state.framework.{given, *}
 import webapp.application.framework.{given, *}

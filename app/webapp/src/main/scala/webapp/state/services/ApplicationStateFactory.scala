@@ -21,13 +21,20 @@ import webapp.state.framework.*
 // Abstract all state creation in one place away 
 // from the core services into the state module
 class ApplicationStateFactory(services: {
-  val aggregateFacadeProvider: AggregateFacadeProvider
   val logger: LoggerServiceInterface
+  val aggregateViewRepositoryFactory: AggregateViewRepositoryFactory
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def buildApplicationState: ApplicationState = 
-    null
+  def buildApplicationState(using Crypt): ApplicationState = 
+    val state = ApplicationState(
+      services.aggregateViewRepositoryFactory.create[Ratable, RatableContext, RatableEvent](AggregateType.Ratable)
+      // registerAggregateRepository[Ratable](AggregateType.Ratable)
+    )
+
+    services.stateStorage.finishAggregateRegistration
+
+    state
 
   /*
     val state = ApplicationState(
