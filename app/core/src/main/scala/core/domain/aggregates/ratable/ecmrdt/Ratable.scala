@@ -7,6 +7,8 @@ import core.framework.ecmrdt.*
 import core.framework.ecmrdt.extensions.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Random
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonKeyCodec
 
 case class Category(
   val title: String
@@ -19,16 +21,22 @@ case class Rating(
 enum RatableClaims:
   case CanRate
 
+object RatableClaims:
+  given valueCodec: JsonValueCodec[RatableClaims] = JsonCodecMaker.make
+
+  given JsonKeyCodec[RatableClaims] = new JsonKeyCodec:
+    def decodeKey(in: JsonReader): RatableClaims = valueCodec.decodeValue(in, null)
+    def encodeKey(x: RatableClaims, out: JsonWriter): Unit = valueCodec.encodeValue(x, out)
+
 case class Ratable(
   val claims: Set[Claim[RatableClaims]],
-//  val claimsBehindPassword: Map[I, EncryptedClaimProver],
-
+  val claimsBehindPassword: Map[RatableClaims, ClaimBehindPassword],
 
   val title: String,
   val categories: Map[Int, Category],
   val ratings: Map[ReplicaId, Rating]
 )
-extends AsymPermissionStateExtension[RatableClaims]: //, ClaimByPasswordStateExtension[RatableClaims]:
+extends AsymPermissionStateExtension[RatableClaims], ClaimByPasswordStateExtension[RatableClaims]:
   def rate(replicaId: ReplicaId, ratingForCategory: Map[Int, Int]): Ratable =
     copy(
       ratings = ratings + (replicaId -> Rating(ratingForCategory))
@@ -50,16 +58,28 @@ extends AsymPermissionStateExtension[RatableClaims]: //, ClaimByPasswordStateExt
       .toMap
 
 object Ratable:
-  def apply(claims: Set[Claim[RatableClaims]], title: String, categories: List[String]): Ratable =
-    Ratable(
-      claims,
-      title,
-      categories
-        .zipWithIndex
-        .map((title, index) => (index, Category(title)))
-        .toMap,
-      Map()
-    )
+  case class Result(
+    val ratable: Ratable,
+    val password: String
+  )
+
+  def apply(title: String, categories: List[String])(using crypt: Crypt): Future[Ratable] =
+    val password = Random.alphanumeric.take(18).mkString
+
+    for
+      (canRateClaim, canRateProver) <- Claim.create(RatableClaims.CanRate)
+
+    yield
+      Ratable(
+        Set(canRateClaim),
+        null,
+        title,
+        categories
+          .zipWithIndex
+          .map((title, index) => (index, Category(title)))
+          .toMap,
+        Map()
+      )
 
   given (using Crypt): EffectPipeline[Ratable, RatableContext] = EffectPipeline(
     AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
@@ -95,13 +115,10 @@ case class RateEvent(
       (state, context) => state.rate(context.replicaId, ratingForCategory)
     )
 
-def rateEvent(replicaId: ReplicaId, ratingForCategory: Map[Int, Int], password: String)(using crypt: Crypt) =
-  ???
-  /*
-  withProofs(RatableClaims.CanRate) { proofs => 
+/*
+extension (ratable: Ratable)
+  def rateEvent(ratingForCategory: Map[Int, Int])(using crypt: Crypt): RateEvent =
     EventWithContext(
-      RateEvent(ratingForCategory),
-      RatableContext(replicaId, proofs)
+
     )
-  }
-  */
+*/

@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 // A claim is something that can be required by a event. To be able to create an event, you must prove that you have the required claims.
 case class Claim[I](
-  val publicKey: Array[Byte],
+  val publicKey: BinaryData,
   val id: I,
 )
 
@@ -22,30 +22,30 @@ object Claim:
       CryptKeyValuePair(privateKey, publicKey) <- crypt.generateKey
     yield
       (
-        Claim(publicKey, claimId),
-        ClaimProver(privateKey, claimId)
+        Claim(BinaryData(publicKey), claimId),
+        ClaimProver(BinaryData(privateKey), claimId)
       )
 
 // A claim proof is a proof that you have a claim. It is only a proof for your replicaId.
 case class ClaimProof[C](
-  val proof: Array[Byte],
+  val proof: BinaryData,
   val id: C,
 ):
   // Verifies that proof is the replicaID encrypted with the private key of the claim.
   def verify(claim: Claim[C], replicaId: ReplicaId)(using crypt: Crypt): Future[Boolean] =
-    crypt.verify(claim.publicKey, replicaId.publicKey, proof)
+    crypt.verify(claim.publicKey.inner, replicaId.publicKey.inner, proof.inner)
 
 // A claim prover allows you to prove that any replicaId has a claim.
 case class ClaimProver[ID](
-  val privateKey: Array[Byte],
+  val privateKey: BinaryData,
   val id: ID
 ):
   // Encrypts the replicaId with the private key of the claim.
   def prove(replicaId: ReplicaId)(using crypt: Crypt): Future[ClaimProof[ID]] =
     for
-      proof <- crypt.sign(privateKey, replicaId.publicKey)
+      proof <- crypt.sign(privateKey.inner, replicaId.publicKey.inner)
     yield
-      ClaimProof(proof, id)
+      ClaimProof(BinaryData(proof), id)
 
 trait ClaimRegistry[I]:
   def proof(claim: I): Future[ClaimProof[I]]

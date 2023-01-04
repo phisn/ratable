@@ -6,10 +6,10 @@ import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait SingleOwnerStateExtension:
-  val replicaId: ReplicaId
+  def replicaId: ReplicaId
   
 object SingleOwnerEffectPipeline:
-  def apply[A <: SingleOwnerStateExtension, C <: IdentityContext with IdentityContext](using Crypt): EffectPipeline[A, C] =
+  def apply[A <: SingleOwnerStateExtension, C <: IdentityContext](): EffectPipeline[A, C] =
     verifyEffectPipeline[A, C]((state, context) => Set(
       Option.unless(state.replicaId == context.replicaId)
         (s"Replica ${context.replicaId} is not the owner ${state.replicaId} of this object.")

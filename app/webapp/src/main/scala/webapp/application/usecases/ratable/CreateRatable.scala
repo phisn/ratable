@@ -14,10 +14,12 @@ def createRatable(title: String, categories: List[String])(using services: Servi
 
   val id = services.state.uniqueID
 
+  /*
   for
     (claims, provers) <- Claim.create(RatableClaims.values.toSet)
   do
     services.state.ratables.create(id, Ratable(claims, title, categories))
+  */
 
   id
 

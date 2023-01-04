@@ -23,19 +23,19 @@ object AggregateId:
       in.readString("").split(":") match
         case Array(replica, random) =>
           AggregateId(
-            ReplicaId(java.util.Base64.getDecoder().decode(replica)),
+            ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(replica))),
             java.util.Base64.getDecoder().decode(random)
           )
         case _ =>
           in.decodeError("expected ':'")
           
     def encodeValue(x: AggregateId, out: JsonWriter): Unit =
-      val replica = java.util.Base64.getEncoder().encodeToString(x.replicaId.publicKey)
+      val replica = java.util.Base64.getEncoder().encodeToString(x.replicaId.publicKey.inner)
       val random = java.util.Base64.getEncoder().encodeToString(x.randomBytes)
       out.writeVal(s"$replica:$random")
 
     def nullValue: AggregateId =
-      AggregateId(ReplicaId(Array.emptyByteArray), Array.emptyByteArray)
+      AggregateId(ReplicaId(BinaryData(Array.emptyByteArray)), Array.emptyByteArray)
 
   given JsonKeyCodec[AggregateId] = new JsonKeyCodec[AggregateId]:
     def decodeKey(in: JsonReader): AggregateId =

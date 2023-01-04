@@ -10,6 +10,9 @@ case class CryptKeyValuePair(
 trait Crypt:
   def generateKey: Future[CryptKeyValuePair]
 
+  def encrypt(password: String, content: Array[Byte]): Future[Array[Byte]]
+  def decrypt(password: String, content: Array[Byte]): Future[Option[Array[Byte]]]
+
   def wrapKey(key: Array[Byte], password: String): Future[Array[Byte]]
   def unwrapKey(key: Array[Byte], password: String): Future[Option[Array[Byte]]]
 

@@ -22,12 +22,9 @@ trait AggregateViewRepository[A, C, E <: Event[A, C]]:
       .withDefault(Signal(loading))
       .flatten
 
-  def effect(id: String, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Unit] =
+  def effect(id: String, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
     get(id)
-      .andThen {
-        case Success(Some(facade)) => facade.effect(event)
-      }
-      .map {
-        case Some(facade) => ()
-        case None => throw Exception(s"Aggregate with id $id not found")
+      .flatMap {
+        case Some(facade) => facade.effect(event)
+        case None => Future.successful(None)
       }

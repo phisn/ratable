@@ -6,7 +6,7 @@ import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait AsymPermissionContextExtension[I]:
-  val proofs: Set[ClaimProof[I]]
+  def proofs: Set[ClaimProof[I]]
 
   def claims = proofs.map(_.id)
 

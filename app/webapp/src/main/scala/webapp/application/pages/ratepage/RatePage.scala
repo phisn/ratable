@@ -9,13 +9,14 @@ import webapp.application.components.*
 import webapp.application.components.common.*
 import webapp.application.components.layouts.*
 import webapp.application.framework.*
+import webapp.application.framework.given
 import webapp.application.pages.homepage.*
 import webapp.application.pages.viewpage.*
-import webapp.application.framework.given
 import webapp.application.services.*
+import webapp.application.usecases.ratable.*
+import webapp.device.framework.given
 import webapp.services.*
 import webapp.state.framework.{given, *}
-import webapp.application.usecases.ratable.*
 import webapp.{given, *}
 
 case class RatePage(
@@ -40,7 +41,7 @@ case class RatePage(
             cls := "btn btn-primary",
             services.local.get("page.rate.submitButton"),
             onClick.foreach(_ => {
-              rateRatable(ratableID, ratingForCategorySignal.now)
+              rateRatable(ratableID, "", ratingForCategorySignal.now)
               services.routing.toReplace(ViewPage(ratableID))
             })
           ),

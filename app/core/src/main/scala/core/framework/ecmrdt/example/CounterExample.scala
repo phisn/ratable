@@ -86,7 +86,7 @@ def main(using Crypt) =
 
     fakeEvent3 = EventWithContext(
       AddCounterEvent(4),
-      CounterContext(replicaId, Set(ClaimProof("fakeProof".getBytes, CounterRoles.Adder)))
+      CounterContext(replicaId, Set(ClaimProof(BinaryData("fakeProof".getBytes), CounterRoles.Adder)))
     )
 
     fakeValid1 <- testingPrepareAndEffect(counter, fakeEvent1).map(_.swap.toOption)
