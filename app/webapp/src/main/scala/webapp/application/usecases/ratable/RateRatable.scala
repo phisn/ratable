@@ -7,9 +7,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
 import webapp.state.framework.{given, *}
 
-def rateRatable(id: String, ratingForCategory: Map[Int, Int])(using services: Services, crypt: Crypt) =
+def rateRatable(id: String, ratingForCategory: Map[Int, Int])(using services: Services) =
   services.logger.log(s"Rating ratable with id: $id")
 
+/*
   for
     replicaId <- services.config.replicaId
   yield
@@ -17,5 +18,5 @@ def rateRatable(id: String, ratingForCategory: Map[Int, Int])(using services: Se
       id,
       rateEvent(replicaId, ratingForCategory)
     )
-    
+*/    
   // services.state.ratables.mutate(id, _.rate(ratingForCategory, services.config.replicaID))

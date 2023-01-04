@@ -31,6 +31,104 @@ given Crypt with
         yield CryptKeyValuePair(privateKey = privateKey, publicKey)
       )
 
+  def wrapKey(privateKey: Array[Byte], password: String): Future[Array[Byte]] =
+    for
+      deriveKey <- dom.crypto.subtle.importKey(
+          dom.KeyFormat.raw,
+          new TextEncoder().encode(password).buffer,
+          "PBKDF2",
+          false,
+          js.Array(dom.KeyUsage.deriveKey)
+        )
+        .toFuture
+        .mapTo[dom.CryptoKey]
+      
+      aesKey <- dom.crypto.subtle.deriveKey(
+          new dom.Pbkdf2Params {
+            val name = "PBKDF2"
+            val salt = new TextEncoder().encode("ratable_salt").buffer
+            val iterations = 100000
+            val hash = "SHA-512"
+          },
+          deriveKey,
+          new dom.AesKeyAlgorithm {
+            val name = "AES-KW"
+            val length = 256
+          },
+          true,
+          js.Array(dom.KeyUsage.encrypt, dom.KeyUsage.decrypt)
+        )
+        .toFuture
+        .mapTo[dom.CryptoKey]
+      
+      keyImported <- importPrivateKey(privateKey)
+
+      keyWraped <- dom.crypto.subtle.wrapKey(
+          dom.KeyFormat.raw,
+          keyImported,
+          aesKey,
+          "AES-KW"
+        )
+        .toFuture
+        .mapTo[ArrayBuffer]
+        .map(new Int8Array(_).toArray)      
+
+    yield
+      keyWraped
+
+  def unwrapKey(key: Array[Byte], password: String): Future[Option[Array[Byte]]] =
+    for
+      deriveKey <- dom.crypto.subtle.importKey(
+          dom.KeyFormat.raw,
+          new TextEncoder().encode(password).buffer,
+          "PBKDF2",
+          false,
+          js.Array(dom.KeyUsage.deriveKey)
+        )
+        .toFuture
+        .mapTo[dom.CryptoKey]
+      
+      aesKey <- dom.crypto.subtle.deriveKey(
+          new dom.Pbkdf2Params {
+            val name = "PBKDF2"
+            val salt = new TextEncoder().encode("ratable_salt").buffer
+            val iterations = 100000
+            val hash = "SHA-512"
+          },
+          deriveKey,
+          new dom.AesKeyAlgorithm {
+            val name = "AES-KW"
+            val length = 256
+          },
+          true,
+          js.Array(dom.KeyUsage.encrypt, dom.KeyUsage.decrypt)
+        )
+        .toFuture
+        .mapTo[dom.CryptoKey]
+      
+      keyUnwraped <- dom.crypto.subtle.unwrapKey(
+          dom.KeyFormat.raw,
+          key.toTypedArray.buffer,
+          aesKey,
+          "AES-KW",
+          new dom.EcKeyImportParams {
+            val name = "ECDSA"
+            val namedCurve = "P-256"
+          },
+          true,
+          js.Array(dom.KeyUsage.sign, dom.KeyUsage.verify)
+        )
+        .toFuture
+        .mapTo[dom.CryptoKey]
+        .map(Some(_))
+        .recover { case _ => None }
+
+      keyExported <- keyUnwraped match
+        case Some(key) => exportPrivateKey(key).map(Some(_))
+        case None => Future.successful(None)
+    yield
+      keyExported
+
   def sign(key: Array[Byte], content: Array[Byte]): Future[Array[Byte]] =
     importPrivateKey(key).flatMap(cryptoKey =>
       dom.crypto.subtle.sign(

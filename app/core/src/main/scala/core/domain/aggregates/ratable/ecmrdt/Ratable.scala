@@ -21,12 +21,14 @@ enum RatableClaims:
 
 case class Ratable(
   val claims: Set[Claim[RatableClaims]],
+//  val claimsBehindPassword: Map[I, EncryptedClaimProver],
+
 
   val title: String,
   val categories: Map[Int, Category],
   val ratings: Map[ReplicaId, Rating]
 )
-extends AsymPermissionStateExtension[RatableClaims]:
+extends AsymPermissionStateExtension[RatableClaims]: //, ClaimByPasswordStateExtension[RatableClaims]:
   def rate(replicaId: ReplicaId, ratingForCategory: Map[Int, Int]): Ratable =
     copy(
       ratings = ratings + (replicaId -> Rating(ratingForCategory))
@@ -93,10 +95,13 @@ case class RateEvent(
       (state, context) => state.rate(context.replicaId, ratingForCategory)
     )
 
-def rateEvent(replicaId: ReplicaId, ratingForCategory: Map[Int, Int])(using registry: ClaimRegistry[RatableClaims]) =
+def rateEvent(replicaId: ReplicaId, ratingForCategory: Map[Int, Int], password: String)(using crypt: Crypt) =
+  ???
+  /*
   withProofs(RatableClaims.CanRate) { proofs => 
     EventWithContext(
       RateEvent(ratingForCategory),
       RatableContext(replicaId, proofs)
     )
   }
+  */
