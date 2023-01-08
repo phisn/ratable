@@ -26,7 +26,7 @@ def main(): Unit =
 
   services.config.replicaId.andThen {
     case Success(value) => 
-      services.logger.log(s"Replica ID: ${value.publicKey.length}")
+      services.logger.log(s"Replica ID: ${value.publicKey.inner.length}")
     case Failure(exception) => 
       services.logger.error(s"Failed to load replica ID: ${exception}")
   }

@@ -1,6 +1,7 @@
 package webapp.application.components.layouts
 
-import core.domain.aggregates.ratable.ecmrdt.*
+import core.domain.aggregates.ratable.*
+import core.framework.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -19,12 +20,14 @@ import webapp.state.framework.{given, *}
 
 import kofre.base.*
 import outwatch.BasicVNode
+import core.domain.aggregates.ratable.Ratable
+import core.domain.aggregates.ratable.Ratable
 
-def layoutSingleRatable(ratableID: String)(body: Ratable => VNode)(using services: ServicesWithApplication) =
+def layoutSingleRatable(ratableId: AggregateId)(body: Ratable => VNode)(using services: ServicesWithApplication) =
   layoutComponent(
     div(
       cls := "flex-grow flex flex-col",
-      services.state.ratables.map(ratableID)(
+      services.state.ratables.map(ratableId)(
         contentFullCenterComponent(
           div(
             cls := "flex flex-col space-y-8 items-center",

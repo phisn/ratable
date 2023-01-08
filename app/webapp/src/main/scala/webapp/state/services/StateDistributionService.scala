@@ -43,7 +43,7 @@ class StateDistributionService(services: {
     val event = readFromString[ECmRDTEventWrapper[A, C, E]](eventMessage.eventJson)
     val sourceReplicaId = event.eventWithContext.context.replicaId
     
-    crypt.verify(sourceReplicaId.publicKey, eventMessage.eventJson, eventMessage.signature.bytes).andThen {
+    crypt.verify(sourceReplicaId.publicKey.inner, eventMessage.eventJson, eventMessage.signature.bytes).andThen {
       case Success(true)      => eventHandler(eventMessage.gid, event)
       case Success(false)     => services.logger.error(s"StateDistributionService: Invalid signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid}")
       case Failure(exception) => services.logger.error(s"StateDistributionService: Failed to verify signature for event ${eventMessage.eventJson} from replica ${sourceReplicaId} for gid ${eventMessage.gid} with exception ${exception}")
@@ -70,7 +70,7 @@ class StateDistributionService(services: {
 
     for
       replicaId <- services.config.replicaId
-      signature <- crypt.sign(replicaId.privateKey, eventJson)
+      signature <- crypt.sign(replicaId.privateKey.inner, eventJson)
     yield
       EventMessage(
         gid,

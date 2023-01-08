@@ -1,6 +1,6 @@
 package webapp.application.pages.viewpage
 
-import core.domain.aggregates.ratable.ecmrdt.*
+import core.domain.aggregates.ratable.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -13,6 +13,8 @@ import webapp.application.pages.ratepage.*
 import webapp.services.*
 import webapp.state.framework.*
 import webapp.{*, given}
+import core.domain.aggregates.ratable.Ratable
+import core.domain.aggregates.ratable.Ratable
 
 def badgesComponent(ratable: Ratable)(using services: ServicesWithApplication) =
   div(

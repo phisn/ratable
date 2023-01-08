@@ -6,13 +6,14 @@ import "scalapb/scalapb.proto";
 
 enum AggregateType {
   Ratable = 0;
+  Library = 1;
 }
 
 message AggregateGid {
   // https://scalapb.github.io/docs/customizations#message-level-custom-type-and-boxing
   option (scalapb.message).no_box = true;
 
-  string aggregateId = 1;
+  string aggregateId = 1 [(scalapb.field).type = "core.framework.AggregateId"];
   AggregateType aggregateType = 2;
 }
 

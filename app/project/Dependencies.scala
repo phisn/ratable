@@ -45,7 +45,8 @@ object Dependencies {
     "com.github.rescala-lang.rescala"       %%% "rescala"                     % versions.rescala,
    ("com.github.rescala-lang.rescala"       %%% "kofre"                       % versions.rescala).cross(CrossVersion.for2_13Use3),
    
-    "org.scalatest"                 %%% "scalatest"      % versions.scalatest % Test
+    "org.scalatest"                         %%% "scalatest"                   % versions.scalatest % Test,
+    "org.typelevel"                         %%% "cats-core"                   % "2.9.0"
   ))
 
   val webappDependencies = coreDependencies ++ Seq(Keys.libraryDependencies ++= Seq(

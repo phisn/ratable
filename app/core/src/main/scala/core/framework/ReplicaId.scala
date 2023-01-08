@@ -16,7 +16,7 @@ object ReplicaId:
 
   given JsonKeyCodec[ReplicaId] = new JsonKeyCodec[ReplicaId]:
     def decodeKey(in: JsonReader): ReplicaId =
-      ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(in.readString(""))))
+      ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(in.readKeyAsString())))
 
     def encodeKey(x: ReplicaId, out: JsonWriter): Unit =
       out.writeKey(java.util.Base64.getEncoder().encodeToString(x.publicKey.inner))

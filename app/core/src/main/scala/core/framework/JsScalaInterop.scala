@@ -4,7 +4,8 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import scala.scalajs.js
 
 extension [A : JsonValueCodec](a: A)
-  def toJs = 
+  def toJs =
+    println(writeToString(a))
     js.JSON.parse(writeToString(a))
 
 extension (a: js.Any)

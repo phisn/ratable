@@ -1,19 +1,17 @@
 package webapp.state.services
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.framework.*
 import core.framework.ecmrdt.*
-import core.messages.common.{AggregateGid, AggregateType}
+import core.messages.common.*
+import core.messages.socket.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.Selectable.*
 import scala.util.*
-import webapp.state.framework.*
-
-import webapp.services.*
 import webapp.device.services.*
-import core.messages.socket.ServerSocketMessage.Message.Acknowledge
-import core.messages.socket.AcknowledgeEventMessage
-import core.framework.Crypt
+import webapp.services.*
+import webapp.state.framework.*
 
 class AggregateViewRepositoryFactory(services: {
   val aggregateViewProvider: AggregateViewProvider
@@ -28,7 +26,7 @@ class AggregateViewRepositoryFactory(services: {
     services.stateStorage.migrateAggregateType(aggregateType)
 
     services.functionsSocketApi.listen {
-      case Acknowledge(message) =>
+      case ServerSocketMessage.Message.Acknowledge(message) =>
         services.aggregateFacadeProvider.get[A, C, E](message.gid).andThen {
           case Success(Some(aggregateFacade)) =>
             aggregateFacade.mutateTrivial(_.acknowledge(message.time))
@@ -46,8 +44,8 @@ class AggregateViewRepositoryFactory(services: {
       def all: Future[Seq[(AggregateGid, A)]] = 
         Future.successful(Seq.empty)
       
-      def create(id: String, aggregate: A): Future[AggregateView[A, C, E]] =
+      def create(id: AggregateId, aggregate: A): Future[AggregateView[A, C, E]] =
         services.aggregateViewProvider.create[A, C, E](AggregateGid(id, aggregateType), aggregate)
 
-      def get(id: String): Future[Option[AggregateView[A, C, E]]] =
+      def get(id: AggregateId): Future[Option[AggregateView[A, C, E]]] =
         services.aggregateViewProvider.get[A, C, E](AggregateGid(id, aggregateType))

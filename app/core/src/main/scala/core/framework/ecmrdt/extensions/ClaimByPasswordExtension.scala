@@ -11,18 +11,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 // with claims. We now encrypt each claim prover with a password. This way, each user with access to the
 // password can prove their claim and do specific actions.
 
-case class ClaimBehindPassword(
-  val privateKeyWraped: Array[Byte],
-)
-
 object ClaimBehindPassword:
-  def apply(privateKey: Array[Byte], password: String)(using crypt: Crypt): Future[ClaimBehindPassword] =
-    crypt.wrapKey(privateKey, password).map(ClaimBehindPassword(_))
+  def apply(privateKey: Array[Byte], password: String)(using crypt: Crypt): Future[BinaryDataWithIV] =
+    crypt.wrapKey(privateKey, password)
 
-  given JsonValueCodec[ClaimBehindPassword] = JsonCodecMaker.make
+  given JsonValueCodec[BinaryDataWithIV] = JsonCodecMaker.make
 
 trait ClaimByPasswordStateExtension[I]:
-  def claimsBehindPassword: Map[I, ClaimBehindPassword]
+  def claimsBehindPassword: Map[I, BinaryDataWithIV]
 
   def proveByPassword(replicaId: ReplicaId, claim: I, password: String)(using crypt: Crypt): Future[Option[ClaimProof[I]]] =
     proverFromPassword(claim, password).flatMap {
@@ -34,7 +30,7 @@ trait ClaimByPasswordStateExtension[I]:
     val result = claimsBehindPassword.get(claim) match
       case None => Future.successful(None)
       case Some(claimBehindPassword) => 
-        crypt.unwrapKey(claimBehindPassword.privateKeyWraped, password)
+        crypt.unwrapKey(claimBehindPassword, password)
     
     result.map(_.map(privateKey => ClaimProver[I](BinaryData(privateKey), claim)))
 

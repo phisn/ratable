@@ -6,7 +6,8 @@ import core.framework.*
 import core.messages.common.*
 import core.messages.http.*
 import core.messages.socket.*
-import core.domain.aggregates.ratable.ecmrdt.*
+import core.domain.aggregates.library.*
+import core.domain.aggregates.ratable.*
 import kofre.base.*
 import rescala.default.*
 import scala.concurrent.*
@@ -17,6 +18,9 @@ import webapp.services.*
 import webapp.device.services.*
 import webapp.state.*
 import webapp.state.framework.*
+import core.domain.aggregates.ratable.{Ratable, RatableContext, RatableEvent}
+import core.domain.aggregates.ratable.{Ratable, RatableContext, RatableEvent}
+import core.domain.aggregates.library.{RatableLibrary, RatableLibraryContext, RatableLibraryEvent}
 
 // Abstract all state creation in one place away 
 // from the core services into the state module
@@ -28,8 +32,8 @@ class ApplicationStateFactory(services: {
 }):
   def buildApplicationState(using Crypt): ApplicationState = 
     val state = ApplicationState(
-      services.aggregateViewRepositoryFactory.create[Ratable, RatableContext, RatableEvent](AggregateType.Ratable)
-      // registerAggregateRepository[Ratable](AggregateType.Ratable)
+      services.aggregateViewRepositoryFactory.create[Ratable, RatableContext, RatableEvent](AggregateType.Ratable),
+      services.aggregateViewRepositoryFactory.create[RatableLibrary, RatableLibraryContext, RatableLibraryEvent](AggregateType.Library)
     )
 
     services.stateStorage.finishAggregateRegistration

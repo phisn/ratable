@@ -17,5 +17,4 @@ class StateProvider(services: {
   private val application = services.applicationStateFactory.buildApplicationState
 
   def ratables = application.ratables
-
-  def uniqueID: String = UUID.randomUUID().toString()
+  def library = application.library

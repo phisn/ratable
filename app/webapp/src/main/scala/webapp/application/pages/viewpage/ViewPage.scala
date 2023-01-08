@@ -1,5 +1,7 @@
 package webapp.application.pages.viewpage
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.framework.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -17,10 +19,12 @@ import webapp.state.framework.*
 import webapp.{*, given}
 
 case class ViewPage(
-  ratableID: String
+  ratableId: String
 ) extends Page:
+  val aggregateId: AggregateId = readFromString(ratableId)
+
   def render(using services: ServicesWithApplication): VNode =
-    layoutSingleRatable(ratableID)(ratable =>
+    layoutSingleRatable(aggregateId)(ratable =>
       contentHorizontalCenterComponent(
         titleComponent(ratable.title),
         badgesComponent(ratable),

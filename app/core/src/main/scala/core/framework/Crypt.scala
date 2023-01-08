@@ -7,14 +7,23 @@ case class CryptKeyValuePair(
   val publicKey: Array[Byte]
 )
 
+case class BinaryDataWithIV(
+  val key: BinaryData,
+  val iv: BinaryData
+)
+
+object BinaryDataWithIV:
+  def apply(key: Array[Byte], iv: Array[Byte]): BinaryDataWithIV =
+    BinaryDataWithIV(BinaryData(key), BinaryData(iv))
+
 trait Crypt:
   def generateKey: Future[CryptKeyValuePair]
 
-  def encrypt(password: String, content: Array[Byte]): Future[Array[Byte]]
-  def decrypt(password: String, content: Array[Byte]): Future[Option[Array[Byte]]]
+  def encrypt(password: String, content: Array[Byte]): Future[BinaryDataWithIV]
+  def decrypt(password: String, content: BinaryDataWithIV): Future[Option[Array[Byte]]]
 
-  def wrapKey(key: Array[Byte], password: String): Future[Array[Byte]]
-  def unwrapKey(key: Array[Byte], password: String): Future[Option[Array[Byte]]]
+  def wrapKey(key: Array[Byte], password: String): Future[BinaryDataWithIV]
+  def unwrapKey(key: BinaryDataWithIV, password: String): Future[Option[Array[Byte]]]
 
   def sign(key: Array[Byte], content: Array[Byte]): Future[Array[Byte]]
   def verify(key: Array[Byte], content: Array[Byte], signature: Array[Byte]): Future[Boolean]

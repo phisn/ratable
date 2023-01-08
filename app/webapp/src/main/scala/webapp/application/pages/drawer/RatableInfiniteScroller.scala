@@ -1,6 +1,8 @@
 package webapp.application.pages.drawer
 
-import core.domain.aggregates.ratable.ecmrdt.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.domain.aggregates.ratable.*
+import core.framework.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -17,6 +19,8 @@ import webapp.application.framework.given
 import webapp.application.services.*
 import webapp.services.*
 import webapp.state.framework.*
+import core.domain.aggregates.ratable.Ratable
+import core.domain.aggregates.ratable.Ratable
 
 def ratableInfiniteScrollerComponent(using services: ServicesWithApplication): VNode =
   infiniteScrollerComponent(() => 
@@ -35,7 +39,7 @@ def ratableInfiniteScrollerComponent(using services: ServicesWithApplication): V
     }
   )
 
-def ratableEntryComponent(id: String, ratable: Ratable)(using services: ServicesWithApplication) =
+def ratableEntryComponent(id: AggregateId, ratable: Ratable)(using services: ServicesWithApplication) =
   val categoriesWithRating = ratable.categoriesWithRating
 
   val overallRating = 
@@ -71,9 +75,9 @@ def ratableEntryComponent(id: String, ratable: Ratable)(using services: Services
           ),
         ),
 
-        href := services.routing.link(ViewPage(id)),
+        href := services.routing.link(ViewPage(writeToString(id))),
         onClick.preventDefault.foreach(_ =>
-          services.routing.to(ViewPage(id))
+          services.routing.to(ViewPage(writeToString(id)))
         )
       ),
       button(

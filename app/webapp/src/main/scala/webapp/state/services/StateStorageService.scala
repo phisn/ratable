@@ -17,14 +17,13 @@ import org.scalajs.dom.IDBKeyRange
 class StateStorageService(services: {
   val storage: StorageServiceInterface
 }):
-  val builder = services.storage.openDatabase("state", 4)
+  val builder = services.storage.openDatabase("state", 5)
   val db = builder.assume
 
   def migrateAggregateType(aggregateType: AggregateType) =
-    builder.newMigration(4) { migrator =>
+    builder.newMigration(5) { migrator =>
       // Remove old store from previous version
       migrator.remove(aggregateType.name)
-
       migrator.store(aggregateType.name, Set(IndexKeys.pending))
     }
 
@@ -32,7 +31,7 @@ class StateStorageService(services: {
     builder.build
 
   def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]): Future[Unit] =
-    db.put(gid.aggregateType.name, gid.aggregateId) {
+    db.put(gid.aggregateType.name, writeToString(gid.aggregateId)) {
       JsAggregateContainer(
         // Funny thing is we can savely deflate before saving because deltas are only infalted
         // because we might expect acknoledgements from the server. 
@@ -43,9 +42,10 @@ class StateStorageService(services: {
     }
 
   def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): Future[Option[EventBufferContainer[A, C, E]]] =
-    db.get[JsAggregateContainer](gid.aggregateType.name, gid.aggregateId)
+    db.get[JsAggregateContainer](gid.aggregateType.name, writeToString(gid.aggregateId))
       .map(_.map(container => container.aggregate.toScala))
 
+  /*
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
     db.all[JsAggregateContainer](aggregateType.name, IndexKeys.pending,
       // Lowerbound is closed from 1. This means the first number will be 1.  
@@ -68,6 +68,8 @@ class StateStorageService(services: {
             container.aggregate.toScala
           )
       })
+
+  */
   
   object IndexKeys:
     val pending = "pending"

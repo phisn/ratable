@@ -1,9 +1,13 @@
 package webapp.application.pages.createpage
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.framework.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
 import rescala.default.*
+import scala.util.*
+import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
 import webapp.application.*
 import webapp.application.components.*
@@ -49,8 +53,14 @@ case class CreatePage(val title: String) extends Page:
             cls := "btn btn-primary w-full md:w-auto",
             services.local.get("page.home.input.button"),
             onClick.filter(_ => form.validate).foreach(_ =>
-              val id = createRatable(titleVar.signal.now, categoriesVar.now)
-              services.routing.to(SharePage(id), RoutingState(canReturn = true))
+              createRatable(titleVar.signal.now, categoriesVar.now)
+                .andThen {
+                  case Success(id) =>
+                    services.routing.to(SharePage(writeToString(id)), RoutingState(canReturn = true))
+                    
+                  case Failure(exception) =>
+                    throw exception
+                }
             )
           )
         )

@@ -1,5 +1,7 @@
 package webapp.application.pages.sharepage
 
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import core.framework.*
 import org.scalajs.dom
 import outwatch.*
 import outwatch.dsl.*
@@ -18,10 +20,12 @@ import webapp.state.framework.*
 import webapp.{*, given}
 
 case class SharePage(
-  ratableID: String
+  ratableId: String
 ) extends Page:
+  val aggregateId: AggregateId = readFromString(ratableId)
+
   override def render(using services: ServicesWithApplication): VNode =
-    layoutSingleRatable(ratableID)(ratable =>
+    layoutSingleRatable(aggregateId)(ratable =>
       contentFullCenterComponent(
         div(
           div(
@@ -35,13 +39,13 @@ case class SharePage(
           services.local.get("page.share.viewLink").map(label =>
             copyBoxComponent(
               label,
-              ViewPage(ratableID)
+              ViewPage(ratableId)
             ),
           ),
           services.local.get("page.share.rateLink").map(label =>
             copyBoxComponent(
               label,
-              RatePage(ratableID)
+              RatePage(ratableId)
             ),
           )
         )

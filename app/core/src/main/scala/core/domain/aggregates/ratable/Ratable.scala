@@ -1,4 +1,4 @@
-package core.domain.aggregates.ratable.ecmrdt
+package core.domain.aggregates.ratable
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -18,19 +18,12 @@ case class Rating(
   val ratingForCategory: Map[Int, Int]
 )
 
-enum RatableClaims:
+enum RatableClaims extends Enum[RatableClaims]:
   case CanRate
-
-object RatableClaims:
-  given valueCodec: JsonValueCodec[RatableClaims] = JsonCodecMaker.make
-
-  given JsonKeyCodec[RatableClaims] = new JsonKeyCodec:
-    def decodeKey(in: JsonReader): RatableClaims = valueCodec.decodeValue(in, null)
-    def encodeKey(x: RatableClaims, out: JsonWriter): Unit = valueCodec.encodeValue(x, out)
 
 case class Ratable(
   val claims: Set[Claim[RatableClaims]],
-  val claimsBehindPassword: Map[RatableClaims, ClaimBehindPassword],
+  val claimsBehindPassword: Map[RatableClaims, BinaryDataWithIV],
 
   val title: String,
   val categories: Map[Int, Category],
@@ -58,21 +51,16 @@ extends AsymPermissionStateExtension[RatableClaims], ClaimByPasswordStateExtensi
       .toMap
 
 object Ratable:
-  case class Result(
-    val ratable: Ratable,
-    val password: String
-  )
-
-  def apply(title: String, categories: List[String])(using crypt: Crypt): Future[Ratable] =
+  def apply(title: String, categories: List[String])(using crypt: Crypt): Future[(Ratable, String)] =
     val password = Random.alphanumeric.take(18).mkString
 
     for
       (canRateClaim, canRateProver) <- Claim.create(RatableClaims.CanRate)
+      claimBehindPassword <- ClaimBehindPassword(canRateProver.privateKey.inner, password)
 
-    yield
-      Ratable(
+      ratable = Ratable(
         Set(canRateClaim),
-        null,
+        Map(RatableClaims.CanRate -> claimBehindPassword),
         title,
         categories
           .zipWithIndex
@@ -80,6 +68,9 @@ object Ratable:
           .toMap,
         Map()
       )
+
+    yield
+      (ratable, password)
 
   given (using Crypt): EffectPipeline[Ratable, RatableContext] = EffectPipeline(
     AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
