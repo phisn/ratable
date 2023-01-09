@@ -12,11 +12,14 @@ import scala.util.*
 trait AggregateViewRepository[A, C, E <: Event[A, C]]:
   def all: Future[Seq[(AggregateGid, A)]]
   
-  def create(id: AggregateId, aggregate: A): OptionT[Future, AggregateView[A, C, E]]
+  def create(id: AggregateId, aggregate: A): Future[AggregateView[A, C, E]]
   def get(id: AggregateId): OptionT[Future, AggregateView[A, C, E]]
 
-  def getOrCreate(id: AggregateId, aggregate: => A): OptionT[Future, AggregateView[A, C, E]] =
-    get(id).orElse(create(id, aggregate))
+  def getEnsure(id: AggregateId): EitherT[Future, RatableError, AggregateView[A, C, E]] =
+    get(id).toRight(RatableError("Aggregate not found"))
+
+  def getOrCreate(id: AggregateId, aggregate: => A): Future[AggregateView[A, C, E]] =
+    get(id).getOrElseF(create(id, aggregate))
 
   def map[B](id: AggregateId)(loading: B, notFound: B, found: A => B): Signal[B] =
     Signals.fromFuture(get(id).value)
@@ -27,7 +30,7 @@ trait AggregateViewRepository[A, C, E <: Event[A, C]]:
       .withDefault(Signal(loading))
       .flatten
 
-  def effect(id: AggregateId, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): OptionT[Future, Option[String]] =
+  def effect(id: AggregateId, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): OptionT[Future, RatableError] =
     for
       view <- get(id)
       result <- view.effect(event)

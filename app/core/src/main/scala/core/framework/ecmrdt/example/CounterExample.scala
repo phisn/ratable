@@ -1,5 +1,7 @@
 package core.framework.ecmrdt.example
 
+import cats.data.*
+import cats.implicits.*
 import core.framework.*
 import core.framework.ecmrdt.*
 import core.framework.ecmrdt.extensions.*
@@ -11,13 +13,13 @@ enum CounterRoles:
 
 case class Counter(
   val value: Int,
-  val claims: Set[Claim[CounterRoles]]
+  val claims: List[Claim[CounterRoles]]
 ) 
 extends AsymPermissionStateExtension[CounterRoles]
 
 case class CounterContext(
   val replicaId: ReplicaId,
-  val proofs: Set[ClaimProof[CounterRoles]]
+  val proofs: List[ClaimProof[CounterRoles]]
 ) 
 extends IdentityContext 
    with AsymPermissionContextExtension[CounterRoles]
@@ -33,10 +35,11 @@ case class AddCounterEvent(
   val value: Int
 ) extends CounterEvent:
   def asEffect: Effect[Counter, CounterContext] =
-    Effect.from(
-      (state, context) => context.verifyClaim(CounterRoles.Adder),
-      (state, context) => state.copy(value = state.value + value)
-    )
+    (state, context) => 
+      for
+        _ <- context.verifyClaim(CounterRoles.Adder)
+      yield
+        state.copy(value = state.value + value)
 
 def addCounterEvent(replicaId: ReplicaId, value: Int)(using registry: ClaimRegistry[CounterRoles]) =
   withProofs(CounterRoles.Adder) { proofs => 
@@ -47,6 +50,7 @@ def addCounterEvent(replicaId: ReplicaId, value: Int)(using registry: ClaimRegis
   }
   
 
+/*
 def main(using Crypt) = 
   for
     replicaId <- PrivateReplicaId()
@@ -105,3 +109,4 @@ def main(using Crypt) =
     println(s"Old state was: ${counter.state.value}")
     println(s"New state is: ${newCounter.map(_.state.value)}")
     println(s"ecmrdt1")
+*/

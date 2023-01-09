@@ -1,5 +1,7 @@
 package webapp.state.services
 
+import cats.data.*
+import cats.effect.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.framework.ecmrdt.*
@@ -30,10 +32,12 @@ class AggregateViewProvider(services: {
       def listen: rescala.default.Signal[A] = 
         facade.listen.map(_.inner.state)
       
-      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Option[String]] =
-        facade.mutate(aggregate => aggregate.effect(event))
-          .andThen {
-            case Success(Right(container)) =>
-              services.stateDistribution.distribute(gid, container)
-          }
-          .map(_.left.toOption)
+      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): OptionT[Future, RatableError] =
+        val x = facade.mutate(aggregate => aggregate.effect(event))
+
+        x.value.andThen {
+          case Success(Right(container)) =>
+            services.stateDistribution.distribute(gid, container)
+        }
+
+        x.swap.toOption

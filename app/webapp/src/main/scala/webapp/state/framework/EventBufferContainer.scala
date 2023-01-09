@@ -1,7 +1,10 @@
 package webapp.state.framework
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import core.framework.*
 import core.framework.ecmrdt.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,35 +13,26 @@ case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
   val inner: ECmRDT[A, C, E],
   val events: Set[ECmRDTEventWrapper[A, C, E]] = Set[ECmRDTEventWrapper[A, C, E]](),
 ):
-  def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
-    inner.effect(eventPrepared)
-      .map(_.map(newInner =>
-        EventBufferContainer(
-          inner = newInner,
-          events = events + eventPrepared
-        )
-      ))
+  def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
+    for
+      newInner <- inner.effect(eventPrepared)
+    yield
+      EventBufferContainer(
+        inner = newInner,
+        events = events + eventPrepared
+      )
 
-  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): Future[Either[String, EventBufferContainer[A, C, E]]] =
-    // Prepare event
-    inner.prepare(event)
-      .flatMap {
-        case Left(message) => 
-          Future.successful(Left(message))
+  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
+    val prepared = inner.prepare(event)
 
-        // If successfull
-        case Right(prepared) => 
-          // Effect event
-          inner.effect(prepared)
-            // If successfull
-            .map(_.map(newInner =>
-              // Return new container
-              EventBufferContainer(
-                inner = newInner,
-                events = events + prepared
-              )
-            ))
-      }
+    for
+      newInner <- inner.effect(prepared)
+
+    yield
+      EventBufferContainer(
+        inner = newInner,
+        events = events + prepared
+      )
   
   // Server responds with highest time to acknowledge events
   def acknowledge(time: Long) =

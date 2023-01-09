@@ -1,10 +1,14 @@
 package core.domain.aggregates.library
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
 import core.framework.ecmrdt.*
 import core.framework.ecmrdt.extensions.*
+import scala.concurrent.*
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case class RatableEntry(
   val password: Option[String]
@@ -40,16 +44,14 @@ case class IndexRatableEvent(
   val password: Option[String]
 ) extends RatableLibraryEvent:
   def asEffect: Effect[RatableLibrary, RatableLibraryContext] =
-    Effect.from(
-      (state, context) => None,
-      (state, context) => state.copy(entries = state.entries + (id -> RatableEntry(password)))
+    (state, context) => EitherT.pure(
+      state.copy(entries = state.entries + (id -> RatableEntry(password)))
     )
 
 case class UnindexRatableEvent(
   val id: AggregateId
 ) extends RatableLibraryEvent:
   def asEffect: Effect[RatableLibrary, RatableLibraryContext] =
-    Effect.from(
-      (state, context) => None,
-      (state, context) => state.copy(entries = state.entries - id)
+    (state, context) => EitherT.pure(
+      state.copy(entries = state.entries - id)
     )

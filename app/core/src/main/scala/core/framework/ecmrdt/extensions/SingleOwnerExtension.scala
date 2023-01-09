@@ -10,7 +10,7 @@ trait SingleOwnerStateExtension:
   
 object SingleOwnerEffectPipeline:
   def apply[A <: SingleOwnerStateExtension, C <: IdentityContext](): EffectPipeline[A, C] =
-    verifyEffectPipeline[A, C]((state, context) => Set(
+    verifyEffectPipeline[A, C]((state, context) => List(
       Option.unless(state.replicaId == context.replicaId)
-        (s"Replica ${context.replicaId} is not the owner ${state.replicaId} of this object.")
+        (RatableError(s"Replica ${context.replicaId} is not the owner ${state.replicaId} of this object."))
     ))

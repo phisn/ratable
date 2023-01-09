@@ -11,7 +11,7 @@ case class Claim[I](
 )
 
 object Claim:
-  def create[C](claimIds: Set[C])(using crypt: Crypt): Future[(Set[Claim[C]], Set[ClaimProver[C]])] =
+  def create[C](claimIds: List[C])(using crypt: Crypt): Future[(List[Claim[C]], List[ClaimProver[C]])] =
     Future.sequence(
         claimIds.map(create(_))
       )
@@ -51,8 +51,8 @@ trait ClaimRegistry[I]:
   def proof(claim: I): Future[ClaimProof[I]]
 
 // Helper to build events with proofs easily
-def withProofs[A, I](claims: I*)(f: Set[ClaimProof[I]] => A)(using registry: ClaimRegistry[I]) =
+def withProofs[A, I](claims: I*)(f: List[ClaimProof[I]] => A)(using registry: ClaimRegistry[I]) =
   for
-    proofs <- Future.sequence(claims.map(registry.proof))
+    proofs <- Future.sequence(claims.toList.map(registry.proof))
   yield
-    f(proofs.toSet)
+    f(proofs)

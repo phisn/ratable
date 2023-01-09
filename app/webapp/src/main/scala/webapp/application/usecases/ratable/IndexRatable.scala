@@ -31,7 +31,7 @@ def indexRatable(ratableId: AggregateId, password: Option[String] = None)(using 
             IndexRatableEvent(ratableId, password),
             RatableLibraryContext(replicaId)
           )
-        )
+        ).value
 
   yield
     result

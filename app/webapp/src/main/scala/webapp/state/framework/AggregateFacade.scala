@@ -1,5 +1,6 @@
 package webapp.state.framework
 
+import cats.data.*
 import core.framework.*
 import core.framework.ecmrdt.*
 import rescala.default.{Signal, Var}
@@ -15,16 +16,16 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
 
   def listen: Signal[EventBufferContainer[A, C, E]] = variable
 
-  def mutateTrivial(f: EventBufferContainer[A, C, E] => EventBufferContainer[A, C, E]): Future[Either[String, EventBufferContainer[A, C, E]]] =
-    mutate(aggregate => Future.successful(Right(f(aggregate))))
+  def mutateTrivial(f: EventBufferContainer[A, C, E] => EventBufferContainer[A, C, E]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
+    mutate(aggregate => EitherT.rightT(f(aggregate)))
 
-  def mutate(f: EventBufferContainer[A, C, E] => Future[Either[String, EventBufferContainer[A, C, E]]]): Future[Either[String, EventBufferContainer[A, C, E]]] =
+  def mutate(f: EventBufferContainer[A, C, E] => EitherT[Future, RatableError, EventBufferContainer[A, C, E]]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
     // Using mutation attempt because our function has two outputs
     // 1. The result of f to the caller
     // 2. On success the new aggregate value to be used by others as a change in variable
     case class MutationAttempt(
       val aggregate: EventBufferContainer[A, C, E],
-      val error: Option[String]
+      val error: Option[RatableError]
     )
 
     // Aggregate is some value that will be there at *some* time in the future. We want to use this value
@@ -32,7 +33,7 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
     val mutationAttempt = 
       for
         aggregate <- aggregateInFuture
-        newAggregate <- f(aggregate)
+        newAggregate <- f(aggregate).value
       yield
         newAggregate match
           case Right(newAggregate) =>
@@ -49,7 +50,7 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
     }
 
     // We return our mutation if it was successful or an error if it was not
-    mutationAttempt.map {
+    EitherT(mutationAttempt.map {
       case MutationAttempt(newAggregate, None) => Right(newAggregate)
       case MutationAttempt(_, Some(error)) => Left(error)
-    }
+    })

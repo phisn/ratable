@@ -1,5 +1,7 @@
 package core.domain.aggregates.ratable
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
@@ -22,7 +24,7 @@ enum RatableClaims extends Enum[RatableClaims]:
   case CanRate
 
 case class Ratable(
-  val claims: Set[Claim[RatableClaims]],
+  val claims: List[Claim[RatableClaims]],
   val claimsBehindPassword: Map[RatableClaims, BinaryDataWithIV],
 
   val title: String,
@@ -59,7 +61,7 @@ object Ratable:
       claimBehindPassword <- ClaimBehindPassword(canRateProver.privateKey.inner, password)
 
       ratable = Ratable(
-        Set(canRateClaim),
+        List(canRateClaim),
         Map(RatableClaims.CanRate -> claimBehindPassword),
         title,
         categories
@@ -80,7 +82,7 @@ object Ratable:
 
 case class RatableContext(
   val replicaId: ReplicaId,
-  val proofs: Set[ClaimProof[RatableClaims]]
+  val proofs: List[ClaimProof[RatableClaims]]
 ) 
 extends IdentityContext 
    with AsymPermissionContextExtension[RatableClaims]
@@ -97,14 +99,13 @@ case class RateEvent(
   val ratingForCategory: Map[Int, Int]
 ) extends RatableEvent:
   def asEffect: Effect[Ratable, RatableContext] =
-    Effect.from(
-      (state, context) => context.verifyClaim(RatableClaims.CanRate).orElse(
-        Option.when(ratingForCategory.size != state.categories.size)(
-          s"Rating must contain ${state.categories.size} categories."
-        )
-      ),
-      (state, context) => state.rate(context.replicaId, ratingForCategory)
-    )
+    (state, context) =>
+      for
+        _ <- context.verifyClaim(RatableClaims.CanRate)
+        _ <- EitherT.cond(ratingForCategory.size != state.categories.size, (),
+          RatableError(s"Rating must contain ${state.categories.size} categories."))
+      yield
+        state.rate(context.replicaId, ratingForCategory)
 
 /*
 extension (ratable: Ratable)

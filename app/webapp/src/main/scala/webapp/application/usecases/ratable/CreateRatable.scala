@@ -48,7 +48,7 @@ def createRatable(title: String, categories: List[String])(using services: Servi
         IndexRatableEvent(aggregateId, Some(password)),
         RatableLibraryContext(replicaId)
       )
-    )
+    ).value
 
   yield
     aggregateId
