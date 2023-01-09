@@ -26,27 +26,12 @@ def rateRatable(id: AggregateId, password: String, ratingForCategory: Map[Int, I
       password
     )
 
-    /*
-    claimProof <- ratable match
-      case Left(x) => Future.successful(Left(x))
-      case Right(ratable) => 
-        ratable.listen.now.proveByPassword(
-          replicaId,
-          RatableClaims.CanRate, 
-          password
-        )
-        .map(_.toRight("Password is incorrect"))
-
-    result <- claimProof match
-      case Left(x) => Future.successful(Left(x))
-      case Right(claimProof) => 
-        ratable.effect(
-          EventWithContext(
-            RateEvent(ratingForCategory),
-            RatableContext(replicaId, Set(claimProof))
-          )
-        )
-    */
+    _ <- ratable.effect(
+      EventWithContext(
+        RateEvent(ratingForCategory),
+        RatableContext(replicaId, List(claimProof))
+      )
+    )
 
   yield
     ()

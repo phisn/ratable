@@ -53,13 +53,19 @@ case class CreatePage(val title: String) extends Page:
             cls := "btn btn-primary w-full md:w-auto",
             services.local.get("page.home.input.button"),
             onClick.filter(_ => form.validate).foreach(_ =>
-              createRatable(titleVar.signal.now, categoriesVar.now)
+              createRatable(titleVar.signal.now, categoriesVar.now).value
                 .andThen {
-                  case Success(id) =>
+                  case Success(Right(id)) =>
                     services.routing.to(SharePage(writeToString(id)), RoutingState(canReturn = true))
-                    
+
+                  case Success(Left(some)) =>
+                    services.logger.error(s"Create error message '${some.default}'")
+
                   case Failure(exception) =>
                     throw exception
+
+                  case _ =>
+                    services.logger.log(s"Create succeeded")
                 }
             )
           )

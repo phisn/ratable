@@ -29,15 +29,15 @@ class AggregateViewRepositoryFactory(services: {
 
     services.functionsSocketApi.listen {
       case ServerSocketMessage.Message.Acknowledge(message) =>
-        services.aggregateFacadeProvider.get[A, C, E](message.gid).andThen {
-          case Success(Some(aggregateFacade)) =>
+        services.aggregateFacadeProvider.get[A, C, E](message.gid).value.andThen {
+          case Success(Right(Some(aggregateFacade))) =>
             aggregateFacade.mutateTrivial(_.acknowledge(message.time))
         }
     }
 
     services.stateDistribution.listenForEvents[A, C, E](aggregateType, (gid, event) =>
-      services.aggregateFacadeProvider.get[A, C, E](gid).andThen {
-        case Success(Some(aggregateFacade)) =>
+      services.aggregateFacadeProvider.get[A, C, E](gid).value.andThen {
+        case Success(Right(Some(aggregateFacade))) =>
           aggregateFacade.mutate(_.effectPrepared(event))
       }
     )
@@ -46,7 +46,7 @@ class AggregateViewRepositoryFactory(services: {
       def all: Future[Seq[(AggregateGid, A)]] = 
         Future.successful(Seq.empty)
       
-      def create(id: AggregateId, aggregate: A): Future[AggregateView[A, C, E]] =
+      def create(id: AggregateId, aggregate: A): EitherT[Future, RatableError, AggregateView[A, C, E]] =
         services.aggregateViewProvider.create[A, C, E](AggregateGid(id, aggregateType), aggregate)
 
       def get(id: AggregateId): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =

@@ -92,9 +92,9 @@ given Crypt with
     yield
       BinaryDataWithIV(keyWraped, new Int8Array(newIv).toArray)
 
-  def unwrapKey(keyWraped: BinaryDataWithIV, password: String): OptionT[Future, Array[Byte]] =
+  def unwrapKey(keyWraped: BinaryDataWithIV, password: String): EitherT[Future, RatableError, Array[Byte]] =
     for
-      deriveKey <- OptionT.liftF(
+      deriveKey <- EitherT.liftF(
         dom.crypto.subtle.importKey(
           dom.KeyFormat.raw,
           new TextEncoder().encode(password).buffer,
@@ -106,7 +106,7 @@ given Crypt with
         .mapTo[dom.CryptoKey]
       )
       
-      aesKey <- OptionT.liftF(
+      aesKey <- EitherT.liftF(
         dom.crypto.subtle.deriveKey(
           new dom.Pbkdf2Params {
             val name = "PBKDF2"
@@ -126,7 +126,7 @@ given Crypt with
         .mapTo[dom.CryptoKey]
       )
       
-      keyUnwraped <- OptionT(
+      keyUnwraped <- EitherT(
         dom.crypto.subtle.unwrapKey(
           dom.KeyFormat.jwk,
           keyWraped.key.inner.toTypedArray.buffer,
@@ -140,15 +140,15 @@ given Crypt with
             val namedCurve = "P-256"
           },
           true,
-          js.Array(dom.KeyUsage.sign, dom.KeyUsage.verify)
+          js.Array(dom.KeyUsage.sign)
         )
         .toFuture
         .mapTo[dom.CryptoKey]
-        .map(Some(_))
-        .recover { case _ => None }
+        .map(Right(_))
+        .recover { case e => RatableError(e.getMessage).asLeft }
       )
 
-      keyExported <- OptionT.liftF(
+      keyExported <- EitherT.liftF(
         exportPrivateKey(keyUnwraped)
       )
     yield
@@ -202,9 +202,9 @@ given Crypt with
     yield
       BinaryDataWithIV(encrypted, new Int8Array(newIv).toArray)
 
-  def decrypt(password: String, content: BinaryDataWithIV): OptionT[Future, Array[Byte]] =
+  def decrypt(password: String, content: BinaryDataWithIV): EitherT[Future, RatableError, Array[Byte]] =
     for
-      deriveKey <- OptionT.liftF(
+      deriveKey <- EitherT.liftF(
         dom.crypto.subtle.importKey(
           dom.KeyFormat.raw,
           new TextEncoder().encode(password).buffer,
@@ -216,7 +216,7 @@ given Crypt with
         .mapTo[dom.CryptoKey]
       )
       
-      aesKey <- OptionT.liftF(
+      aesKey <- EitherT.liftF(
         dom.crypto.subtle.deriveKey(
           new dom.Pbkdf2Params {
             val name = "PBKDF2"
@@ -236,7 +236,7 @@ given Crypt with
         .mapTo[dom.CryptoKey]
       )
       
-      decrypted <- OptionT(dom.crypto.subtle.decrypt(
+      decrypted <- EitherT(dom.crypto.subtle.decrypt(
           new dom.AesGcmParams {
             val name = "AES-GCM"
             val iv = content.iv.inner.toTypedArray.buffer
@@ -249,8 +249,8 @@ given Crypt with
         .toFuture
         .mapTo[ArrayBuffer]
         .map(new Int8Array(_).toArray)
-        .map(Some(_))
-        .recover { case _ => None }
+        .map(Right(_))
+        .recover { case e => RatableError(e.getMessage).asLeft }
       )
     yield
       decrypted

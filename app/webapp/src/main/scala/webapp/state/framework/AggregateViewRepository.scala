@@ -12,7 +12,7 @@ import scala.util.*
 trait AggregateViewRepository[A, C, E <: Event[A, C]]:
   def all: Future[Seq[(AggregateGid, A)]]
   
-  def create(id: AggregateId, aggregate: A): Future[AggregateView[A, C, E]]
+  def create(id: AggregateId, aggregate: A): EitherT[Future, RatableError, AggregateView[A, C, E]]
   def get(id: AggregateId): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]]
 
   def getEnsure(id: AggregateId): EitherT[Future, RatableError, AggregateView[A, C, E]] =
@@ -21,22 +21,28 @@ trait AggregateViewRepository[A, C, E <: Event[A, C]]:
       case None => EitherT.leftT(RatableError(s"Aggregate with id: '$id' not found"))
     }
 
-  def getOrCreate(id: AggregateId, aggregate: => A): Future[AggregateView[A, C, E]] =
-    getEnsure(id).getOrElseF(create(id, aggregate))
+  def getOrCreate(id: AggregateId, aggregate: => A) =
+    getEnsure(id).orElse(create(id, aggregate))
 
   def map[B](id: AggregateId)(loading: B, notFound: B, found: A => B): Signal[B] =
     Signals.fromFuture(get(id).value)
       .map {
-        case Right(None) => Signal(notFound)
-        case Right(Some(view)) => view.listen.map(found)
+        case Right(None) => 
+          println(s"Aggregate with id: '$id' not found")
+          Signal(notFound)
+        case Right(Some(view)) => 
+          println(s"Aggregate with id: '$id' found")
+          view.listen.map(found)
 
         // TODO: Should have its seperate page
-        case Left(error) => throw Exception(error.default)
+        case Left(error) => 
+          println(s"Error: $error")
+          throw Exception(error.default)
       }
       .withDefault(Signal(loading))
       .flatten
 
-  def effect(id: AggregateId, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, Nothing] =
+  def effect(id: AggregateId, event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, Unit] =
     for
       view <- getEnsure(id)
       result <- view.effect(event)

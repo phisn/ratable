@@ -22,9 +22,9 @@ class AggregateFacadeProvider(services: {
   val stateStorage: StateStorageService
 }):
   private val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _, _]]()
-  private val facadesInLoading = collection.mutable.Map[AggregateGid, EitherT[Future, RatableError, AggregateFacade[_, _, _]]]()
+  private val facadesInLoading = collection.mutable.Map[AggregateGid, EitherT[Future, RatableError, Option[AggregateFacade[_, _, _]]]]()
 
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, initial: A): Future[AggregateFacade[A, C, E]] =
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, initial: A) =
     val aggregate = EventBufferContainer(ECmRDT[A, C, E](initial))
 
     services.stateStorage.save[A, C, E](gid, aggregate).map(_ =>
@@ -33,26 +33,26 @@ class AggregateFacadeProvider(services: {
       facade
     )
 
-  def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C, E]]] =
+  def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): EitherT[Future, RatableError, Option[AggregateFacade[A, C, E]]] =
     facades
-      .get(gid).map(x => Future.successful(Some(x)))
+      .get(gid).map(x => EitherT.pure[Future, RatableError](Some(x)))
       .orElse(facadesInLoading.get(gid)) 
     match
-      case Some(value) => value.asInstanceOf[Future[Option[AggregateFacade[A, C, E]]]]
+      case Some(value) => value.map(_.map(_.asInstanceOf[AggregateFacade[A, C, E]]))
       case None => getFacadeFromStorage[A, C, E](gid)
 
-  private def getFacadeFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): Future[Option[AggregateFacade[A, C, E]]] =
+  private def getFacadeFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): EitherT[Future, RatableError, Option[AggregateFacade[A, C, E]]] =
     val aggregateInFuture = services.stateStorage.load[A, C, E](gid)
       .map(_.map(aggregateToFacade[A, C, E](gid, _)))
     
-    facadesInLoading(gid) = aggregateInFuture
+    facadesInLoading(gid) = aggregateInFuture.map(_.map(_.asInstanceOf[AggregateFacade[_, _, _]]))
 
-    aggregateInFuture.andThen(_ => 
+    aggregateInFuture.value.andThen(_ => 
       facadesInLoading -= gid
     )
 
-    aggregateInFuture.andThen {
-      case Success(Some(value)) => facades(gid) = value
+    aggregateInFuture.value.andThen {
+      case Success(Right(Some(value))) => facades(gid) = value
     }
 
     aggregateInFuture

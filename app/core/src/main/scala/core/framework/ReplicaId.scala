@@ -9,7 +9,16 @@ import scala.Conversion
 
 case class ReplicaId(
   val publicKey: BinaryData
-)
+):
+  override def toString(): String =
+    java.util.Base64.getEncoder().encodeToString(publicKey.inner)
+  
+  override def equals(x: Any): Boolean =
+    x match
+      case ReplicaId(publicKey) =>
+        this.publicKey == publicKey
+      case _ =>
+        false
 
 object ReplicaId:
   given JsonValueCodec[ReplicaId] = JsonCodecMaker.make

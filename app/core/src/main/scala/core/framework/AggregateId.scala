@@ -15,6 +15,16 @@ case class AggregateId(
   def toBase64: String =
     java.util.Base64.getEncoder().encodeToString(replicaId.publicKey.inner) + ":" + java.util.Base64.getEncoder().encodeToString(randomBytes)
 
+  override def toString(): String =
+    toBase64
+
+  override def equals(x: Any): Boolean =
+    x match
+      case AggregateId(replicaId, randomBytes) =>
+        this.replicaId == replicaId && this.randomBytes.sameElements(randomBytes)
+      case _ =>
+        false
+
 object AggregateId:
   given TypeMapper[String, AggregateId] = TypeMapper(readFromString(_))(writeToString(_))
 

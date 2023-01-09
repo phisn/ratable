@@ -20,7 +20,7 @@ def createRatable(title: String, categories: List[String])(using services: Servi
   services.logger.log(s"Creating ratable with title: $title")
 
   for
-    replicaId <- services.config.replicaId
+    replicaId <- EitherT.liftF(services.config.replicaId)
 
     library <- services.state.library.getOrCreate(
       AggregateId.singleton(replicaId), 
@@ -31,10 +31,13 @@ def createRatable(title: String, categories: List[String])(using services: Servi
 
     _ = services.logger.log(s"Creating aggregate with id: $aggregateId")
 
-    (ratable, password) <- Ratable(
+    ratableResult <- EitherT.liftF(Ratable(
       title,
       categories
-    )
+    ))
+
+    ratable = ratableResult(0)
+    password = ratableResult(1)
 
     _ = services.logger.log(s"Created ratable with id: $aggregateId and password $password")
 
@@ -50,7 +53,7 @@ def createRatable(title: String, categories: List[String])(using services: Servi
         IndexRatableEvent(aggregateId, Some(password)),
         RatableLibraryContext(replicaId)
       )
-    ).value
+    )
 
   yield
     aggregateId

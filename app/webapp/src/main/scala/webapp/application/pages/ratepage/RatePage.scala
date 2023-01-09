@@ -47,8 +47,8 @@ case class RatePage(
             cls := "btn btn-primary",
             services.local.get("page.rate.submitButton"),
             onClick.foreach(_ => {
-              rateRatable(aggregateId, "fd3t8TjWKf7SpIz7cg", ratingForCategorySignal.now).value.andThen {
-                case Success(Some(message)) =>
+              rateRatable(aggregateId, "G22JhNY1zEdM8KHmox", ratingForCategorySignal.now).value.andThen {
+                case Success(Left(message)) =>
                   services.logger.error(s"Rate error messge '${message}'")
 
                 case Failure(exception) =>

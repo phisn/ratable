@@ -102,8 +102,8 @@ case class RateEvent(
     (state, context) =>
       for
         _ <- context.verifyClaim(RatableClaims.CanRate)
-        _ <- EitherT.cond(ratingForCategory.size != state.categories.size, (),
-          RatableError(s"Rating must contain ${state.categories.size} categories."))
+        _ <- EitherT.cond(ratingForCategory.size == state.categories.size, (),
+          RatableError(s"Rating must contain ${state.categories.size} categories, but ${ratingForCategory.size} given"))
       yield
         state.rate(context.replicaId, ratingForCategory)
 

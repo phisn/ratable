@@ -43,21 +43,20 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
     }
 
   def get[A <: js.Any](name: String, key: String) =
+    println("Attempting to get aggregate with id: " + key + " from " + name)
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       val promise = Promise[Either[RatableError, Option[A]]]()
       val request = store.get(key)
 
       request.onsuccess = event =>
-        if js.isUndefined(request.result) then
-          promise.success(
-            // IndexedDB store get returns undefined if the key is not found
-            // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
-            if js.isUndefined(request.result) then 
-              Right(None)
-            else 
-              Right(Some(request.result.asInstanceOf[A]))
-          )
-        // }
+        promise.success(
+          // IndexedDB store get returns undefined if the key is not found
+          // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
+          if js.isUndefined(request.result) then
+            Right(None)
+          else 
+            Right(Some(request.result.asInstanceOf[A]))
+        )
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}")

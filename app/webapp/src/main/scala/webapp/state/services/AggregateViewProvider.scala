@@ -2,6 +2,7 @@ package webapp.state.services
 
 import cats.data.*
 import cats.effect.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.framework.ecmrdt.*
@@ -19,12 +20,15 @@ class AggregateViewProvider(services: {
   val stateDistribution: StateDistributionService
 }):
   def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
-    (gid: AggregateGid, initial: A)(using Crypt): Future[AggregateView[A, C, E]] =
+    (gid: AggregateGid, initial: A)(using Crypt): EitherT[Future, RatableError, AggregateView[A, C, E]] =
     services.aggregateFacadeProvider.create[A, C, E](gid, initial).map(facadeToView(gid))
 
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
     (gid: AggregateGid)(using Crypt): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =
-    services.aggregateFacadeProvider.get[A, C, E](gid).map(_.map(facadeToView(gid)))
+    for
+      facade <- services.aggregateFacadeProvider.get[A, C, E](gid)
+    yield
+      facade.map(facadeToView(gid))
 
   private def facadeToView[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
     (gid: AggregateGid)(facade: AggregateFacade[A, C, E])(using Crypt): AggregateView[A, C, E] =
@@ -32,12 +36,12 @@ class AggregateViewProvider(services: {
       def listen: rescala.default.Signal[A] = 
         facade.listen.map(_.inner.state)
       
-      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): OptionT[Future, RatableError] =
-        val x = facade.mutate(aggregate => aggregate.effect(event))
+      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, Unit] =
+        val x: EitherT[Future, RatableError, EventBufferContainer[A, C, E]] = facade.mutate(aggregate => aggregate.effect(event))
 
         x.value.andThen {
           case Success(Right(container)) =>
             services.stateDistribution.distribute(gid, container)
         }
 
-        x.swap.toOption
+        x.map(_ => ())

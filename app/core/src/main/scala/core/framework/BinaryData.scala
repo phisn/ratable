@@ -5,7 +5,13 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 case class BinaryData(
   val inner: Array[Byte]
-)
+):
+  override def equals(x: Any): Boolean =
+    x match
+      case BinaryData(inner) =>
+        this.inner.sameElements(inner)
+      case _ =>
+        false
 
 object BinaryData:
   given JsonValueCodec[BinaryData] = new JsonValueCodec[BinaryData]:

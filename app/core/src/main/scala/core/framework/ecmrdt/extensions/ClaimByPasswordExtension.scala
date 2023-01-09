@@ -36,9 +36,7 @@ trait ClaimByPasswordStateExtension[I]:
         RatableError(s"Claim '${claim}' behind password not found")
       )
 
-      claimProver <- crypt.unwrapKey(claimProverWraped, password).toRight(
-        RatableError(s"Could not unwrap claim '${claim}' behind password")
-      )
+      claimProver <- crypt.unwrapKey(claimProverWraped, password)
 
     yield
       ClaimProver[I](
