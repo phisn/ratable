@@ -47,7 +47,7 @@ case class RatePage(
             cls := "btn btn-primary",
             services.local.get("page.rate.submitButton"),
             onClick.foreach(_ => {
-              rateRatable(aggregateId, "G22JhNY1zEdM8KHmox", ratingForCategorySignal.now).value.andThen {
+              rateRatable(aggregateId, ratingForCategorySignal.now).value.andThen {
                 case Success(Left(message)) =>
                   services.logger.error(s"Rate error messge '${message}'")
 
@@ -57,6 +57,7 @@ case class RatePage(
                 case _ =>
                   services.logger.log(s"Rate succeeded")
               }
+
               services.routing.toReplace(ViewPage(ratableId))
             })
           ),

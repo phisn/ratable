@@ -6,12 +6,18 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 case class BinaryData(
   val inner: Array[Byte]
 ):
+  override def toString(): String =
+    java.util.Base64.getEncoder().encodeToString(inner)
+
   override def equals(x: Any): Boolean =
     x match
       case BinaryData(inner) =>
         this.inner.sameElements(inner)
       case _ =>
         false
+
+  override def hashCode(): Int =
+    inner.toSeq.hashCode
 
 object BinaryData:
   given JsonValueCodec[BinaryData] = new JsonValueCodec[BinaryData]:

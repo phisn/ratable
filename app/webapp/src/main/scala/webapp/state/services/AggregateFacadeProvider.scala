@@ -36,10 +36,12 @@ class AggregateFacadeProvider(services: {
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): EitherT[Future, RatableError, Option[AggregateFacade[A, C, E]]] =
     facades
       .get(gid).map(x => EitherT.pure[Future, RatableError](Some(x)))
-      .orElse(facadesInLoading.get(gid)) 
+      .orElse(facadesInLoading.get(gid))
     match
-      case Some(value) => value.map(_.map(_.asInstanceOf[AggregateFacade[A, C, E]]))
-      case None => getFacadeFromStorage[A, C, E](gid)
+      case Some(value) =>
+        value.map(_.map(_.asInstanceOf[AggregateFacade[A, C, E]]))
+      case None => 
+        getFacadeFromStorage[A, C, E](gid)
 
   private def getFacadeFromStorage[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): EitherT[Future, RatableError, Option[AggregateFacade[A, C, E]]] =
     val aggregateInFuture = services.stateStorage.load[A, C, E](gid)
@@ -52,7 +54,8 @@ class AggregateFacadeProvider(services: {
     )
 
     aggregateInFuture.value.andThen {
-      case Success(Right(Some(value))) => facades(gid) = value
+      case Success(Right(Some(value))) =>
+        facades(gid) = value
     }
 
     aggregateInFuture

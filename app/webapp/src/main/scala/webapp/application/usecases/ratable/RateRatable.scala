@@ -12,13 +12,25 @@ import webapp.*
 import webapp.state.framework.{given, *}
 import core.domain.aggregates.ratable.{RatableClaims, RatableContext, RateEvent}
 
-def rateRatable(id: AggregateId, password: String, ratingForCategory: Map[Int, Int])(using services: Services, crypt: Crypt) =
+def rateRatable(id: AggregateId, ratingForCategory: Map[Int, Int])(using services: Services, crypt: Crypt) =
   services.logger.log(s"Rating ratable with id: $id")
 
   for
     replicaId <- EitherT.liftF(services.config.replicaId)
 
     ratable <- services.state.ratables.getEnsure(id)
+
+    library <- services.state.library.getEnsure(AggregateId.singleton(replicaId))
+
+    libraryEntry <- EitherT.fromOption(
+      library.listen.now.entries.get(id),
+      RatableError("Ratable is not indexed")
+    )
+
+    password <- EitherT.fromOption(
+      libraryEntry.password,
+      RatableError("Ratable is not indexed with password")
+    )
 
     claimProof <- ratable.listen.now.proveByPassword(
       replicaId,

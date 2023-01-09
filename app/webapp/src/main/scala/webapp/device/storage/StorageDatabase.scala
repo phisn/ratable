@@ -43,7 +43,6 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
     }
 
   def get[A <: js.Any](name: String, key: String) =
-    println("Attempting to get aggregate with id: " + key + " from " + name)
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       val promise = Promise[Either[RatableError, Option[A]]]()
       val request = store.get(key)

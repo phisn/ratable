@@ -28,15 +28,12 @@ trait AggregateViewRepository[A, C, E <: Event[A, C]]:
     Signals.fromFuture(get(id).value)
       .map {
         case Right(None) => 
-          println(s"Aggregate with id: '$id' not found")
           Signal(notFound)
         case Right(Some(view)) => 
-          println(s"Aggregate with id: '$id' found")
           view.listen.map(found)
 
         // TODO: Should have its seperate page
         case Left(error) => 
-          println(s"Error: $error")
           throw Exception(error.default)
       }
       .withDefault(Signal(loading))

@@ -46,8 +46,6 @@ given Crypt with
         .toFuture
         .mapTo[dom.CryptoKey]
       
-      _ = println("deriveKey: " + deriveKey)
-      
       aesKey <- dom.crypto.subtle.deriveKey(
           new dom.Pbkdf2Params {
             val name = "PBKDF2"
@@ -66,11 +64,7 @@ given Crypt with
         .toFuture
         .mapTo[dom.CryptoKey]
 
-      _ = println("aesKey: " + aesKey)
-      
       keyImported <- importPrivateKey(privateKey)
-
-      _ = println("keyImported: " + keyImported)
 
       newIv = dom.crypto.getRandomValues(new Uint8Array(12)).buffer
 
@@ -86,8 +80,6 @@ given Crypt with
         .toFuture
         .mapTo[ArrayBuffer]
         .map(new Int8Array(_).toArray)      
-    
-      _ = println("keyWraped: " + keyWraped)
 
     yield
       BinaryDataWithIV(keyWraped, new Int8Array(newIv).toArray)
@@ -145,7 +137,7 @@ given Crypt with
         .toFuture
         .mapTo[dom.CryptoKey]
         .map(Right(_))
-        .recover { case e => RatableError(e.getMessage).asLeft }
+        .recover { case e => RatableError(s"Unwrapkey failed because of '${e.getMessage}'").asLeft }
       )
 
       keyExported <- EitherT.liftF(
@@ -250,7 +242,7 @@ given Crypt with
         .mapTo[ArrayBuffer]
         .map(new Int8Array(_).toArray)
         .map(Right(_))
-        .recover { case e => RatableError(e.getMessage).asLeft }
+        .recover { case e => RatableError("Decrypt failed because of '${e.getMessage}'").asLeft }
       )
     yield
       decrypted
@@ -286,7 +278,6 @@ given Crypt with
     )
 
   private def importPrivateKey(key: Array[Byte]): Future[dom.CryptoKey] =
-    println(s"importing ${new String(key)}")
     dom.crypto.subtle.importKey(
         dom.KeyFormat.jwk,
         JSON.parse(new String(key)).asInstanceOf[JsonWebKey],
@@ -330,7 +321,3 @@ given Crypt with
       .toFuture
       .mapTo[ArrayBuffer]
       .map(new Int8Array(_).toArray)
-      .andThen {
-        case Success(value) => println(s"exported public key: ${value.length}")
-        case Failure(exception) => println(s"exporting public key failed: $exception")
-      }

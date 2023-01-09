@@ -10,20 +10,13 @@ import scalapb.TypeMapper
 
 case class AggregateId(
   val replicaId: ReplicaId,
-  val randomBytes: Array[Byte]
+  val randomBytes: BinaryData
 ):
   def toBase64: String =
-    java.util.Base64.getEncoder().encodeToString(replicaId.publicKey.inner) + ":" + java.util.Base64.getEncoder().encodeToString(randomBytes)
+    java.util.Base64.getEncoder().encodeToString(replicaId.publicKey.inner) + ":" + java.util.Base64.getEncoder().encodeToString(randomBytes.inner)
 
   override def toString(): String =
     toBase64
-
-  override def equals(x: Any): Boolean =
-    x match
-      case AggregateId(replicaId, randomBytes) =>
-        this.replicaId == replicaId && this.randomBytes.sameElements(randomBytes)
-      case _ =>
-        false
 
 object AggregateId:
   given TypeMapper[String, AggregateId] = TypeMapper(readFromString(_))(writeToString(_))
@@ -31,13 +24,13 @@ object AggregateId:
   def singleton(replicaId: ReplicaId): AggregateId =
     AggregateId(
       replicaId,
-      Array.emptyByteArray
+      BinaryData(Array.emptyByteArray)
     )
 
   def unique(replicaId: ReplicaId): AggregateId =
     AggregateId(
       replicaId,
-      scala.util.Random.nextBytes(16)
+      BinaryData(scala.util.Random.nextBytes(16))
     )
 
   def fromBase64(base64: String): Option[AggregateId] =
@@ -46,7 +39,7 @@ object AggregateId:
         Some(
           AggregateId(
             ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(replica))),
-            java.util.Base64.getDecoder().decode(random)
+            BinaryData(java.util.Base64.getDecoder().decode(random))
           )
         )
       case _ =>
@@ -60,7 +53,7 @@ object AggregateId:
       out.writeVal(x.toBase64)
 
     def nullValue: AggregateId =
-      AggregateId(ReplicaId(BinaryData(Array.emptyByteArray)), Array.emptyByteArray)
+      AggregateId(ReplicaId(BinaryData(Array.emptyByteArray)), BinaryData(Array.emptyByteArray))
 
   given JsonKeyCodec[AggregateId] = new JsonKeyCodec[AggregateId]:
     def decodeKey(in: JsonReader): AggregateId =

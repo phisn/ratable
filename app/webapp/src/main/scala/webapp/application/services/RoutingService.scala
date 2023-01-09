@@ -39,7 +39,10 @@ class RoutingService(services: {
   private val pushStateEvent = Evt[Unit]()
 
   def render(using services: ServicesWithApplication): Signal[VNode] =
-    page.map(_.render)
+    page.map(x => 
+      services.logger.log(s"Rendering page: ${x}")
+      x.render
+    )
 
   // Add new route without changing page
   def toStateOnly(state: RoutingState) =
