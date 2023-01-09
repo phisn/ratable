@@ -56,7 +56,7 @@ case class CreatePage(val title: String) extends Page:
               createRatable(titleVar.signal.now, categoriesVar.now).value
                 .andThen {
                   case Success(Right(id)) =>
-                    services.routing.to(SharePage(writeToString(id)), RoutingState(canReturn = true))
+                    services.routing.to(SharePage(id.toBase64), RoutingState(canReturn = true))
 
                   case Success(Left(some)) =>
                     services.logger.error(s"Create error message '${some.default}'")

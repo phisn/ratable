@@ -33,21 +33,32 @@ object AggregateId:
       BinaryData(scala.util.Random.nextBytes(16))
     )
 
-  def fromBase64(base64: String): Option[AggregateId] =
-    base64.split(":") match
-      case Array(replica, random) =>
-        Some(
-          AggregateId(
-            ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(replica))),
-            BinaryData(java.util.Base64.getDecoder().decode(random))
+  def fromBase64(base64: String): AggregateId =
+    tryBase64(base64).getOrElse(
+      AggregateId(
+        ReplicaId(BinaryData(Array.emptyByteArray)),
+        BinaryData(Array.emptyByteArray)
+      )
+    )
+
+  def tryBase64(base64: String): Option[AggregateId] =
+    try
+      base64.split(":") match
+        case Array(replica, random) =>
+          Some(
+            AggregateId(
+              ReplicaId(BinaryData(java.util.Base64.getDecoder().decode(replica))),
+              BinaryData(java.util.Base64.getDecoder().decode(random))
+            )
           )
-        )
-      case _ =>
-        None
+        case _ =>
+          None
+    catch
+      case _: Throwable => None
 
   given JsonValueCodec[AggregateId] = new JsonValueCodec[AggregateId]:
     def decodeValue(in: JsonReader, default: AggregateId): AggregateId =
-      fromBase64(in.readString("")).getOrElse(in.decodeError("expected ':'"))
+      tryBase64(in.readString("")).getOrElse(in.decodeError("expected ':'"))
           
     def encodeValue(x: AggregateId, out: JsonWriter): Unit =
       out.writeVal(x.toBase64)
@@ -57,7 +68,7 @@ object AggregateId:
 
   given JsonKeyCodec[AggregateId] = new JsonKeyCodec[AggregateId]:
     def decodeKey(in: JsonReader): AggregateId =
-      fromBase64(in.readKeyAsString()).getOrElse(in.decodeError("expected ':'"))
+      tryBase64(in.readKeyAsString()).getOrElse(in.decodeError("expected ':'"))
 
     def encodeKey(x: AggregateId, out: JsonWriter): Unit =
       out.writeKey(x.toBase64)

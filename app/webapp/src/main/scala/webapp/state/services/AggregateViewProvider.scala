@@ -41,7 +41,12 @@ class AggregateViewProvider(services: {
 
         x.value.andThen {
           case Success(Right(container)) =>
-            services.stateDistribution.distribute(gid, container)
+            services.stateDistribution.distribute(gid, container).value.andThen {
+              case Success(Left(error)) =>
+                services.logger.error(s"Event ${event.event} was not distributed: $error")
+              case Failure(exception) =>
+                services.logger.error(s"Event ${event.event} was not distributed: $exception")
+            }
         }
 
         x.map(_ => ())

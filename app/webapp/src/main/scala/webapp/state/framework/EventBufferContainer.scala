@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
   val inner: ECmRDT[A, C, E],
-  val events: Set[ECmRDTEventWrapper[A, C, E]] = Set[ECmRDTEventWrapper[A, C, E]](),
+  val events: List[ECmRDTEventWrapper[A, C, E]] = List[ECmRDTEventWrapper[A, C, E]](),
 ):
   def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
     for
@@ -19,7 +19,7 @@ case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
     yield
       EventBufferContainer(
         inner = newInner,
-        events = events + eventPrepared
+        events = eventPrepared :: events
       )
 
   def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
@@ -31,7 +31,7 @@ case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
     yield
       EventBufferContainer(
         inner = newInner,
-        events = events + prepared
+        events = prepared :: events
       )
   
   // Server responds with highest time to acknowledge events

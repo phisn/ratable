@@ -1,5 +1,7 @@
 package webapp.state.services
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import collection.immutable.*
 import core.framework.*
@@ -50,27 +52,28 @@ class StateDistributionService(services: {
     }
 
   def distribute[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
-    (gid: AggregateGid, container: EventBufferContainer[A, C, E])(using Crypt): Future[Unit] =
+    (gid: AggregateGid, container: EventBufferContainer[A, C, E])(using Crypt): EitherT[Future, RatableError, Unit] =
     for
-      events <- Future.sequence(container.events.map(eventMessageFromEvent(gid)))
-      result <- services.functionsSocketApi.send(ClientSocketMessage.Message.Events(
-        EventsMessage(events.toSeq)
+      events <- container.events.map(eventMessageFromEvent(gid)).sequence
+
+      result <- EitherT.liftF(services.functionsSocketApi.send(
+        ClientSocketMessage.Message.Events(EventsMessage(events.toSeq))
       ))
     yield
       ()
 
   private def eventMessageFromEvent[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
-    (gid: AggregateGid)(event: ECmRDTEventWrapper[A, C, E])(using crypt: Crypt): Future[EventMessage] =
+    (gid: AggregateGid)(event: ECmRDTEventWrapper[A, C, E])(using crypt: Crypt): EitherT[Future, RatableError, EventMessage] =
     val eventJson = writeToString(event)
 
-    // Sanity check
-    if services.config.replicaId != event.eventWithContext.context.replicaId then
-      services.logger.error(s"StateDistributionService: Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}")
-      return Future.failed(new Exception(s"Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}"))
-
     for
-      replicaId <- services.config.replicaId
-      signature <- crypt.sign(replicaId.privateKey.inner, eventJson)
+      replicaId <- EitherT.liftF(services.config.replicaId)
+
+      _ <- EitherT.cond(replicaId.public == event.eventWithContext.context.replicaId, (),
+        RatableError(s"Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}")
+      )
+
+      signature <- EitherT.liftF(crypt.sign(replicaId.privateKey.inner, eventJson))
     yield
       EventMessage(
         gid,

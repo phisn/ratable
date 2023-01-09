@@ -22,7 +22,7 @@ import webapp.{*, given}
 case class SharePage(
   ratableId: String
 ) extends Page:
-  val aggregateId: AggregateId = readFromString(ratableId)
+  val aggregateId = AggregateId.fromBase64(ratableId)
 
   override def render(using services: ServicesWithApplication): VNode =
     layoutSingleRatable(aggregateId)(ratable =>

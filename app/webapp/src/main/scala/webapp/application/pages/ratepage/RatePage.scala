@@ -26,7 +26,7 @@ import webapp.{given, *}
 case class RatePage(
   ratableId: String
 ) extends Page:
-  val aggregateId: AggregateId = readFromString(ratableId)
+  val aggregateId = AggregateId.fromBase64(ratableId)
 
   def render(using services: ServicesWithApplication): VNode =
     val ratingForCategorySignal = PromiseSignal(Map[Int, Int]())
