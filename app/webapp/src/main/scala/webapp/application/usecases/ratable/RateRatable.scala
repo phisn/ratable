@@ -1,5 +1,7 @@
 package webapp.application.usecases.ratable
 
+import cats.data.*
+import cats.implicits.*
 import core.domain.aggregates.ratable.*
 import core.domain.aggregates.ratable.*
 import core.framework.*
@@ -14,14 +16,14 @@ def rateRatable(id: AggregateId, password: String, ratingForCategory: Map[Int, I
   services.logger.log(s"Rating ratable with id: $id")
 
   for
-    replicaId <- services.config.replicaId
+    replicaId <- EitherT.liftF(services.config.replicaId)
 
-    ratable <- services.state.ratables.get(id).map(
-      _.toRight("Ratable not found")
-    )
+    ratable <- services.state.ratables.getEnsure(id)
 
-    ratable <- services.state.ratables.get(id).map(
-      _.toRight("Ratable not found")
+    claimProof <- ratable.listen.now.proveByPassword(
+      replicaId,
+      RatableClaims.CanRate, 
+      password
     )
 
     /*
@@ -47,7 +49,7 @@ def rateRatable(id: AggregateId, password: String, ratingForCategory: Map[Int, I
     */
 
   yield
-    Some("Not implemented")
+    ()
 
 /*
   for

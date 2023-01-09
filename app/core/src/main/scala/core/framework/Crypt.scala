@@ -1,5 +1,7 @@
 package core.framework
 
+import cats.data.*
+import cats.implicits.*
 import scala.concurrent.*
 
 case class CryptKeyValuePair(
@@ -20,10 +22,10 @@ trait Crypt:
   def generateKey: Future[CryptKeyValuePair]
 
   def encrypt(password: String, content: Array[Byte]): Future[BinaryDataWithIV]
-  def decrypt(password: String, content: BinaryDataWithIV): Future[Option[Array[Byte]]]
+  def decrypt(password: String, content: BinaryDataWithIV): OptionT[Future, Array[Byte]]
 
   def wrapKey(key: Array[Byte], password: String): Future[BinaryDataWithIV]
-  def unwrapKey(key: BinaryDataWithIV, password: String): Future[Option[Array[Byte]]]
+  def unwrapKey(key: BinaryDataWithIV, password: String): OptionT[Future, Array[Byte]]
 
   def sign(key: Array[Byte], content: Array[Byte]): Future[Array[Byte]]
   def verify(key: Array[Byte], content: Array[Byte], signature: Array[Byte]): Future[Boolean]

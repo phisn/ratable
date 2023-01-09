@@ -1,13 +1,17 @@
 package webapp.device.storage
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import cats.data.*
+import cats.implicits.*
+import cats.effect.*
+import core.framework.*
 import core.messages.common.*
 import kofre.base.*
-import scalajs.*
 import org.scalajs.dom
 import org.scalajs.dom.*
 import rescala.default.*
+import scalajs.*
 import scala.concurrent.*
+import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
 import webapp.services.*
 
@@ -16,59 +20,59 @@ case class IndexBound()
 case class IndexBoundLower(lower: Int)
   
 trait StorageDatabaseInterface:
-  def put[A <: js.Any](name: String, key: String)(value: A): Future[Unit]
-  def get[A <: js.Any](name: String, key: String): Future[Option[A]]
-  def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]]
-  def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): Future[Seq[(String, A)]]
+  def put[A <: js.Any](name: String, key: String)(value: A): EitherT[Future, RatableError, Unit]
+  def get[A <: js.Any](name: String, key: String): EitherT[Future, RatableError, Option[A]]
+  def all[A <: js.Any](name: String, index: String): EitherT[Future, RatableError, Seq[(String, A)]]
+  def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): EitherT[Future, RatableError, Seq[(String, A)]]
 
 class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends StorageDatabaseInterface:
   def put[A <: js.Any](name: String, key: String)(value: A) =
     openStoreFor(name, IDBTransactionMode.readwrite) { store =>
-      val promise = Promise[Unit]()
+      val promise = Promise[Either[RatableError, Unit]]()
       val request = store.put(value, key)
 
       request.onsuccess = event =>
         services.logger.trace(s"Wrote aggregate with id: $key in $name")
-        promise.success(())
+        promise.success(Right(()))
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while putting $key into $name: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while putting $key into $name: ${request.error.message}"))
+        promise.success(Left(RatableError(s"IndexedDB: Transaction failed while putting $key into $name: ${request.error.message}")))
 
       promise
     }
 
   def get[A <: js.Any](name: String, key: String) =
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
-      val promise = Promise[Option[A]]()
+      val promise = Promise[Either[RatableError, Option[A]]]()
       val request = store.get(key)
 
       request.onsuccess = event =>
-        // customDelay {
+        if js.isUndefined(request.result) then
           promise.success(
             // IndexedDB store get returns undefined if the key is not found
             // https://w3c.github.io/IndexedDB/#dom-idbobjectstore-get
             if js.isUndefined(request.result) then 
-              None
+              Right(None)
             else 
-              Some(request.result.asInstanceOf[A])
+              Right(Some(request.result.asInstanceOf[A]))
           )
         // }
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}"))
+        promise.success(Left(RatableError(s"IndexedDB: Transaction failed while getting $key from $name: ${request.error.message}")))
 
       promise
     }
 
-  def all[A <: js.Any](name: String, index: String): Future[Seq[(String, A)]] =
+  def all[A <: js.Any](name: String, index: String): EitherT[Future, RatableError, Seq[(String, A)]] =
     services.logger.trace(s"IndexedDB: Getting all from $name")
 
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       services.logger.trace(s"Processing")
 
-      val promise = Promise[Seq[(String, A)]]()
+      val promise = Promise[Either[RatableError, Seq[(String, A)]]]()
       val request = store.openCursor()
 
       val buffer  = collection.mutable.Buffer[(String, A)]()
@@ -76,7 +80,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       request.onsuccess = event =>
         if request.result == null then
           services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
-          promise.success(buffer.toSeq)
+          promise.success(Right(buffer.toSeq))
         else
           buffer.append((
             request.result.primaryKey.asInstanceOf[String],
@@ -87,20 +91,19 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}"))
+        promise.success(Left(RatableError(s"IndexedDB: Transaction failed while testing $name $index: ${request.error.message}")))
 
-      
       services.logger.trace(s"Processing end")
       promise
     }
 
-  def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): Future[Seq[(String, A)]] =
+  def all[A <: js.Any](name: String, index: String, range: IDBKeyRange): EitherT[Future, RatableError, Seq[(String, A)]] =
     services.logger.trace(s"IndexedDB: Getting all from $name")
 
     openStoreFor(name, IDBTransactionMode.readonly) { store =>
       services.logger.trace(s"Processing")
 
-      val promise = Promise[Seq[(String, A)]]()
+      val promise = Promise[Either[RatableError, Seq[(String, A)]]]()
       val request = store.index(index).openCursor(range)
 
       val buffer  = collection.mutable.Buffer[(String, A)]()
@@ -108,7 +111,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       request.onsuccess = event =>
         if request.result == null then
           services.logger.trace(s"IndexedDB: Read all from $name from index $index n=${buffer.size}")
-          promise.success(buffer.toSeq)
+          promise.success(Right(buffer.toSeq))
         else
           buffer.append((
             request.result.primaryKey.asInstanceOf[String],
@@ -119,8 +122,7 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
 
       request.onerror = event =>
         services.logger.error(s"IndexedDB: Transaction failed while testing $name $index $range: ${request.error.message}")
-        promise.failure(Exception(s"IndexedDB: Transaction failed while testing $name $index $range: ${request.error.message}"))
-
+        promise.success(Left(RatableError(s"IndexedDB: Transaction failed while testing $name $index $range: ${request.error.message}")))
       
       services.logger.trace(s"Processing end")
       promise
@@ -131,8 +133,8 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
       f
     }
 
-  private def openStoreFor[R](name: String, mode: IDBTransactionMode)(f: IDBObjectStore => Promise[R]): Future[R] =
-    db.flatMap(db =>
+  private def openStoreFor[R](name: String, mode: IDBTransactionMode)(f: IDBObjectStore => Promise[Either[RatableError, R]]): EitherT[Future, RatableError, R] =
+    EitherT(db.flatMap(db =>
       val tx = db.transaction(name, mode)
       val store = tx.objectStore(name)
 
@@ -143,4 +145,4 @@ class StorageDatabase(services: Services, db: Future[IDBDatabase]) extends Stora
         services.logger.error(s"IndexedDB: Transaction failed $name: ${tx.error.message}")
 
       f(store).future
-    )
+    ))

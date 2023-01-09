@@ -23,7 +23,7 @@ class AggregateViewProvider(services: {
     services.aggregateFacadeProvider.create[A, C, E](gid, initial).map(facadeToView(gid))
 
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
-    (gid: AggregateGid)(using Crypt): Future[Option[AggregateView[A, C, E]]] =
+    (gid: AggregateGid)(using Crypt): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =
     services.aggregateFacadeProvider.get[A, C, E](gid).map(_.map(facadeToView(gid)))
 
   private def facadeToView[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]

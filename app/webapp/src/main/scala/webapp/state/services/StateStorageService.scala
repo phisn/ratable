@@ -1,5 +1,7 @@
 package webapp.state.services
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.framework.ecmrdt.*
@@ -30,7 +32,7 @@ class StateStorageService(services: {
   def finishAggregateRegistration =
     builder.build
 
-  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]): Future[Unit] =
+  def save[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, aggregate: EventBufferContainer[A, C, E]) =
     db.put(gid.aggregateType.name, writeToString(gid.aggregateId)) {
       JsAggregateContainer(
         // Funny thing is we can savely deflate before saving because deltas are only infalted
@@ -41,10 +43,12 @@ class StateStorageService(services: {
       )
     }
 
-  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): Future[Option[EventBufferContainer[A, C, E]]] =
-    db.get[JsAggregateContainer](gid.aggregateType.name, writeToString(gid.aggregateId))
-      .map(_.map(container => container.aggregate.toScala))
-
+  def load[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid) =
+    for
+      value <- db.get[JsAggregateContainer](gid.aggregateType.name, writeToString(gid.aggregateId))
+    yield
+      value.map(_.aggregate.toScala[EventBufferContainer[A, C, E]])
+      
   /*
   def unacknowledged[A : JsonValueCodec](aggregateType: AggregateType): Future[Seq[(AggregateGid, DeltaContainer[A])]] =
     db.all[JsAggregateContainer](aggregateType.name, IndexKeys.pending,

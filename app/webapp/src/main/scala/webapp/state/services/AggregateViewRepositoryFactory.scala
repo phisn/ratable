@@ -1,5 +1,7 @@
 package webapp.state.services
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.framework.ecmrdt.*
@@ -47,5 +49,5 @@ class AggregateViewRepositoryFactory(services: {
       def create(id: AggregateId, aggregate: A): Future[AggregateView[A, C, E]] =
         services.aggregateViewProvider.create[A, C, E](AggregateGid(id, aggregateType), aggregate)
 
-      def get(id: AggregateId): Future[Option[AggregateView[A, C, E]]] =
+      def get(id: AggregateId): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =
         services.aggregateViewProvider.get[A, C, E](AggregateGid(id, aggregateType))

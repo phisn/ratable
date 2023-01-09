@@ -1,5 +1,7 @@
 package core.framework.ecmrdt.extensions
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import core.framework.*
@@ -20,18 +22,28 @@ object ClaimBehindPassword:
 trait ClaimByPasswordStateExtension[I]:
   def claimsBehindPassword: Map[I, BinaryDataWithIV]
 
-  def proveByPassword(replicaId: ReplicaId, claim: I, password: String)(using crypt: Crypt): Future[Option[ClaimProof[I]]] =
-    proverFromPassword(claim, password).flatMap {
-      case None => Future.successful(None)
-      case Some(prover) => prover.prove(replicaId).map(Some(_))
-    }
+  def proveByPassword(replicaId: ReplicaId, claim: I, password: String)(using crypt: Crypt): EitherT[Future, RatableError, ClaimProof[I]] =
+    for
+      prover <- proverFromPassword(claim, password)
+      proof <- EitherT.liftF(prover.prove(replicaId))
+    yield
+      proof
   
-  def proverFromPassword(claim: I, password: String)(using crypt: Crypt): Future[Option[ClaimProver[I]]] =
-    val result = claimsBehindPassword.get(claim) match
-      case None => Future.successful(None)
-      case Some(claimBehindPassword) => 
-        crypt.unwrapKey(claimBehindPassword, password)
-    
-    result.map(_.map(privateKey => ClaimProver[I](BinaryData(privateKey), claim)))
+  def proverFromPassword(claim: I, password: String)(using crypt: Crypt): EitherT[Future, RatableError, ClaimProver[I]] =
+    for
+      claimProverWraped <- EitherT.fromOption[Future](
+        claimsBehindPassword.get(claim), 
+        RatableError(s"Claim '${claim}' behind password not found")
+      )
+
+      claimProver <- crypt.unwrapKey(claimProverWraped, password).toRight(
+        RatableError(s"Could not unwrap claim '${claim}' behind password")
+      )
+
+    yield
+      ClaimProver[I](
+        BinaryData(claimProver),
+        claim
+      )
 
 // We do not need any context or pipeline for this extension. It is just a state extension.

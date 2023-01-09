@@ -1,5 +1,7 @@
 package webapp.state.services
 
+import cats.data.*
+import cats.effect.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.framework.*
 import core.framework.ecmrdt.*
@@ -20,7 +22,7 @@ class AggregateFacadeProvider(services: {
   val stateStorage: StateStorageService
 }):
   private val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _, _]]()
-  private val facadesInLoading = collection.mutable.Map[AggregateGid, Future[Option[AggregateFacade[_, _, _]]]]()
+  private val facadesInLoading = collection.mutable.Map[AggregateGid, EitherT[Future, RatableError, AggregateFacade[_, _, _]]]()
 
   def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, initial: A): Future[AggregateFacade[A, C, E]] =
     val aggregate = EventBufferContainer(ECmRDT[A, C, E](initial))

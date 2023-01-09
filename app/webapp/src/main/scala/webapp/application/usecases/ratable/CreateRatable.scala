@@ -1,5 +1,7 @@
 package webapp.application.usecases.ratable
 
+import cats.data.*
+import cats.implicits.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import core.domain.aggregates.library.*
 import core.domain.aggregates.ratable.*

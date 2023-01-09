@@ -1,5 +1,7 @@
 package webapp.device.framework
 
+import cats.data.*
+import cats.implicits.*
 import core.framework.*
 import org.scalajs.*
 import org.scalajs.dom
@@ -90,9 +92,10 @@ given Crypt with
     yield
       BinaryDataWithIV(keyWraped, new Int8Array(newIv).toArray)
 
-  def unwrapKey(keyWraped: BinaryDataWithIV, password: String): Future[Option[Array[Byte]]] =
+  def unwrapKey(keyWraped: BinaryDataWithIV, password: String): OptionT[Future, Array[Byte]] =
     for
-      deriveKey <- dom.crypto.subtle.importKey(
+      deriveKey <- OptionT.liftF(
+        dom.crypto.subtle.importKey(
           dom.KeyFormat.raw,
           new TextEncoder().encode(password).buffer,
           "PBKDF2",
@@ -101,8 +104,10 @@ given Crypt with
         )
         .toFuture
         .mapTo[dom.CryptoKey]
+      )
       
-      aesKey <- dom.crypto.subtle.deriveKey(
+      aesKey <- OptionT.liftF(
+        dom.crypto.subtle.deriveKey(
           new dom.Pbkdf2Params {
             val name = "PBKDF2"
             val salt = new TextEncoder().encode("ratable_salt").buffer
@@ -119,8 +124,10 @@ given Crypt with
         )
         .toFuture
         .mapTo[dom.CryptoKey]
+      )
       
-      keyUnwraped <- dom.crypto.subtle.unwrapKey(
+      keyUnwraped <- OptionT(
+        dom.crypto.subtle.unwrapKey(
           dom.KeyFormat.jwk,
           keyWraped.key.inner.toTypedArray.buffer,
           aesKey,
@@ -139,10 +146,11 @@ given Crypt with
         .mapTo[dom.CryptoKey]
         .map(Some(_))
         .recover { case _ => None }
+      )
 
-      keyExported <- keyUnwraped match
-        case Some(key) => exportPrivateKey(key).map(Some(_))
-        case None => Future.successful(None)
+      keyExported <- OptionT.liftF(
+        exportPrivateKey(keyUnwraped)
+      )
     yield
       keyExported
 
@@ -194,9 +202,10 @@ given Crypt with
     yield
       BinaryDataWithIV(encrypted, new Int8Array(newIv).toArray)
 
-  def decrypt(password: String, content: BinaryDataWithIV): Future[Option[Array[Byte]]] =
+  def decrypt(password: String, content: BinaryDataWithIV): OptionT[Future, Array[Byte]] =
     for
-      deriveKey <- dom.crypto.subtle.importKey(
+      deriveKey <- OptionT.liftF(
+        dom.crypto.subtle.importKey(
           dom.KeyFormat.raw,
           new TextEncoder().encode(password).buffer,
           "PBKDF2",
@@ -205,8 +214,10 @@ given Crypt with
         )
         .toFuture
         .mapTo[dom.CryptoKey]
+      )
       
-      aesKey <- dom.crypto.subtle.deriveKey(
+      aesKey <- OptionT.liftF(
+        dom.crypto.subtle.deriveKey(
           new dom.Pbkdf2Params {
             val name = "PBKDF2"
             val salt = new TextEncoder().encode("ratable_salt").buffer
@@ -223,8 +234,9 @@ given Crypt with
         )
         .toFuture
         .mapTo[dom.CryptoKey]
+      )
       
-      decrypted <- dom.crypto.subtle.decrypt(
+      decrypted <- OptionT(dom.crypto.subtle.decrypt(
           new dom.AesGcmParams {
             val name = "AES-GCM"
             val iv = content.iv.inner.toTypedArray.buffer
@@ -239,6 +251,7 @@ given Crypt with
         .map(new Int8Array(_).toArray)
         .map(Some(_))
         .recover { case _ => None }
+      )
     yield
       decrypted
 
