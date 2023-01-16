@@ -21,38 +21,28 @@ def createRatable(title: String, categories: List[String])(using services: Servi
 
   for
     replicaId <- EitherT.liftF(services.config.replicaId)
-
-    library <- services.state.library.getOrCreate(
-      AggregateId.singleton(replicaId), 
-      RatableLibrary(replicaId, Map())
-    )
-
     aggregateId = AggregateId.unique(replicaId)
 
-    _ = services.logger.log(s"Creating aggregate with id: $aggregateId")
+    library <- services.state.library.singleton(replicaId)
 
-    ratableResult <- EitherT.liftF(Ratable(
-      title,
-      categories
-    ))
-
-    ratable = ratableResult(0)
-    password = ratableResult(1)
-
-    _ = services.logger.log(s"Created ratable with id: $aggregateId and password $password")
-
-    ratableView <- services.state.ratables.create(
-      aggregateId, 
-      ratable
+    createResult <- EitherT.liftF(
+      core.domain.aggregates.ratable.createRatable(title, categories)
     )
 
-    _ = services.logger.log(s"Created ratable with id: $aggregateId and password $password")
+    ratableView = services.state.ratables.create(aggregateId)
+
+    _ = services.logger.log(s"1 Created ratable with id: $aggregateId")
+
+    _ <- ratableView.effect(
+      createResult.event, 
+      RatableContext(replicaId, List())
+    )
+
+    _ = services.logger.log(s"2 Created ratable with id: $aggregateId")
 
     _ <- library.effect(
-      EventWithContext(
-        IndexRatableEvent(aggregateId, Some(password)),
-        RatableLibraryContext(replicaId)
-      )
+      IndexRatableEvent(aggregateId, Some(createResult.password)),
+      RatableLibraryContext(replicaId)
     )
 
   yield

@@ -13,20 +13,20 @@ case class EventBufferContainer[A, C <: IdentityContext, E <: Event[A, C]](
   val inner: ECmRDT[A, C, E],
   val events: List[ECmRDTEventWrapper[A, C, E]] = List[ECmRDTEventWrapper[A, C, E]](),
 ):
-  def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
+  def effectPrepared(eventPrepared: ECmRDTEventWrapper[A, C, E], meta: MetaContext)(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
     for
-      newInner <- inner.effect(eventPrepared)
+      newInner <- inner.effect(eventPrepared, meta)
     yield
       EventBufferContainer(
         inner = newInner,
         events = eventPrepared :: events
       )
 
-  def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
-    val prepared = inner.prepare(event)
+  def effect(event: E, context: C, meta: MetaContext)(using EffectPipeline[A, C]): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] =
+    val prepared = inner.prepare(event, context)
 
     for
-      newInner <- inner.effect(prepared)
+      newInner <- inner.effect(prepared, meta)
 
     yield
       EventBufferContainer(

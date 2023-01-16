@@ -5,8 +5,8 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
 import core.messages.http.*
-import functions.*
-import function.application.handlers.*
+//import functions.*
+//import function.application.handlers.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.typedarray.*
@@ -27,6 +27,8 @@ given JsonValueCodec[String] = JsonCodecMaker.make
 object HttpEntry:
   @JSExportTopLevel("http")
   def gateway(context: js.Dynamic) =
+    ???
+/*
     implicit val services = ProductionServices(context)
 
     services.logger.trace(s"Http called")
@@ -49,6 +51,7 @@ object HttpEntry:
     
     def dispatch(message: ClientHttpMessage.Message)(implicit services: Services) =
       message match
+        /*
         case ClientHttpMessage.Message.GetAggregate(message) => 
           services.logger.trace(s"GetAggregateMessage: aggregateId=${message.gid}")
         
@@ -61,10 +64,13 @@ object HttpEntry:
               services.logger.error(s"Failed to get aggregate: ${exception.getMessage}")
               context.done()
           }
-        
+        */
+
         case ClientHttpMessage.Message.Empty => 
           services.logger.error(s"Http gateway got unkown message")
           context.done()
+        case _ => 
+          ()
 
     ClientHttpMessage.validate(new Int8Array(encoder.encode(body).buffer).toArray) match
       case Success(ClientHttpMessage(message, _)) =>
@@ -77,4 +83,5 @@ object HttpEntry:
 
       case Failure(exception) =>
         services.logger.error(s"Failed to parse message: ${exception.getMessage}")
-        context.done()
+       context.done()
+*/

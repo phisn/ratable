@@ -53,32 +53,15 @@ extends AsymPermissionStateExtension[RatableClaims], ClaimByPasswordStateExtensi
       .toMap
 
 object Ratable:
-  def apply(title: String, categories: List[String])(using crypt: Crypt): Future[(Ratable, String)] =
-    val password = Random.alphanumeric.take(18).mkString
-
-    for
-      (canRateClaim, canRateProver) <- Claim.create(RatableClaims.CanRate)
-      claimBehindPassword <- ClaimBehindPassword(canRateProver.privateKey.inner, password)
-
-      ratable = Ratable(
-        List(canRateClaim),
-        Map(RatableClaims.CanRate -> claimBehindPassword),
-        title,
-        categories
-          .zipWithIndex
-          .map((title, index) => (index, Category(title)))
-          .toMap,
-        Map()
-      )
-
-    yield
-      (ratable, password)
-
   given (using Crypt): EffectPipeline[Ratable, RatableContext] = EffectPipeline(
     AsymPermissionEffectPipeline[Ratable, RatableClaims, RatableContext]
   )
 
   given JsonValueCodec[Ratable] = JsonCodecMaker.make
+  
+  given InitialECmRDT[Ratable] = InitialECmRDT(Ratable(
+    List(), Map(), "missing-title", Map(0 -> Category("missing-categories")), Map()
+  ))
 
 case class RatableContext(
   val replicaId: ReplicaId,
@@ -99,7 +82,7 @@ case class RateEvent(
   val ratingForCategory: Map[Int, Int]
 ) extends RatableEvent:
   def asEffect: Effect[Ratable, RatableContext] =
-    (state, context) =>
+    (state, context, meta) =>
       for
         _ <- context.verifyClaim(RatableClaims.CanRate)
         _ <- EitherT.cond(ratingForCategory.size == state.categories.size, (),
@@ -107,10 +90,51 @@ case class RateEvent(
       yield
         state.rate(context.replicaId, ratingForCategory)
 
-/*
-extension (ratable: Ratable)
-  def rateEvent(ratingForCategory: Map[Int, Int])(using crypt: Crypt): RateEvent =
-    EventWithContext(
 
+case class CreateRatableEvent(
+  val canRate: Claim[RatableClaims],
+  val canRateBehindPassword: BinaryDataWithIV,
+
+  val title: String,
+  val categories: List[String]  
+) extends RatableEvent:
+  def asEffect: Effect[Ratable, RatableContext] =
+    (state, context, meta) =>
+      for
+        _ <- EitherT.cond(meta.ownerReplicaId == context.replicaId, (),
+          RatableError(s"Replica ${context.replicaId} is not the owner ${meta.ownerReplicaId} of this object."))
+        
+      yield
+        Ratable(
+          List(canRate),
+          Map(RatableClaims.CanRate -> canRateBehindPassword),
+          title,
+          categories
+            .zipWithIndex
+            .map((title, index) => (index, Category(title)))
+            .toMap,
+          Map()
+        )
+
+case class CreateRatableResult(
+  val event: CreateRatableEvent,
+  val password: String
+)
+
+def createRatable(title: String, categories: List[String])(using crypt: Crypt): Future[CreateRatableResult] =
+  val password = Random.alphanumeric.take(18).mkString
+
+  for
+    (canRateClaim, canRateProver) <- Claim.create(RatableClaims.CanRate)
+    claimBehindPassword <- ClaimBehindPassword(canRateProver.privateKey.inner, password)
+
+  yield
+    CreateRatableResult(
+      CreateRatableEvent(
+        canRateClaim,
+        claimBehindPassword,
+        title,
+        categories
+      ),
+      password
     )
-*/

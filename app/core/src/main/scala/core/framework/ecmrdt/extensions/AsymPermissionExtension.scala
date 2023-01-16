@@ -26,7 +26,7 @@ trait AsymPermissionStateExtension[I]:
 // aka private keys. This allows for example a data type to be edited via a link that can be shared with other replicas.
 object AsymPermissionEffectPipeline:
   def apply[A <: AsymPermissionStateExtension[I], I, C <: AsymPermissionContextExtension[I] with IdentityContext](using Crypt): EffectPipeline[A, C] =
-    verifyEffectPipelineFuture[A, C]((state, context) =>
+    verifyEffectPipelineFuture[A, C]((state, context, meta) =>
       // Should create "Proof does not exist." error.
       // Should create "Proof is invalid." error.
       for

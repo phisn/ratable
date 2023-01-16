@@ -13,6 +13,10 @@ message AcknowledgeEventMessage {
   uint64 time = 2;
 }
 
+message AcknowledgeEventsMessage {
+  repeated AcknowledgeEventMessage events = 1;
+}
+
 message ClientSocketMessage {
   oneof message {
     EventsMessage events = 1;

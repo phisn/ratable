@@ -1,3 +1,4 @@
+/*
 package functions.application.gateways
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -139,8 +140,6 @@ case class AnalyticsModel(
 
 )
 
-import core.domain.aggregates.analytic.Analytic.given_JsonValueCodec_Analytic
-
 object AnalyticsEntry:
   @JSExportTopLevel("analytics")
   def gateway(context: js.Dynamic) =
@@ -170,3 +169,4 @@ object AnalyticsEntry:
       .andThen {
         case _ => context.done()
       }
+*/

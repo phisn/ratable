@@ -43,7 +43,7 @@ class StateDistributionService(services: {
     (eventHandler: (AggregateGid, ECmRDTEventWrapper[A, C, E]) => Unit)(eventMessage: EventMessage)(using crypt: Crypt): Unit =
 
     val event = readFromString[ECmRDTEventWrapper[A, C, E]](eventMessage.eventJson)
-    val sourceReplicaId = event.eventWithContext.context.replicaId
+    val sourceReplicaId = event.context.replicaId
     
     crypt.verify(sourceReplicaId.publicKey.inner, eventMessage.eventJson, eventMessage.signature.bytes).andThen {
       case Success(true)      => eventHandler(eventMessage.gid, event)
@@ -69,8 +69,8 @@ class StateDistributionService(services: {
     for
       replicaId <- EitherT.liftF(services.config.replicaId)
 
-      _ <- EitherT.cond(replicaId.public == event.eventWithContext.context.replicaId, (),
-        RatableError(s"Event ${eventJson} from replica ${event.eventWithContext.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}")
+      _ <- EitherT.cond(replicaId.public == event.context.replicaId, (),
+        RatableError(s"Event ${eventJson} from replica ${event.context.replicaId} for gid ${gid} is not from this replica ${services.config.replicaId}")
       )
 
       signature <- EitherT.liftF(crypt.sign(replicaId.privateKey.inner, eventJson))

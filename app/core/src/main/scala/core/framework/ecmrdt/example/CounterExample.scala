@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 enum CounterRoles:
   case Adder
-
+/*
 case class Counter(
   val value: Int,
   val claims: List[Claim[CounterRoles]]
@@ -49,7 +49,7 @@ def addCounterEvent(replicaId: ReplicaId, value: Int)(using registry: ClaimRegis
     )
   }
   
-
+*/
 /*
 def main(using Crypt) = 
   for

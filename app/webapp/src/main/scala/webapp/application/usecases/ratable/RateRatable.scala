@@ -3,14 +3,12 @@ package webapp.application.usecases.ratable
 import cats.data.*
 import cats.implicits.*
 import core.domain.aggregates.ratable.*
-import core.domain.aggregates.ratable.*
 import core.framework.*
 import core.framework.ecmrdt.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import webapp.*
 import webapp.state.framework.{given, *}
-import core.domain.aggregates.ratable.{RatableClaims, RatableContext, RateEvent}
 
 def rateRatable(id: AggregateId, ratingForCategory: Map[Int, Int])(using services: Services, crypt: Crypt) =
   services.logger.log(s"Rating ratable with id: $id")
@@ -20,7 +18,7 @@ def rateRatable(id: AggregateId, ratingForCategory: Map[Int, Int])(using service
 
     ratable <- services.state.ratables.getEnsure(id)
 
-    library <- services.state.library.getEnsure(AggregateId.singleton(replicaId))
+    library <- services.state.library.singleton(replicaId)
 
     libraryEntry <- EitherT.fromOption(
       library.listen.now.entries.get(id),
@@ -39,10 +37,8 @@ def rateRatable(id: AggregateId, ratingForCategory: Map[Int, Int])(using service
     )
 
     _ <- ratable.effect(
-      EventWithContext(
-        RateEvent(ratingForCategory),
-        RatableContext(replicaId, List(claimProof))
-      )
+      RateEvent(ratingForCategory),
+      RatableContext(replicaId, List(claimProof))
     )
 
   yield

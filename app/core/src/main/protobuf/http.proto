@@ -8,17 +8,12 @@ message GetAggregateEventsMessage {
   AggregateGid gid = 1;
 }
 
-message GetAggregateEventsResponse {
+message GetAggregateEventsResponseMessage {
   repeated EventMessage events = 1;
-}
-
-message RegisterUserMessage {
-  string longUserId = 1;
 }
 
 message ClientHttpMessage {
   oneof message {
     GetAggregateEventsMessage get = 1;
-    RegisterUserMessage register = 2;
   }
 }

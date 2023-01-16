@@ -19,9 +19,11 @@ class AggregateViewProvider(services: {
   val logger: LoggerServiceInterface
   val stateDistribution: StateDistributionService
 }):
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
-    (gid: AggregateGid, initial: A)(using Crypt): EitherT[Future, RatableError, AggregateView[A, C, E]] =
-    services.aggregateFacadeProvider.create[A, C, E](gid, initial).map(facadeToView(gid))
+  def create[A : InitialECmRDT : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+    (gid: AggregateGid)(using Crypt): AggregateView[A, C, E] =
+    facadeToView[A, C, E](gid)(
+      services.aggregateFacadeProvider.create[A, C, E](gid)
+    )
 
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
     (gid: AggregateGid)(using Crypt): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =
@@ -36,16 +38,23 @@ class AggregateViewProvider(services: {
       def listen: rescala.default.Signal[A] = 
         facade.listen.map(_.inner.state)
       
-      def effect(event: EventWithContext[A, C, E])(using EffectPipeline[A, C]): EitherT[Future, RatableError, Unit] =
-        val x: EitherT[Future, RatableError, EventBufferContainer[A, C, E]] = facade.mutate(aggregate => aggregate.effect(event))
+      def effect(event: E, context: C)(using EffectPipeline[A, C]): EitherT[Future, RatableError, Unit] =
+        val meta = MetaContext(
+          gid.aggregateId,
+          gid.aggregateId.replicaId
+        )
+
+        val x: EitherT[Future, RatableError, EventBufferContainer[A, C, E]] = facade.mutate(
+          aggregate => aggregate.effect(event, context, meta)
+        )
 
         x.value.andThen {
           case Success(Right(container)) =>
             services.stateDistribution.distribute(gid, container).value.andThen {
               case Success(Left(error)) =>
-                services.logger.error(s"Event ${event.event} was not distributed: $error")
+                services.logger.error(s"Event ${event} was not distributed: $error")
               case Failure(exception) =>
-                services.logger.error(s"Event ${event.event} was not distributed: $exception")
+                services.logger.error(s"Event ${event} was not distributed: $exception")
             }
         }
 

@@ -15,27 +15,15 @@ import scalapb.*
 object SocketEntry:
   @JSExportTopLevel("socket")
   def gateway(context: js.Dynamic, data: ArrayBuffer) =
-    implicit val services = ProductionServices(context)
+    implicit val services = ServicesDefault(context)
 
     services.logger.trace(s"Socket called: ${data.byteLength}")
 
     def dispatch(message: ClientSocketMessage.Message)(implicit services: Services) =
       message match
-        case ClientSocketMessage.Message.Delta(message) => 
-          services.logger.trace(s"DeltaMessage: aggregateId=${message.gid}")
+        case ClientSocketMessage.Message.Events(message) =>
+          ()
 
-          deltaMessageHandler(message).andThen(_ =>
-            services.logger.trace(s"DeltaMessage: done")
-            context.done()
-          )
-
-          services.logger.trace(s"DeltaMessage: dispatched")
-          
-        case ClientSocketMessage.Message.AssociateReplica(message) => 
-          services.logger.trace(s"AssociateReplicaMessage: username=${message.username}")
-          services.logger.error(s"AssociateReplicaMessage not implemented")
-          context.done()
-        
         case ClientSocketMessage.Message.Empty => 
           services.logger.error(s"Socket gateway got unkown message")
           context.done()

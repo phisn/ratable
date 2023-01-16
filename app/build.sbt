@@ -59,18 +59,15 @@ lazy val webapp = project
     fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
   )
 
-/*
 lazy val functions = project
   .dependsOn(core)
-  .enablePlugins(ScalaJSBundlerPlugin) //, ScalablyTypedConverterPlugin)
+  .enablePlugins(ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
   .settings(commonSettings, bundlerSettings, Dependencies.functionsDependencies)
   .settings(
     Compile / npmDependencies ++= Dependencies.functionsNpmDependencies,
 
     webpackConfigFile          := Some(baseDirectory.value / "webpack.config.js"),
   )
-
-*/
 
 addCommandAlias("prod", "webapp/fullOptJS/webpack; functions/fullOptJS/webpack")
 addCommandAlias("dev", "devInit; devWatchAll; devDestroy")

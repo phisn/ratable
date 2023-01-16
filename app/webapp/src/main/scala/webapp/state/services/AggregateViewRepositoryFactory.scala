@@ -23,7 +23,7 @@ class AggregateViewRepositoryFactory(services: {
   val stateDistribution: StateDistributionService
   val stateStorage: StateStorageService
 }):
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
+  def create[A : InitialECmRDT : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec]
     (aggregateType: AggregateType)(using EffectPipeline[A, C], Crypt): AggregateViewRepository[A, C, E] =
     services.stateStorage.migrateAggregateType(aggregateType)
 
@@ -38,7 +38,13 @@ class AggregateViewRepositoryFactory(services: {
     services.stateDistribution.listenForEvents[A, C, E](aggregateType, (gid, event) =>
       services.aggregateFacadeProvider.get[A, C, E](gid).value.andThen {
         case Success(Right(Some(aggregateFacade))) =>
-          aggregateFacade.mutate(_.effectPrepared(event))
+          aggregateFacade.mutate(_.effectPrepared(
+            event, 
+            MetaContext(
+              gid.aggregateId,
+              gid.aggregateId.replicaId
+            )
+          ))
       }
     )
 
@@ -46,8 +52,8 @@ class AggregateViewRepositoryFactory(services: {
       def all: Future[Seq[(AggregateGid, A)]] = 
         Future.successful(Seq.empty)
       
-      def create(id: AggregateId, aggregate: A): EitherT[Future, RatableError, AggregateView[A, C, E]] =
-        services.aggregateViewProvider.create[A, C, E](AggregateGid(id, aggregateType), aggregate)
+      def create(id: AggregateId): AggregateView[A, C, E] =
+        services.aggregateViewProvider.create[A, C, E](AggregateGid(id, aggregateType))
 
       def get(id: AggregateId): EitherT[Future, RatableError, Option[AggregateView[A, C, E]]] =
         services.aggregateViewProvider.get[A, C, E](AggregateGid(id, aggregateType))

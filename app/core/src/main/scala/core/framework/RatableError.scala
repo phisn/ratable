@@ -10,9 +10,6 @@ case class RatableError(
     RatableError(messages ++ other.messages)
 
 object RatableError:
-  def apply(): RatableError =
-    new RatableError(List())
-
   def apply(message: String): RatableError =
     new RatableError(List(Map("en" -> message)))
   

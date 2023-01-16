@@ -3,8 +3,8 @@ package functions
 import functions.device.*
 import functions.device.services.*
 import functions.services.*
-import functions.state.*
-import functions.state.services.*
+// import functions.state.*
+// import functions.state.services.*
 import scala.scalajs.js
 
 // Most services should be lazy because some services require bindings to azure
@@ -15,12 +15,11 @@ trait Services:
   lazy val connectionContext: ConnectionContextProviderInterface
   lazy val logger: LoggerServiceInterface
   lazy val socketMessaging: SocketMessagingServiceInterface
-  lazy val stateDeltaProcessor: StateDeltaProcessor
   lazy val stateProvider: StateProviderService
 
-class ProductionServices(
+class ServicesDefault(
   context: js.Dynamic
-) extends Services, StateServices, DeviceServices:
+) extends Services, DeviceServices:
   lazy val storage = new StorageService(this, context)
 
   // Core
@@ -29,7 +28,4 @@ class ProductionServices(
   lazy val logger = new LoggerService(this, context)
   lazy val socketMessaging = new SocketMessagingService(this, context)
 
-  lazy val stateDeltaProcessor = new StateDeltaProcessor(this, context)
   lazy val stateProvider = new StateProviderService(this, context)
-
-  lazy val aggregateRepositoryFactory = new AggregateRepositoryFactory(this, context)

@@ -24,14 +24,10 @@ class AggregateFacadeProvider(services: {
   private val facades = collection.mutable.Map[AggregateGid, AggregateFacade[_, _, _]]()
   private val facadesInLoading = collection.mutable.Map[AggregateGid, EitherT[Future, RatableError, Option[AggregateFacade[_, _, _]]]]()
 
-  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid, initial: A) =
-    val aggregate = EventBufferContainer(ECmRDT[A, C, E](initial))
-
-    services.stateStorage.save[A, C, E](gid, aggregate).map(_ =>
-      val facade = aggregateToFacade(gid, aggregate)
-      facades += (gid -> facade)
-      facade
-    )
+  def create[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid)(using initial: InitialECmRDT[A]) =
+    val facade = aggregateToFacade(gid, EventBufferContainer(ECmRDT[A, C, E](initial.value)))
+    facades += (gid -> facade)
+    facade
 
   def get[A : JsonValueCodec, C <: IdentityContext : JsonValueCodec, E <: Event[A, C] : JsonValueCodec](gid: AggregateGid): EitherT[Future, RatableError, Option[AggregateFacade[A, C, E]]] =
     facades

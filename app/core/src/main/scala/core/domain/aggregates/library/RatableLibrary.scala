@@ -15,10 +15,8 @@ case class RatableEntry(
 )
 
 case class RatableLibrary(
-  val replicaId: ReplicaId,
   val entries: Map[AggregateId, RatableEntry]
-
-) extends SingleOwnerStateExtension
+)
 
 object RatableLibrary:
   given EffectPipeline[RatableLibrary, RatableLibraryContext] = EffectPipeline(
@@ -26,6 +24,10 @@ object RatableLibrary:
   )
 
   given JsonValueCodec[RatableLibrary] = JsonCodecMaker.make
+
+  given InitialECmRDT[RatableLibrary] = InitialECmRDT(RatableLibrary(
+    Map()
+  ))
 
 case class RatableLibraryContext(
   val replicaId: ReplicaId
@@ -44,7 +46,7 @@ case class IndexRatableEvent(
   val password: Option[String]
 ) extends RatableLibraryEvent:
   def asEffect: Effect[RatableLibrary, RatableLibraryContext] =
-    (state, context) => EitherT.pure(
+    (state, context, meta) => EitherT.pure(
       state.copy(entries = state.entries + (id -> RatableEntry(password)))
     )
 
@@ -52,6 +54,12 @@ case class UnindexRatableEvent(
   val id: AggregateId
 ) extends RatableLibraryEvent:
   def asEffect: Effect[RatableLibrary, RatableLibraryContext] =
-    (state, context) => EitherT.pure(
+    (state, context, meta) => EitherT.pure(
       state.copy(entries = state.entries - id)
+    )
+
+case class CreateRatableLibraryEvent() extends RatableLibraryEvent:
+  def asEffect: Effect[RatableLibrary, RatableLibraryContext] =
+    (state, context, meta) => EitherT.pure(
+      RatableLibrary(Map())
     )
