@@ -19,7 +19,21 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
-\lstset{language=Scala}
+\lstset{
+  language=scala,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2,
+}
  
 % Sprachanpassung & Verbesserte Trennregeln 
 \usepackage[english, main=ngerman]{babel}
@@ -112,20 +126,115 @@ Our here proposed solution is specially designed for a single server, but the co
 Initially we tried to design a CRDT specifically for authentication and authorization. But we found out that a more abstract approach is more flexible and easier to implement. Therefore we designed a new data type called Extendable Commutative Replicable Data Type (ECmRDT) with authentication and authorization as an extension.
 
 \section{Overview}
-We base our ECmRDT on CmRDTs and therefore make use of event sourcing. Because we design our ECmRDT to be used in server/client applications we only use direct event sourcing in storing the events on the server. On the client we use a more classic approach and only store the last state of the data type and all pending events to be sent to the server. Incoming events are applied to the last state to get the new state.
+We base our \code{ECmRDT} on CmRDTs and therefore make use of event sourcing. Because we design our \code{ECmRDT} to be used in server/client applications we only use direct event sourcing in storing the \code{Event}s on the server. On the client we use a more classic approach and only store the last state of the data type and all pending events to be sent to the server. Incoming events are applied to the last state to get the new state.
 
-The core feature of our ECmRDT is the concept of extensions. Extensions are a way to add functionality by mutation of state through events or validation of events. 
+The core feature of our \code{ECmRDT} is the concept of extensions. Extensions are a way to add functionality by mutation of state through events or validation of events. 
 
 \subsection{Concepts}
 
-\begin{lstlisting}[frame=single]
-	case class ECmRDT[A, C <: IdentityContext](
-		val state: A,
-		val clock: VectorClock = VectorClock(Map.empty)
-	)
+\minisec{ReplicaId}
+The \code{ReplicaId} is a unique identifier for a replica / the user. The \code{ReplicaId} is in our case a public key. We will go into detail why we use a public key as \code{ReplicaId} in our chapter about authentication and authentication.
+
+\begin{lstlisting}
+case class ReplicaId(
+  val publicKey: BinaryData
+)
 \end{lstlisting}
 
-\subsection{Extensions and EffectPipeline}
+\minisec{AggregateId}
+The \code{AggregateId} is a unique identifier for an \code{ECmRDT}. The \code{AggregateId} is a combination of a \code{ReplicaId} and some random bytes. The \code{ReplicaId} is the \code{ownerReplicaId} of the Aggregate. The random bytes are used to prevent collisions of \code{AggregateId}s.
+
+\begin{lstlisting}
+case class AggregateId(
+  val replicaId: ReplicaId,
+  val randomBytes: BinaryData
+)
+\end{lstlisting}
+
+\minisec{Effect}
+An \code{Effect} is a function that takes a \code{state}, an context, an \code{MetaContext} and returns a new \code{state} or an \code{RatableError} in future. By returning an \code{RatableError} we can verify the \code{Event} together with the given parameters. The effect is an asynchronous operation because we need to use cryptograpic operations to verify the \code{Event} which are usally implemented asynchronously.
+
+\begin{lstlisting}
+type Effect[A, C] = (A, C, MetaContext) => EitherT[Future, RatableError, A]
+\end{lstlisting}
+
+\minisec{Event}
+If the user wants to take any actions on the \code{ECmRDT}, he has to create an event. Every event is associated with a context. An \code{Event} is applied to the \code{ECmRDT} by converting it into an \code{Effect}.
+
+\begin{lstlisting}
+trait Event[A, C]:
+  def asEffect: Effect[A, C]
+\end{lstlisting}
+
+\minisec{MetaContext}
+The \code{MetaContext} is a context that is passed to the \code{ECmRDT} when applying an \code{Event}. It contains information about the \code{ownerReplicaId} and the \code{aggregateId}. 
+
+The need results from the fact, that the initialization of \code{ECmRDT}s also happens through an \code{Event}. While processing the first \code{Event} we do not have any \code{state} yet. Therefore we could normally not validate the \code{Event}. The \code{MetaContext} is mainly used to validate the first \code{Event} by checking if the \code{Event} was created by the \code{ownerReplicaId}.
+
+\begin{lstlisting}
+case class MetaContext(
+  val aggregateId: AggregateId,
+  val ownerReplicaId: ReplicaId,
+)
+\end{lstlisting}
+
+\minisec{ECmRDTEventWrapper}
+The \code{ECmRDTEventWrapper} is a wrapper for an \code{Event} and a context. It is used to bundle the \code{Event} with the context and the \code{clock} of the \code{ECmRDT} when the \code{Event} was created. The \code{clock} is used to prevent duplications of \code{Event}s.
+
+\begin{lstlisting}
+case class ECmRDTEventWrapper[A, C, +E <: Event[A, C]](
+  val time: Long,
+  val event: E,
+  val context: C,
+)
+\end{lstlisting}
+
+\minisec{Context}
+The context contains meta information about a single \code{Event} but is the same for all \code{Event}s of a single \code{ECmRDT} implementation. The idea is to compose the context out of multiple traits.
+
+An core context trait is the \code{IdentityContext}. This context trait is always required and contains the \code{ReplicaId} of the creator of this \code{Event}. The validation of this identity is not done by the \code{ECmRDT} but must be done externally. More on this in the section about authentication and authorization.
+
+\begin{lstlisting}
+trait IdentityContext:
+	def replicaId: ReplicaId
+\end{lstlisting}
+
+\minisec{ECmRDT}
+Our core concept is the \code{ECmRDT}. The \code{ECmRDT} consists of a \code{state} and a \code{clock}. The \code{state} is the actual data of the \code{ECmRDT}. The \code{clock} is a \code{VectorClock} to prevent duplications of \code{Event}s. Our \code{ECmRDT} does not handle distribution of \code{Event}s nor storing pending \code{Event}s. This has to be done by the user of the \code{ECmRDT}.
+
+Our \code{ECmRDT} supports two operations. One to \code{prepare} an \code{Event} and one to apply an prepared event called \code{ECmRDTEventWrapper}. The \code{prepare} operation is used to aquire additional information from the \code{ECmRDT}, specifically the \code{clock} and bundle the event with an context into one \code{ECmRDTEventWrapper}. The \code{apply} operation is used to apply the \code{Event} to the \code{ECmRDT}.
+
+\begin{lstlisting}
+case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
+	val state: A,
+	val clock: VectorClock = VectorClock(Map.empty)
+):
+	def prepare(
+		event: E, context: C
+	)(
+		using effectPipeline: EffectPipeline[A, C]
+	): ECmRDTEventWrapper[A, C, E] = ...
+
+	def effect(
+		wrapper: ECmRDTEventWrapper[A, C, E], meta: MetaContext
+	)(
+		using effectPipeline: EffectPipeline[A, C]
+	): EitherT[Future, RatableError, ECmRDT[A, C, E]] = ...
+\end{lstlisting}
+
+\minisec{EffectPipeline}
+The \code{EffectPipeline} is a simple structure that converts an existing \code{Effect} into a new \code{Effect}. It is the core piece in implementing extensions. The \code{EffectPipeline} is implicitly specified by a \code{ECmRDT} implementation and is used to implement additional functionality like logging, validation or mutation. Functionality provided by the \code{EffectPipeline} is applied to all \code{Event}s of a \code{ECmRDT}.
+
+\begin{lstlisting}
+trait EffectPipeline[A, C]:
+	def apply(effect: Effect[A, C]): Effect[A, C]
+\end{lstlisting}
+
+\subsection{Usage and Example}
+The usage of an \code{ECmRDT} is generally simple. The user has to specify an State, a Context, some \code{Event}s and a \code{EffectPipeline}. When the user wants to apply an \code{Event} with an Context, he first has to prepare it. The preparation will add an time to the \code{Event} and bundle it with the Context. The user can then apply the prepared \code{Event} to the \code{ECmRDT}. To apply the prepared event it is first converted into an \code{Effect}. This \code{Effect} is then converted into a new \code{Effect} by the \code{EffectPipeline}. The \code{Effect} is then applied to the \code{ECmRDT}.
+
+\subsection{Extensions}
+
 \section{ECmRDT Example}
 \section{Conclusion}
 
