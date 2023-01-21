@@ -231,7 +231,29 @@ trait EffectPipeline[A, C]:
 \end{lstlisting}
 
 \subsection{Usage and Example}
-The usage of an \code{ECmRDT} is generally simple. The user has to specify an State, a Context, some \code{Event}s and a \code{EffectPipeline}. When the user wants to apply an \code{Event} with an Context, he first has to prepare it. The preparation will add an time to the \code{Event} and bundle it with the Context. The user can then apply the prepared \code{Event} to the \code{ECmRDT}. To apply the prepared event it is first converted into an \code{Effect}. This \code{Effect} is then converted into a new \code{Effect} by the \code{EffectPipeline}. The \code{Effect} is then applied to the \code{ECmRDT}.
+The usage of an \code{ECmRDT} is generally simple. The user has to specify an State, a Context, some \code{Event}s and a \code{EffectPipeline}. 
+
+When the user wants to apply an \code{Event} with an Context, he first has to prepare it. The preparation will add an time to the \code{Event} and bundle it with the Context. The user can then apply the prepared \code{Event} to the \code{ECmRDT}. 
+
+To apply the prepared event it is first converted into an \code{Effect}. This \code{Effect} is then converted into a new \code{Effect} by the \code{EffectPipeline}. With all provided information the \code{ECmRDT} can then convert its previous \code{state} using the \code{Effect} into a new \code{state}. The \code{state} with an updated \code{VectorClock} is then returned to the user.
+
+An minimal example of an \code{ECmRDT} implementation is shown in the following listing. The \code{ECmRDT} is a simple counter that can be incremented.
+
+\begin{lstlisting}
+case class CounterState(value: Int = 0)
+
+case class CounterContext(replicaId: ReplicaId) extends IdentityContext
+
+sealed trait CounterEvent extends Event[CounterState, CounterContext]
+
+case class IncrementEvent() extends CounterEvent:
+	def asEffect: Effect[CounterState, CounterContext] =
+		(state, context, meta) => state.copy(value = state.value + 1)
+
+// Somewhere in user code
+val counter = ECmRDT[CounterState, CounterContext, CounterEvent](CounterState())
+
+\end{lstlisting}
 
 \subsection{Extensions}
 
