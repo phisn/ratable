@@ -1,4 +1,4 @@
-package function.application.handlers
+package function.application.socket
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -8,9 +8,8 @@ import core.messages.socket.*
 import core.domain.aggregates.ratable.*
 import core.framework.*
 import functions.*
-import function.application.handlers.*
 import scala.concurrent.*
 import scala.util.*
 
-def deltaMessageHandler(message: EventsMessage)(using services: Services): Future[Unit] =
+def eventsMessageHandler(message: EventsMessage)(using services: Services): Future[Unit] =
   ???

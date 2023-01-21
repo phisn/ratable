@@ -1,4 +1,4 @@
-package functions.services
+package functions.device.services
 
 import scala.reflect.Selectable.*
 import scala.scalajs.js

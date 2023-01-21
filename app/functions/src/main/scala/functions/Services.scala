@@ -15,12 +15,12 @@ trait Services:
   lazy val connectionContext: ConnectionContextProviderInterface
   lazy val logger: LoggerServiceInterface
   lazy val socketMessaging: SocketMessagingServiceInterface
-  lazy val stateProvider: StateProviderService
+  lazy val eventStorage: EventStorageService
 
 class ServicesDefault(
   context: js.Dynamic
 ) extends Services, DeviceServices:
-  lazy val storage = new StorageService(this, context)
+//  lazy val storage = new StorageService(this, context)
 
   // Core
   lazy val config = new ApplicationConfig(this, context)
@@ -28,4 +28,4 @@ class ServicesDefault(
   lazy val logger = new LoggerService(this, context)
   lazy val socketMessaging = new SocketMessagingService(this, context)
 
-  lazy val stateProvider = new StateProviderService(this, context)
+  lazy val eventStorage = new EventStorageService(this, context)

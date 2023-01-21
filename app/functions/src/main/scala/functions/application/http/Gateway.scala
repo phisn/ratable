@@ -1,12 +1,11 @@
-package function.application.gateway
+package function.application.http
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
 import core.messages.http.*
-//import functions.*
-//import function.application.handlers.*
+import functions.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.typedarray.*
@@ -17,7 +16,6 @@ import typings.azureCosmos.mod.*
 import typings.std.global.TextEncoder
 import typings.std.global.TextDecoder
 
-
 import org.scalablytyped.runtime.StObject
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSGlobalScope, JSGlobal, JSImport, JSName, JSBracketAccess}
@@ -27,9 +25,7 @@ given JsonValueCodec[String] = JsonCodecMaker.make
 object HttpEntry:
   @JSExportTopLevel("http")
   def gateway(context: js.Dynamic) =
-    ???
-/*
-    implicit val services = ProductionServices(context)
+    implicit val services = ServicesDefault(context)
 
     services.logger.trace(s"Http called")
 
@@ -38,7 +34,7 @@ object HttpEntry:
     val encoder = TextEncoder()
     val decoder = TextDecoder()
 
-    def respond[A <: GeneratedMessage](message: A) =
+    def respond[A <: GeneratedMessage](message: A, status: Int) =
       context.res = js.Dynamic.literal(
         "status" -> 200,
         "body" -> js.Dynamic.global.Buffer.from(message.toByteArray.toTypedArray),
@@ -79,9 +75,9 @@ object HttpEntry:
         catch
           case exception: Throwable =>
             services.logger.error(s"Failed to dispatch message n=${message.number}: ${exception.getMessage}")
+            respond(ClientHttpMessage(ClientHttpMessage.Message.Empty), 500)
             context.done()
 
       case Failure(exception) =>
         services.logger.error(s"Failed to parse message: ${exception.getMessage}")
-       context.done()
-*/
+        context.done()

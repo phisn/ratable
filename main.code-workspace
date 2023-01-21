@@ -5,6 +5,10 @@
             "path": "app"
         },
         {
+            "name": "doc",
+            "path": "doc"
+        },
+        {
             "name": "root",
             "path": "."
         }

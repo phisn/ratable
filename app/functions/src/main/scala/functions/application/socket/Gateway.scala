@@ -1,11 +1,10 @@
-package function.application.gateway
+package function.application.socket
 
 import concurrent.ExecutionContext.Implicits.global
 import core.messages.common.*
 import core.messages.common.*
 import core.messages.socket.*
 import functions.*
-import function.application.handlers.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.typedarray.*

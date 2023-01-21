@@ -1,7 +1,8 @@
-package functions.services
+package functions.device.services
 
 import core.messages.common.*
 import core.messages.socket.*
+import functions.services.*
 import scala.reflect.Selectable.*
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*

@@ -1,0 +1,146 @@
+\documentclass[
+	ngerman,
+	ruledheaders=section,   % Ebene bis zu der die Überschriften mit Linien abgetrennt werden, vgl. DEMO-TUDaPub
+	class=report,		    % Basisdokumentenklasse. Wählt die Korrespondierende KOMA-Script Klasse
+	thesis={type=bachelor}, % Dokumententyp Thesis, für Dissertationen siehe die Demo-Datei DEMO-TUDaPhd
+	accentcolor=9c,			% Auswahl der Akzentfarbe
+	custommargins=false,    % Ränder werden mithilfe von typearea automatisch berechnet
+	marginpar=false,        % Kopfzeile und Fußzeile erstrecken sich nicht über die Randnotizspalte
+	% BCOR=5mm,             % Bindekorrektur, falls notwendig
+	parskip=half-,          % Absatzkennzeichnung durch Abstand vgl. KOMA-Script
+	fontsize=11pt,          % Basisschriftgröße laut Corporate Design ist mit 9pt häufig zu klein
+]{tudapub}
+
+% Scala support
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{language=Scala}
+ 
+% Sprachanpassung & Verbesserte Trennregeln 
+\usepackage[english, main=ngerman]{babel}
+
+% Anführungszeichen vereinfacht
+\usepackage[autostyle]{csquotes}
+
+% Falls mit pdflatex kompiliert wird, wird microtype automatisch geladen, in diesem Fall muss diese Zeile entfernt werden, und falls weiter Optionen hinzugefügt werden sollen, muss dies über
+% \PassOptionsToPackage{Optionen}{microtype} vor \documentclass hinzugefügt werden.
+\usepackage{microtype}
+
+% Literaturverzeichnis
+\usepackage{biblatex} 
+\bibliography{DEMO-TUDaBibliography}
+ 
+% Paketvorschläge Tabellen 
+\usepackage{tabularx}    % Tabellen, die sich automatisch der Breite anpassen
+\usepackage{booktabs}    % Verbesserte Möglichkeiten für Tabellenlayout über horizontale Linien
+
+% Paketvorschläge Mathematik
+% \usepackage{mathtools} % erweiterte Fassung von amsmath
+% \usepackage{amssymb}   % erweiterter Zeichensatz
+% \usepackage{siunitx}   % Einheiten
+
+% Formatierungen für Beispiele in diesem Dokument. Im Allgemeinen nicht notwendig!
+\let\file\texttt
+\let\code\texttt
+\let\tbs\textbackslash
+\let\pck\textsf
+\let\cls\textsf
+
+% Zapf-Dingbats Symbole
+\usepackage{pifont}
+\newcommand*{\FeatureTrue }{\ding{52}}
+\newcommand*{\FeatureFalse}{\ding{56}}
+
+\begin{document}
+
+\Metadata{
+	title=TUDaThesis - Abschlussarbeiten im CD der TU Darmstadt,
+	author=Marei Peischl
+}
+
+\title{My Bachelorthesis title}
+% \subtitle{No subtitle}
+\author[P. Hinz]{Philipp Hinz} % optionales Argument ist die Signatur,
+\reviewer{Gutachter 1 \and Gutachter 2 \and noch einer \and falls das immernoch nicht reicht}
+
+% Diese Felder werden untereinander auf der Titelseite platziert.
+% \department ist eine notwendige Angabe, siehe auch dem Abschnitt `Abweichung von den Vorgaben für die Titelseite'
+
+% Das Kürzel wird automatisch ersetzt und als Studienfach gewählt, siehe Liste der Kürzel im Dokument.
+\department{inf}
+\institute{Institut}
+\group{Arbeitsgruppe}
+
+\submissiondate{\today}
+\examdate{\today}
+
+\maketitle
+
+% oder \affidavit[digital] falls eine rein digitale Abgabe vorgesehen ist.
+\affidavit
+% Es gibt mit Version 3.20 die Möglichkeit ein Bild als Signatur einzubinden.
+% TUDa-CI kann nicht garantieren, dass dies zulässig ist oder eine eigenhändige Unterschrift ersetzt.
+% Dies ist durch Studierende vor der Verwendung abzuklären.
+% Die Verwendung funktioniert so:
+%\affidavit[signature-image={\includegraphics[width=\width,height=1cm]{example-image}}, <hier können andere Optionen wie z.B. affidavit=digital zusätzlich stehen>]
+
+\tableofcontents
+
+\chapter{Introduction}
+\section{Case Study}
+
+\chapter{Background and Related Work}
+\section{Local-First}
+\section{CvRDT and CmRDT}
+\section{Technical Stack}
+
+\chapter{Extendable Commutative Replicable Data Types}
+In this chapter we will introduce the concept of Extendable Commutative Replicable Data Types (ECmRDT) and present our implementation of this concept.
+
+\section{Motivation}
+CvRDTs and CmRDTs do not care about authentication and authorization. This is usally not a problem in trusted environments like a cluster of servers. But used in client running applications (local-first applications) we usally can not trust our clients. Therefore we need to add authentication and authorization to our data types. 
+
+Additionally local-first applications require end-to-end encryption if we want to store our data on a server. This is usally difficult to combine with authentication and authorization. 
+
+Our here proposed solution is specially designed for a single server, but the concepts can be easily applied to peer-to-peer applications. We explore the use in peer-to-peer applications a bit in the future work section.
+
+Initially we tried to design a CRDT specifically for authentication and authorization. But we found out that a more abstract approach is more flexible and easier to implement. Therefore we designed a new data type called Extendable Commutative Replicable Data Type (ECmRDT) with authentication and authorization as an extension.
+
+\section{Overview}
+We base our ECmRDT on CmRDTs and therefore make use of event sourcing. Because we design our ECmRDT to be used in server/client applications we only use direct event sourcing in storing the events on the server. On the client we use a more classic approach and only store the last state of the data type and all pending events to be sent to the server. Incoming events are applied to the last state to get the new state.
+
+The core feature of our ECmRDT is the concept of extensions. Extensions are a way to add functionality by mutation of state through events or validation of events. 
+
+\subsection{Concepts}
+
+\begin{lstlisting}[frame=single]
+	case class ECmRDT[A, C <: IdentityContext](
+		val state: A,
+		val clock: VectorClock = VectorClock(Map.empty)
+	)
+\end{lstlisting}
+
+\subsection{Extensions and EffectPipeline}
+\section{ECmRDT Example}
+\section{Conclusion}
+
+\chapter{Ratable}
+\section{Architecture}
+\subsection{Core}
+\subsection{Functions}
+\subsection{Webapp}
+\section{Implementation}
+\section{Evaluation}
+
+\chapter{Future Work}
+\section{Ratable}
+\section{ECmRDT}
+
+\printbibliography
+
+\end{document}

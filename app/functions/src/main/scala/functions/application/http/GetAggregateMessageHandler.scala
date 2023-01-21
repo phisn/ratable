@@ -1,5 +1,4 @@
-/*
-package function.application.handlers
+package function.application.http
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import concurrent.ExecutionContext.Implicits.global
@@ -9,9 +8,8 @@ import functions.*
 import scala.concurrent.*
 import core.domain.aggregates.ratable.* 
 
-def getAggregateMessageHandler(message: GetAggregateMessage) =
-  println(s"GetAggregateMessage: ${message.aggregateId.id}")
-*/
+def getAggregateEventsMessageHandler(message: GetAggregateEventsMessage) =
+  ???
 
 /*
 def getAggregateMessageHandler(message: GetAggregateMessage)(using services: Services): Future[GetAggregateResponseMessage] =
