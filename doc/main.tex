@@ -195,6 +195,11 @@ How exactly the ECmRDT's and the SingleOwnerEffectPipeline work will be in the n
 
 In this section, we will introduce concepts of our ECmRDT with definitions, code examples and also explain how certain relate to each other.
 
+\minisec{Aggregate}
+The definition of aggregate I will use here is "An AGGREGATE is a cluster of associated objects that we treat as a unit for the purpose of data changes. Each AGGREGATE has a root and a boundary. The boundary defines what is inside the AGGREGATE. The root is a single, specific ENTITY contained in the AGGREGATE." from Evans DDD.
+
+In general it can be understood as a Domain concepts where only one aggregate at a time should be changed by a use case. Here we will define one ECmRDT per aggregate. 
+
 \minisec{ReplicaId}
 The ReplicaId is a unique identifier for a user. The ReplicaId consists of a public/private key pair. With this we can sign and verify events send by a user. Because the private key only exists in the corresponding replica as a privateReplicaId, the ReplicaId as a data structure only contains the public key for identification. More about the usage of the ReplicaId is covered in the chapter about authentication and authorization. 
 
@@ -215,14 +220,14 @@ case class AggregateId(
 \end{lstlisting}
 
 \minisec{Effect}
-An Effect is a function that takes a state, an context, an MetaContext and returns a new state or an RatableError in future. By returning an RatableError we can verify the Event together with the given parameters. The effect is an asynchronous operation because we need to use cryptograpic operations to verify the Event which are usally implemented asynchronously.
+An Event can be converted to an Effect to apply the Event to the state. Generally Effect is a function that takes a state, an context, an MetaContext and returns a new state or an RatableError in future. By returning an RatableError we can abort the Event and therefore verify the Event together with the given parameters if they are valid. The effect is an asynchronous operation because we sometimes need to use cryptograpic operations to verify the Event which are implemented in webbrowsers asynchronously.
 
 \begin{lstlisting}
 type Effect[A, C] = (A, C, MetaContext) => EitherT[Future, RatableError, A]
 \end{lstlisting}
 
 \minisec{Event}
-If the user wants to take any actions on the ECmRDT, he has to create an event. Every event is associated with a context. An Event is applied to the ECmRDT by converting it into an Effect.
+Events are created by users to change the state. Usally Events are caused directly by user actions. Events are implicitly associated with a context. Thereby Events contain information specific to this event and the context contains information that is contained in every event. Events can be converted into Effects to be late be used to advance the state.
 
 \begin{lstlisting}
 trait Event[A, C]:
@@ -230,9 +235,9 @@ trait Event[A, C]:
 \end{lstlisting}
 
 \minisec{MetaContext}
-The MetaContext is a context that is passed to the ECmRDT when applying an Event. It contains information about the ownerReplicaId and the aggregateId. 
+MetaContexts contain information required for ECmRDTs but that are not stored directly in the ECmRDT. Currently it contains information about the AggregateId of the ECmRDT and the ReplicaId of the aggregate owner. The reason why dont store the aggregate owner inside the ECmRDT is because we can already get it implicitly from the aggregateId.
 
-The need results from the fact, that the initialization of ECmRDTs also happens through an Event. While processing the first Event we do not have any state yet. Therefore we could normally not validate the Event. The MetaContext is mainly used to validate the first Event by checking if the Event was created by the ownerReplicaId.
+The need for MetaContexts comes from the problem on how to initialize ECmRDTs through an initial events and especially how to verify initial events. At creation time when processing the first event the state is yet empty/default initialized. Therefore we would normally not be able to validate the event through the provided state. Using the MetaContext or to be more precise the owner replicaId inside the MetaContext we can enforce the rule to only allow initial events to be sent by the owner of the aggregate.
 
 \begin{lstlisting}
 case class MetaContext(
@@ -242,7 +247,9 @@ case class MetaContext(
 \end{lstlisting}
 
 \minisec{ECmRDTEventWrapper}
-The ECmRDTEventWrapper is a wrapper for an Event and a context. It is used to bundle the Event with the context and the clock of the ECmRDT when the Event was created. The clock is used to prevent duplications of Events.
+Events are implicitly associated with Contexts. This association becomes explicit through an ECmRDTEventWrapper. The reason why we normally only associate Events implicitly is because an ECmRDTEventWrapper contains additional information that is aquired by preparing an Event and Context through an ECmRDT. Only after preparation and conversion to an ECmRDTEventWrapper can it be used to update an ECmRDT. 
+
+The currently primary information packed additionally with an ECmRDTEventWrapper is time. An ECmRDT uses a VectorClock to prevent Event duplicates. The time from the VectorClock is then stored inside the Event to associate it with the time.
 
 \begin{lstlisting}
 case class ECmRDTEventWrapper[A, C, +E <: Event[A, C]](
@@ -253,9 +260,11 @@ case class ECmRDTEventWrapper[A, C, +E <: Event[A, C]](
 \end{lstlisting}
 
 \minisec{Context}
-The context contains meta information about a single Event but is the same for all Events of a single ECmRDT implementation. The idea is to compose the context out of multiple traits.
+Events only contain information specific to the aggregate and the information are neither accessible by ECmRDT nor Extensions. Therefore we use Contexts to provide common information stored with events that allow us to use them in ECmRDTs and Extensions. 
 
-An core context trait is the IdentityContext. This context trait is always required and contains the ReplicaId of the creator of this Event. The validation of this identity is not done by the ECmRDT but must be done externally. More on this in the section about authentication and authorization.
+A good example is the IdentityContext containing an replicaId. It is used in ECmRDTs to update the VectorClock of the replica sending the Event and also used when filtering Events for Authentication and Authorization.
+
+It should be noted that validation of the IdentityContext itself (if the replicaId is actually the sender) is done outside of the ECmRDT. The validation happens through an signature added to events which can then be verified by the public key inside the replicaId.
 
 \begin{lstlisting}
 trait IdentityContext:
@@ -263,9 +272,9 @@ trait IdentityContext:
 \end{lstlisting}
 
 \minisec{ECmRDT}
-Our core concept is the ECmRDT. The ECmRDT consists of a state and a clock. The state is the actual data of the ECmRDT. The clock is a VectorClock to prevent duplications of Events. Our ECmRDT does not handle distribution of Events nor storing pending Events. This has to be done by the user of the ECmRDT.
+The core concept is the ECmRDT. The ECmRDT consists of a state and a clock. The state contains the actual data of the aggregate. The clock is a VectorClock to prevent duplications of Events. Our ECmRDT does neither handle distribution of Events nor storing pending Events nor validation of identities (see Context section). This has to be done by the user of the ECmRDT.
 
-Our ECmRDT supports two operations. One to prepare an Event and one to apply an prepared event called ECmRDTEventWrapper. The prepare operation is used to aquire additional information from the ECmRDT, specifically the clock and bundle the event with an context into one ECmRDTEventWrapper. The apply operation is used to apply the Event to the ECmRDT.
+Our ECmRDT supports two operations. One to prepare an Event and one to apply an prepared event. The prepare operation is used to aquire additional information from the ECmRDT, specifically the clock and bundle the event with an context into one ECmRDTEventWrapper. The apply operation is used to apply the Event to the ECmRDT while also advancing the vector clock.
 
 \begin{lstlisting}
 case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
@@ -286,7 +295,7 @@ case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
 \end{lstlisting}
 
 \minisec{EffectPipeline}
-The EffectPipeline is a simple structure that converts an existing Effect into a new Effect. It is the core piece in implementing extensions. The EffectPipeline is implicitly specified by a ECmRDT implementation and is used to implement additional functionality like logging, validation or mutation. Functionality provided by the EffectPipeline is applied to all Events of a ECmRDT.
+Extensions are implemented by transforming an Effect to a new Effect. The function that transforms this Effect is called EffectPipeline. EffectPipelines are specified by aggregates to enable extensions to add functionality like logging, validation, mutation or more. Important is that the functionality provided by EffectPipelines is will be used for all Events of an ECmRDT. 
 
 \begin{lstlisting}
 trait EffectPipeline[A, C]:
@@ -295,5 +304,9 @@ trait EffectPipeline[A, C]:
 
 \section{Authentication and authorization}
 
+\chapter{Future}
+Why do we have events and contexts. Couldnt we just say Event extends Context and explicitly associate them from the beginning?
+
+Include event signing in general ECmRDT architecture.
 
 \end{document}
