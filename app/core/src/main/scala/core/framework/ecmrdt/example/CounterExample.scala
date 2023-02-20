@@ -8,25 +8,25 @@ import core.framework.ecmrdt.extensions.*
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
-enum CounterRoles:
+enum CounterClaimEnum:
   case Adder
-/*
+
 case class Counter(
   val value: Int,
-  val claims: List[Claim[CounterRoles]]
+  val claims: List[Claim[CounterClaimEnum]]
 ) 
-extends AsymPermissionStateExtension[CounterRoles]
+extends AsymPermissionStateExtension[CounterClaimEnum]
 
 case class CounterContext(
   val replicaId: ReplicaId,
-  val proofs: List[ClaimProof[CounterRoles]]
+  val proofs: List[ClaimProof[CounterClaimEnum]]
 ) 
 extends IdentityContext 
-   with AsymPermissionContextExtension[CounterRoles]
+   with AsymPermissionContextExtension[CounterClaimEnum]
 
 object Counter:
   given (using Crypt): EffectPipeline[Counter, CounterContext] = EffectPipeline(
-    AsymPermissionEffectPipeline[Counter, CounterRoles, CounterContext]
+    AsymPermissionEffectPipeline[Counter, CounterClaimEnum, CounterContext]
   )
 
 sealed trait CounterEvent extends Event[Counter, CounterContext]
@@ -35,78 +35,38 @@ case class AddCounterEvent(
   val value: Int
 ) extends CounterEvent:
   def asEffect: Effect[Counter, CounterContext] =
-    (state, context) => 
+    (state, context, meta) => 
       for
-        _ <- context.verifyClaim(CounterRoles.Adder)
+        _ <- context.verifyClaim(CounterClaimEnum.Adder)
       yield
         state.copy(value = state.value + value)
 
-def addCounterEvent(replicaId: ReplicaId, value: Int)(using registry: ClaimRegistry[CounterRoles]) =
-  withProofs(CounterRoles.Adder) { proofs => 
-    EventWithContext(
-      AddCounterEvent(value),
-      CounterContext(replicaId, proofs)
-    )
-  }
-  
-*/
-/*
 def main(using Crypt) = 
   for
-    replicaId <- PrivateReplicaId()
+    replicaId <- EitherT.liftF(PrivateReplicaId())
 
     // Step 1: Create claims and claimProvers.
-    (claims, claimProvers) <- Claim.create(Set(CounterRoles.Adder))
+    claimsPair <- EitherT.liftF(
+      Claim.create(List(CounterClaimEnum.Adder))
+    )
 
-    registry = new ClaimRegistry[CounterRoles]:
-      def proof(claim: CounterRoles): Future[ClaimProof[CounterRoles]] =
-        claimProvers.find(_.id == claim).get.prove(replicaId)
+    (claims, provers) = claimsPair
+
+    proof <- EitherT.liftF(
+      provers.head.prove(replicaId)
+    )
 
     // Step 2: Create initial state.
     counter = ECmRDT[Counter, CounterContext, CounterEvent](Counter(0, claims))
 
     // Step 3: Create event.
-    event <- addCounterEvent(replicaId, 5)(using registry)
-
-    eventPrepared <- counter.prepare(event)
+    eventPrepared = counter.prepare(
+      AddCounterEvent(5),
+      CounterContext(replicaId, List(proof))
+    )
 
     // Step 4: Verify and advance state.
-    newCounter <- eventPrepared match
-      case Left(error) => Future.successful(Left(error))
-      case Right(event) => counter.effect(event)
+    newCounter <- counter.effect(eventPrepared, MetaContext(null, null))
 
-    fakeReplicaId <- PrivateReplicaId()
-
-    // Create and test fake events to verify that the effect verification is working.
-    fakeEvent1 = EventWithContext(
-      AddCounterEvent(5),
-      CounterContext(fakeReplicaId, event.context.proofs)
-    )
-
-    fakeEvent2 = EventWithContext(
-      AddCounterEvent(5),
-      CounterContext(replicaId, Set.empty)
-    )
-
-    fakeEvent3 = EventWithContext(
-      AddCounterEvent(4),
-      CounterContext(replicaId, Set(ClaimProof(BinaryData("fakeProof".getBytes), CounterRoles.Adder)))
-    )
-
-    fakeValid1 <- testingPrepareAndEffect(counter, fakeEvent1).map(_.swap.toOption)
-    fakeValid2 <- testingPrepareAndEffect(counter, fakeEvent2).map(_.swap.toOption)
-    fakeValid3 <- testingPrepareAndEffect(counter, fakeEvent3).map(_.swap.toOption)
-    fakeValid4 <- eventPrepared match
-      case Left(error) => Future.successful(Left(error))
-      case Right(event) => newCounter.toOption.get.effect(event).map(_.swap.toOption)
-
-  do
-    println(s"State is valid: ${newCounter.swap.toOption}")
-    println(s"Fake state 1 is valid: $fakeValid1")
-    println(s"Fake state 2 is valid: $fakeValid2")
-    println(s"Fake state 3 is valid: $fakeValid3")
-    println(s"Fake state 4 is valid: $fakeValid4")
-    println(s"Old state was: ${counter.state.value}")
-    println(s"New state is: ${newCounter.map(_.state.value)}")
-    println(s"ecmrdt1")
-*/
+  yield
+    println(s"New counter: $newCounter")

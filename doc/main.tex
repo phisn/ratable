@@ -106,34 +106,97 @@
 \tableofcontents
 
 \chapter{Introduction}
-\section{Case Study}
 
-\chapter{Background and Related Work}
-\section{Local-First}
-\section{CvRDT and CmRDT}
-\section{Technical Stack}
+\chapter{Case Study}
+Our case study is named Ratable. With Ratable users can create ratable objects and let a group of people rate them. Ratable is an application, users can interact with on their mobile devices or desktop computers. 
 
-\chapter{Extendable Commutative Replicable Data Types}
-In this chapter we will introduce the concept of Extendable Commutative Replicable Data Types (ECmRDT) and present our implementation of this concept.
+The core idea contrary to usual rating services is that not everyone can rate a Ratable. With a newly created Ratable two links are provided. A rate and a view link. Only people with the rate link can rate and view the ratable.
 
-\section{Motivation}
-CvRDTs and CmRDTs do not care about authentication and authorization. This is usally not a problem in trusted environments like a cluster of servers. But used in client running applications (local-first applications) we usally can not trust our clients. Therefore we need to add authentication and authorization to our data types. 
+Ratable is implemented as a cloud-native local-first application. Ratable allows users to use the application without an internet connection and provides updates/changes in real-time. This provides for a very fluent usage of Ratable because we do not need to have any loading screens. The only time we need to load something is when we access some Ratable for the first time. Changes to Ratables are done instantly and synchronized when possible.
 
-Additionally local-first applications require end-to-end encryption if we want to store our data on a server. This is usally difficult to combine with authentication and authorization. 
+Especially important for local-first applications is the feature that all trust is given to individual users instead of a server. This means that the server for Ratable plays only a secondary role and does not do much more than distributing state. All authorization and authentication are done by the clients themselves. This allows us to enable end-to-end encryption of the state.
 
-Our here proposed solution is specially designed for a single server, but the concepts can be easily applied to peer-to-peer applications. We explore the use in peer-to-peer applications a bit in the future work section.
-
-Initially we tried to design a CRDT specifically for authentication and authorization. But we found out that a more abstract approach is more flexible and easier to implement. Therefore we designed a new data type called Extendable Commutative Replicable Data Type (ECmRDT) with authentication and authorization as an extension.
+\chapter{Extendable CmRDT}
+In this chapter, we will look into what ECmRDT's are, what they are trying to do and how they are used to achieve the goal.
 
 \section{Overview}
-We base our \code{ECmRDT} on CmRDTs and therefore make use of event sourcing. Because we design our \code{ECmRDT} to be used in server/client applications we only use direct event sourcing in storing the \code{Event}s on the server. On the client we use a more classic approach and only store the last state of the data type and all pending events to be sent to the server. Incoming events are applied to the last state to get the new state.
+Extendable CmRDT's are normal CmRDT's with the ability to build extensions for them. Here CmRDT's are operation based CRDT's. Extensions are able verify and mutate events and state. They can also interact with other extensions. 
 
-The core feature of our \code{ECmRDT} is the concept of extensions. Extensions are a way to add functionality by mutation of state through events or validation of events. 
+With ECmRDT's we want to enable developers to create extensions that can be enabled for data types to easily extend them with additional functionality. This functionality can be for example something like verification of replicaId's in events, change of some variables in state before or after applying an event, migrations of events or authentication and authorization of events. Especially the last example is the primary reason for the usage of ECmRDT's. Contrary to normal CRDT's they allow us to build in security.
 
-\subsection{Concepts}
+Generally ECmRDT's work with events and state. In our design we do only use event sourcing at server side. That means that an ECmRDT itself only contains state. Users can then create an event and apply it to the ECmRDT and distribute it to other clients. Because events are signed, they can not be forged. How an event is applied to state in detail depends on and is defined in the domain logic. Extensions now come into place directly before applying the event to the state. The extensions are defined in something like a pipeline and can either forward the to event to the next extension or fail. Thereby events can either changes the data coming in or coming out.
+
+Lets say we want to implement a counter that can only be incremented by the owner. We would first define the state as a integer counter and one event that increments the state counter by one. The context and generally how these concepts relate to each other will be covered in the next section.
+
+\begin{lstlisting}
+    
+case class Counter(
+  val value: Int,
+) 
+
+case class CounterContext(
+  val replicaId: ReplicaId,
+)  extends IdentityContext
+
+sealed trait CounterEvent extends Event[Counter, CounterContext]
+
+case class AddCounterEvent() extends CounterEvent:
+  def asEffect =
+    (state, context, meta) => EitherT.pure(
+      state.copy(value = state.value + 1)
+    )
+
+\end{lstlisting}
+
+Then we would enable an build-in extensions that only lets events pass when they are send by the owner of the ratable.
+
+\begin{lstlisting}
+
+object Counter:
+  given EffectPipeline[Counter, CounterContext] = EffectPipeline(
+    SingleOwnerEffectPipeline()
+  )
+
+\end{lstlisting}
+
+Using only a few lines of code we have now a secure incrementable counter that can only be incremented by the owner. This counter can now be used like the following. The example will first create a replicaId and an initial state. With both we can create a event and apply it to our created state. In the end we print the state before and after applying our event.
+
+\begin{lstlisting}
+    
+def main(using Crypt) = 
+  for
+    // Step 1: Create replicaId
+    replicaId <- EitherT.liftF(PrivateReplicaId())
+
+    // Step 2: Create initial state.
+    counter = ECmRDT[Counter, CounterContext, CounterEvent](Counter(0))
+
+    // Step 3: Create event.
+    eventPrepared = counter.prepare(
+      AddCounterEvent(),
+      CounterContext(replicaId)
+    )
+
+    // Step 4: Verify and advance state.
+    newCounter <- counter.effect(eventPrepared, MetaContext(
+      AggregateId.singleton(replicaId), 
+      replicaId
+    ))
+
+  yield
+    println(s"Old counter: ${counter.state.value}")    // 0
+    println(s"New counter: ${newCounter.state.value}") // 1
+
+\end{lstlisting}
+
+How exactly the ECmRDT's and the SingleOwnerEffectPipeline work will be in the next section.
+
+\section{Concepts}
+
+In this section, we will introduce concepts of our ECmRDT with definitions, code examples and also explain how certain relate to each other.
 
 \minisec{ReplicaId}
-The \code{ReplicaId} is a unique identifier for a replica / the user. The \code{ReplicaId} is in our case a public key. We will go into detail why we use a public key as \code{ReplicaId} in our chapter about authentication and authentication.
+The ReplicaId is a unique identifier for a user. The ReplicaId consists of a public/private key pair. With this we can sign and verify events send by a user. Because the private key only exists in the corresponding replica as a privateReplicaId, the ReplicaId as a data structure only contains the public key for identification. More about the usage of the ReplicaId is covered in the chapter about authentication and authorization. 
 
 \begin{lstlisting}
 case class ReplicaId(
@@ -142,7 +205,7 @@ case class ReplicaId(
 \end{lstlisting}
 
 \minisec{AggregateId}
-The \code{AggregateId} is a unique identifier for an \code{ECmRDT}. The \code{AggregateId} is a combination of a \code{ReplicaId} and some random bytes. The \code{ReplicaId} is the \code{ownerReplicaId} of the Aggregate. The random bytes are used to prevent collisions of \code{AggregateId}s.
+The AggregateId is a unique identifier for an ECmRDT/aggregate. The AggregateId is a combination of a ReplicaId and random bytes. The ReplicaId inside the aggregateId represents the owner of the aggregate. We need to store the ReplicaId to prevent other replica's of creating aggreagtes with the same AggregateId malicously. The random bytes are used to prevent collisions of AggregateIds within a group of aggregates of a replica. 
 
 \begin{lstlisting}
 case class AggregateId(
@@ -152,14 +215,14 @@ case class AggregateId(
 \end{lstlisting}
 
 \minisec{Effect}
-An \code{Effect} is a function that takes a \code{state}, an context, an \code{MetaContext} and returns a new \code{state} or an \code{RatableError} in future. By returning an \code{RatableError} we can verify the \code{Event} together with the given parameters. The effect is an asynchronous operation because we need to use cryptograpic operations to verify the \code{Event} which are usally implemented asynchronously.
+An Effect is a function that takes a state, an context, an MetaContext and returns a new state or an RatableError in future. By returning an RatableError we can verify the Event together with the given parameters. The effect is an asynchronous operation because we need to use cryptograpic operations to verify the Event which are usally implemented asynchronously.
 
 \begin{lstlisting}
 type Effect[A, C] = (A, C, MetaContext) => EitherT[Future, RatableError, A]
 \end{lstlisting}
 
 \minisec{Event}
-If the user wants to take any actions on the \code{ECmRDT}, he has to create an event. Every event is associated with a context. An \code{Event} is applied to the \code{ECmRDT} by converting it into an \code{Effect}.
+If the user wants to take any actions on the ECmRDT, he has to create an event. Every event is associated with a context. An Event is applied to the ECmRDT by converting it into an Effect.
 
 \begin{lstlisting}
 trait Event[A, C]:
@@ -167,9 +230,9 @@ trait Event[A, C]:
 \end{lstlisting}
 
 \minisec{MetaContext}
-The \code{MetaContext} is a context that is passed to the \code{ECmRDT} when applying an \code{Event}. It contains information about the \code{ownerReplicaId} and the \code{aggregateId}. 
+The MetaContext is a context that is passed to the ECmRDT when applying an Event. It contains information about the ownerReplicaId and the aggregateId. 
 
-The need results from the fact, that the initialization of \code{ECmRDT}s also happens through an \code{Event}. While processing the first \code{Event} we do not have any \code{state} yet. Therefore we could normally not validate the \code{Event}. The \code{MetaContext} is mainly used to validate the first \code{Event} by checking if the \code{Event} was created by the \code{ownerReplicaId}.
+The need results from the fact, that the initialization of ECmRDTs also happens through an Event. While processing the first Event we do not have any state yet. Therefore we could normally not validate the Event. The MetaContext is mainly used to validate the first Event by checking if the Event was created by the ownerReplicaId.
 
 \begin{lstlisting}
 case class MetaContext(
@@ -179,7 +242,7 @@ case class MetaContext(
 \end{lstlisting}
 
 \minisec{ECmRDTEventWrapper}
-The \code{ECmRDTEventWrapper} is a wrapper for an \code{Event} and a context. It is used to bundle the \code{Event} with the context and the \code{clock} of the \code{ECmRDT} when the \code{Event} was created. The \code{clock} is used to prevent duplications of \code{Event}s.
+The ECmRDTEventWrapper is a wrapper for an Event and a context. It is used to bundle the Event with the context and the clock of the ECmRDT when the Event was created. The clock is used to prevent duplications of Events.
 
 \begin{lstlisting}
 case class ECmRDTEventWrapper[A, C, +E <: Event[A, C]](
@@ -190,9 +253,9 @@ case class ECmRDTEventWrapper[A, C, +E <: Event[A, C]](
 \end{lstlisting}
 
 \minisec{Context}
-The context contains meta information about a single \code{Event} but is the same for all \code{Event}s of a single \code{ECmRDT} implementation. The idea is to compose the context out of multiple traits.
+The context contains meta information about a single Event but is the same for all Events of a single ECmRDT implementation. The idea is to compose the context out of multiple traits.
 
-An core context trait is the \code{IdentityContext}. This context trait is always required and contains the \code{ReplicaId} of the creator of this \code{Event}. The validation of this identity is not done by the \code{ECmRDT} but must be done externally. More on this in the section about authentication and authorization.
+An core context trait is the IdentityContext. This context trait is always required and contains the ReplicaId of the creator of this Event. The validation of this identity is not done by the ECmRDT but must be done externally. More on this in the section about authentication and authorization.
 
 \begin{lstlisting}
 trait IdentityContext:
@@ -200,9 +263,9 @@ trait IdentityContext:
 \end{lstlisting}
 
 \minisec{ECmRDT}
-Our core concept is the \code{ECmRDT}. The \code{ECmRDT} consists of a \code{state} and a \code{clock}. The \code{state} is the actual data of the \code{ECmRDT}. The \code{clock} is a \code{VectorClock} to prevent duplications of \code{Event}s. Our \code{ECmRDT} does not handle distribution of \code{Event}s nor storing pending \code{Event}s. This has to be done by the user of the \code{ECmRDT}.
+Our core concept is the ECmRDT. The ECmRDT consists of a state and a clock. The state is the actual data of the ECmRDT. The clock is a VectorClock to prevent duplications of Events. Our ECmRDT does not handle distribution of Events nor storing pending Events. This has to be done by the user of the ECmRDT.
 
-Our \code{ECmRDT} supports two operations. One to \code{prepare} an \code{Event} and one to apply an prepared event called \code{ECmRDTEventWrapper}. The \code{prepare} operation is used to aquire additional information from the \code{ECmRDT}, specifically the \code{clock} and bundle the event with an context into one \code{ECmRDTEventWrapper}. The \code{apply} operation is used to apply the \code{Event} to the \code{ECmRDT}.
+Our ECmRDT supports two operations. One to prepare an Event and one to apply an prepared event called ECmRDTEventWrapper. The prepare operation is used to aquire additional information from the ECmRDT, specifically the clock and bundle the event with an context into one ECmRDTEventWrapper. The apply operation is used to apply the Event to the ECmRDT.
 
 \begin{lstlisting}
 case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
@@ -223,55 +286,14 @@ case class ECmRDT[A, C <: IdentityContext, E <: Event[A, C]](
 \end{lstlisting}
 
 \minisec{EffectPipeline}
-The \code{EffectPipeline} is a simple structure that converts an existing \code{Effect} into a new \code{Effect}. It is the core piece in implementing extensions. The \code{EffectPipeline} is implicitly specified by a \code{ECmRDT} implementation and is used to implement additional functionality like logging, validation or mutation. Functionality provided by the \code{EffectPipeline} is applied to all \code{Event}s of a \code{ECmRDT}.
+The EffectPipeline is a simple structure that converts an existing Effect into a new Effect. It is the core piece in implementing extensions. The EffectPipeline is implicitly specified by a ECmRDT implementation and is used to implement additional functionality like logging, validation or mutation. Functionality provided by the EffectPipeline is applied to all Events of a ECmRDT.
 
 \begin{lstlisting}
 trait EffectPipeline[A, C]:
 	def apply(effect: Effect[A, C]): Effect[A, C]
 \end{lstlisting}
 
-\subsection{Usage and Example}
-The usage of an \code{ECmRDT} is generally simple. The user has to specify an State, a Context, some \code{Event}s and a \code{EffectPipeline}. 
+\section{Authentication and authorization}
 
-When the user wants to apply an \code{Event} with an Context, he first has to prepare it. The preparation will add an time to the \code{Event} and bundle it with the Context. The user can then apply the prepared \code{Event} to the \code{ECmRDT}. 
-
-To apply the prepared event it is first converted into an \code{Effect}. This \code{Effect} is then converted into a new \code{Effect} by the \code{EffectPipeline}. With all provided information the \code{ECmRDT} can then convert its previous \code{state} using the \code{Effect} into a new \code{state}. The \code{state} with an updated \code{VectorClock} is then returned to the user.
-
-An minimal example of an \code{ECmRDT} implementation is shown in the following listing. The \code{ECmRDT} is a simple counter that can be incremented.
-
-\begin{lstlisting}
-case class CounterState(value: Int = 0)
-
-case class CounterContext(replicaId: ReplicaId) extends IdentityContext
-
-sealed trait CounterEvent extends Event[CounterState, CounterContext]
-
-case class IncrementEvent() extends CounterEvent:
-	def asEffect: Effect[CounterState, CounterContext] =
-		(state, context, meta) => state.copy(value = state.value + 1)
-
-// Somewhere in user code
-val counter = ECmRDT[CounterState, CounterContext, CounterEvent](CounterState())
-
-\end{lstlisting}
-
-\subsection{Extensions}
-
-\section{ECmRDT Example}
-\section{Conclusion}
-
-\chapter{Ratable}
-\section{Architecture}
-\subsection{Core}
-\subsection{Functions}
-\subsection{Webapp}
-\section{Implementation}
-\section{Evaluation}
-
-\chapter{Future Work}
-\section{Ratable}
-\section{ECmRDT}
-
-\printbibliography
 
 \end{document}
