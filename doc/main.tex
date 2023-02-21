@@ -4,7 +4,7 @@
 	class=report,		    % Basisdokumentenklasse. Wählt die Korrespondierende KOMA-Script Klasse
 	thesis={type=bachelor}, % Dokumententyp Thesis, für Dissertationen siehe die Demo-Datei DEMO-TUDaPhd
 	accentcolor=9c,			% Auswahl der Akzentfarbe
-	custommargins=false,    % Ränder werden mithilfe von typearea automatisch berechnet
+	custommargins=true,    % Ränder werden mithilfe von typearea automatisch berechnet
 	marginpar=false,        % Kopfzeile und Fußzeile erstrecken sich nicht über die Randnotizspalte
 	% BCOR=5mm,             % Bindekorrektur, falls notwendig
 	parskip=half-,          % Absatzkennzeichnung durch Abstand vgl. KOMA-Script
@@ -373,7 +373,79 @@ def verifyEffectPipelineFuture[A, C](
 In the previous example we have used the IdentityContext by specifying type bounds. Additionally to defining EffectPipelines, Extensions can also define their own Context as well as their own state. When an aggregate wants to use an Extension it has to include the Extension Context and State into its own Context and State. Because of the type bounds we would get a type error if forgotten. How custom Context and State can be used to create more flexible functions will be shown in the section about Authentication and Authorization.
 
 \section{Authentication and authorization}
-How authentication and authorization extensions can be developed
+In this section we will look into what assumptions are met and how a Extension for ECmRDTs is created to enable authentication and authorization. Our goal is that aggregates can define a list of permissions. Certain events may require permissions conditionally as specified by the aggregate. User then need to add proofs for the permissions so that every other user can verify it. 
+
+Proofs are implemented as signatures of a replicaId (the user who wants to use the event) using asymmetric encryption. This also means, that a proof only allows a single user to use an event. For other users new proofs have to be created. The public key of a proof is called a claim and the private key is called a prover. Claims are stored publicly in the aggregate state so that every user is able to verify incoming events.
+
+\begin{lstlisting}
+case class Claim[I](
+  val publicKey: BinaryData,
+  val id: I, // I is a enum value representing the permission
+)
+
+case class ClaimProof[C](
+  val proof: BinaryData,
+  val id: C,
+):
+  def verify(claim: Claim[C], replicaId: ReplicaId) // ...
+
+case class ClaimProver[ID](
+  val privateKey: BinaryData,
+  val id: ID
+):
+  def prove(replicaId: ReplicaId) // ...
+
+\end{lstlisting}
+
+Claims and provers are created using the initial event but the provers are usually not stored inside the aggregate. The only exception is an additional extension called ClaimBehindPassword which tries to reduce the key size that has to be transmitted. The idea is to store the private keys encrypted symmetrically publicly in the aggregate with a shorter password. Now everyone who has the password can create their own proofs.
+
+For this whole system to work we need to make sure that every event telling it was send by an replicaId is actually send by this replicaId. This is important because when validating proofs we verify a signature containg the sender replicaId. If one would be able to spoof the sender replicaId we could use an existing proof send by a different user (that is possible because proofs are public by default because everyone needs to be able to verify them) and spoof their replicaId. Users would then not be able to verify the event correctly. 
+
+This issue is the main reason why the replicaId is a public key where only the user itself does know the private key. Events are signed using the private key so that everyone receiving events from a replicaId can be sure that the replicaId used in the event are legitimit.
+
+\minisec{Extension}
+The Extension is implemented using a Context, a State and a EffectPipeline. In the Context we store all the proofs containg the signatures added by the user using an event and in the state we store all claims containing the public key to verify the claims. ClaimProvers are not directly part of the extension and have to be handled by the developers using the Extension.
+
+\begin{lstlisting}
+trait AsymPermissionContextExtension[I]:
+  def proofs: List[ClaimProof[I]]
+
+  def verifyPermission[A](permission: I): EitherT[Future, RatableError, Unit] = EitherT.cond[Future](
+    proofs.exists(_.id == permission), (),
+    RatableError(s"Missing permission \$permission.")
+  )
+
+trait AsymPermissionStateExtension[I]:
+  def claims: List[Claim[I]]
+\end{lstlisting}
+
+The State and Context now are used inside the EffectPipeline. The idea is to verify all proofs contained in the Event Context, no matter if they are actually required by the Event. The Extension itself does not even need to know what proofs are required, it only makes sure that all provided proofs are in fact valid. The Effect of the Event itself later can call the verifyPermission method of the Context to easily make sure that alle required permissions are proofed by the context.
+
+So in the EffectPipeline we first have to find the Claim for the respective Proof and then make sure it is valid. If either the claim does not exist or the proof is invalid we cancel the pipeline call chain by returning an error. For this we are using the verifyEffectPipelineFuture helper.
+
+\begin{lstlisting}
+object AsymPermissionEffectPipeline:
+  def apply[
+    A <: AsymPermissionStateExtension[I], 
+    I, 
+    C <: AsymPermissionContextExtension[I] with IdentityContext
+  ](using Crypt): EffectPipeline[A, C] =
+    verifyEffectPipelineFuture[A, C]((state, context, meta) =>
+      for
+        proof <- context.proofs
+      yield
+        state.claims.find(_.id == proof.id) match
+          case Some(claim) => 
+            OptionT(proof
+              .verify(claim, context.replicaId)
+              .map(Option.unless(_)(RatableError("Proof is invalid.")))
+            )
+
+          case None => 
+            OptionT.pure(RatableError("Claim does not exist."))
+    )
+\end{lstlisting}
+
 
 \section{Integration into ratable}
 How the ratable domain is designed using ECmRDT
