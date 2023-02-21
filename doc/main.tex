@@ -106,6 +106,23 @@
 \tableofcontents
 
 \chapter{Introduction}
+There are crdt and local first application
+
+Why we need authorization in modern applications
+
+CRDTs do not allow authentication
+
+Propose ECmRDT to enable authentication and authorization
+
+Additionally ECmRDT will enable us to create a variaty of extensions
+
+Working on a case study including ECmRDT
+
+case study will need a new type of architecture
+
+introduce concepts how local first applications can be build
+
+Enabled us to implement new use cases not possible previously
 
 \chapter{Case Study}
 Our case study is named Ratable. With Ratable users can create ratable objects and let a group of people rate them. Ratable is an application, users can interact with on their mobile devices or desktop computers. 
@@ -302,9 +319,97 @@ trait EffectPipeline[A, C]:
 	def apply(effect: Effect[A, C]): Effect[A, C]
 \end{lstlisting}
 
+\section{Extensions}
+Extensions allow developers to define functionality used in the whole aggregate. Extensions can enable things like event validation, state mutation, replace/adjust State, Context or MetaContext parameters and more. Additionally, Extensions also allow for easier code reuse between aggregates and Extensions can build on existing Extensions. An Extension consists of a EffectPipeline and optionally of a Context and State. 
+
+An EffectPipeline itself is only a function transforming an Effect which itself is a function. The idea now is to intercept the Effect function call and execute custom logic before or after the call. If an aggregate wants to define multiple Extensions we can chain these EffectPipelines into a call chain which results in a single resulting functions which itself is again a EffectPipeline. This does in practice look like the following. Here we log the replicaId of the sender.
+
+\begin{lstlisting}
+
+object TestEffectPipeline:
+  def apply[A, C <: IdentityContext](): EffectPipeline[A, C] =
+    effect => (state, context, meta) => 
+      for
+        newState <- effect(state, context, meta)
+      yield
+        println(s"Sender replicaId: \${context.replicaId}")
+        newState
+
+\end{lstlisting}
+
+For the most important feature is that an Effect can also fail. Because of that we are able to shortcircuit the Extension call chain when an error happens or some validation fails. One example for this is the SingleOwnerEffectPipeline. Here we validate that the Context replicaId (event sender replicaId) is the same as the meta replicaId (aggregate owner replicaId). If the check fails we do not continue in calling the given Effect. To make development easier because verification Extensions are common we are using a verifyEffectPipeline helper function. This helper function only expects a list of errors as return. If the list is empty we succeeded and continue the Effect call.
+
+\begin{lstlisting}
+  
+object SingleOwnerEffectPipeline:
+  def apply[A, C <: IdentityContext](): EffectPipeline[A, C] =
+    verifyEffectPipeline[A, C]((state, context, meta) => List(
+      Option.when(meta.ownerReplicaId != context.replicaId)(
+        RatableError(s"Replica ${context.replicaId} is not the owner ${meta.ownerReplicaId} of this state.")
+      )
+    ))
+
+// Helper to build a synchronous verify only effect pipelines
+def verifyEffectPipeline[A, C](
+  f: (A, C, MetaContext) => List[Option[RatableError]]
+): Effect[A, C] => Effect[A, C] =
+  verifyEffectPipelineFuture((a, c, m) => f(a, c, m).map(OptionT.fromOption(_)))
+  
+// Helper to build a asynchronous verify only effect pipelines
+def verifyEffectPipelineFuture[A, C](
+  f: (A, C, MetaContext) => List[OptionT[Future, RatableError]]
+): Effect[A, C] => Effect[A, C] =
+  (effect) =>
+    (state, context, meta) => 
+      for
+        _ <- f(state, context, meta).map(_.toLeft(())).sequence
+        newState <- effect(state, context, meta)
+
+      yield
+        newState
+
+\end{lstlisting}
+
+In the previous example we have used the IdentityContext by specifying type bounds. Additionally to defining EffectPipelines, Extensions can also define their own Context as well as their own state. When an aggregate wants to use an Extension it has to include the Extension Context and State into its own Context and State. Because of the type bounds we would get a type error if forgotten. How custom Context and State can be used to create more flexible functions will be shown in the section about Authentication and Authorization.
+
 \section{Authentication and authorization}
+How authentication and authorization extensions can be developed
+
+\section{Integration into ratable}
+How the ratable domain is designed using ECmRDT
+
+Specific benifits of ECmRDT in Ratable
+
+\chapter{Architecture}
+Explain three projects composing ratable
+
+Why we decided against peer to peer
+
+Additional services used shown in a diagram to get an overall view
+
+\section{Project Structure}
+Project consists of layers
+
+Device layer for hardware abstraction
+
+Application layer containing use cases and additionally ui
+
+Structure enabling testing of each use case by mocking device layer only
+
+\section{State managment}
+What our state managment can do
+
+How users interact with our state
+
+Inner and outer aggregate abstractions
+
+How state is managed between abstractions and outer access
+
+How side effects for distribution and co work
 
 \chapter{Future}
+Real peer to peer systems using ecmrdt's
+
 Why do we have events and contexts. Couldnt we just say Event extends Context and explicitly associate them from the beginning?
 
 Include event signing in general ECmRDT architecture.
