@@ -446,14 +446,44 @@ object AsymPermissionEffectPipeline:
     )
 \end{lstlisting}
 
+How this extension can be used will be shown in the next section where we will look into how ECmRDTs are used to model the Ratable domain.
 
-\section{Integration into ratable}
+\section{Integration into Ratable}
+Ratable itself has a simple domain.
+
 How the ratable domain is designed using ECmRDT
 
 Specific benifits of ECmRDT in Ratable
 
 \chapter{Architecture}
-Explain three projects composing ratable
+
+\minisec{Overview}
+
+Ratable provides its services to users as a web application. The web application itself is static and delivered through an CDN. State is managed and distributed through a serverless backend. The communication between the backend and the web application uses either HTTP for synchronous messaging or websockets for asynchronous messaging with protobuf for encoding. The asynchronous messaging is handled by a pubsub service where the backend service can subscribe to to receive messages. For data storage we use a serverless nosql solution provided by the cloud provider.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{architecture_services.png}
+  \caption{Architecture overview}
+\end{figure}
+
+\minisec{Reasoning}
+
+We are providing our services through a web application because the tooling for scala was very good and we could this way provide our services to a larger audience (e.g. mobile and desktop devices) in a more accessable way without downloads. Additionally we provide PWA functionality to enable users to install Ratable as a App on their device. We decided against server side rendering because neither was the tooling for scala was good nor had it a lot of advantages for our use case. Because of this we were able to take a simple and very cost effective (in fact free with our cloud provider) approach in delivering the application to users by giving access to the content files through an CDN. 
+
+We decided to use a serverless backend because it is very cost effective (again free with our cloud provider), is simple to deploy without any system configuration issues while only having the drawback that applications have to be specially designed for serverless environment. That was not really an issue because we did want to create a cloud-native solution and additionally implemented enough abstraction to be able to change the cloud provider without a complete rewrite. For a similar reason, especially because of the cost-effectiveness we decided to use a serverless nosql storage system. Additionally we decided to use nosql because we did not have specific requirements and the recommmended way by our cloud provider was to use this service. One drawback of serverless that could be brought to consideration are cold start times. Our use-case is not very time-critical and therefore cold starts did not seem to outweight the advantages.
+
+To provide real-time updates we need to have a constant connection to backend. For web applications one would use websockets to implement this feature. Because we are using a general serverless architecture we are not able to simply have a ongoing websocket-conntection to our backend. This issue is solved by a service provided by our cloud provider, the pubsub. Using this service the client can create a websocket connection to the pubsub which is then managed by our backend using events. The backend is called every time a user connects, disconnects or sends a message.
+
+One special thing about our communication is that we are not using json like most web application do but rather are using protobuf. Our messages contain a lot of 'one of' relationships. That means that a lot of messages consist of a type and content in the message where the content contains a sub message. Generally scala has multiple json libraries which support this type of "inheritence" but because of our special case where we do not want to parse the whole type directly (or only with more context) using the given json libraries seemed more difficult than using protobuf where protobuf has extensive support for 'one of' relationships while also providing great scala support. Additionally to note is that we decided with json against storing sub messages simply as string because to store json in json the content first has to be escaped which after mutliple times results in a significant increase of size.
+
+The idea behind ECmRDT would allow us to use peer-to-peer communication instead or additionally to client-server communication. The reason why we decided against it is that it would be out of the scope of this thesis. Implementing peer-to-peer communication would add multiple new problems in implementing the communication, state management, event ordering and more. It should be noted that theoretically we have indirect peer-to-peer because our server does not do anything more than forwarding all Events.
+
+
+
+Ratable is implemented as a web application. 
+
+Explain three projects composing rtable
 
 Why we decided against peer to peer
 
