@@ -479,8 +479,6 @@ One special thing about our communication is that we are not using json like mos
 
 The idea behind ECmRDT would allow us to use peer-to-peer communication instead or additionally to client-server communication. The reason why we decided against it is that it would be out of the scope of this thesis. Implementing peer-to-peer communication would add multiple new problems in implementing the communication, state management, event ordering and more. It should be noted that theoretically we have indirect peer-to-peer because our server does not do anything more than forwarding all Events.
 
-
-
 Ratable is implemented as a web application. 
 
 Explain three projects composing rtable
@@ -490,6 +488,10 @@ Why we decided against peer to peer
 Additional services used shown in a diagram to get an overall view
 
 \section{Project Structure}
+Ratable consists of two applications. The serverless backend running accepting messages over HTTP or eventes over WebSockets and the web application giving an interface to the user and communicating with the backend. Additionally we have a common core module which contains the domain model, the ECmRDT implementation as well as all protobuf definitions modelling the communication between the backend and web application.
+
+Both the web application as well as the backend are structured similarly. 
+
 Project consists of layers
 
 Device layer for hardware abstraction
