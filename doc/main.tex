@@ -459,7 +459,7 @@ Specific benifits of ECmRDT in Ratable
 
 \minisec{Overview}
 
-Ratable provides its services to users as a web application. The web application itself is static and delivered through an CDN. State is managed and distributed through a serverless backend. The communication between the backend and the web application uses either HTTP for synchronous messaging or websockets for asynchronous messaging with protobuf for encoding. The asynchronous messaging is handled by a pubsub service where the backend service can subscribe to to receive messages. For data storage we use a serverless nosql solution provided by the cloud provider.
+Ratable provides its services to users as a web application. The web application itself is static and delivered through an CDN. State is managed and distributed through a serverless backend. The communication between the backend and the web application uses either HTTP for synchronous messaging or websockets for asynchronous messaging both with protobuf for encoding. The asynchronous messaging is handled by a pubsub service where the backend service can subscribe to to receive messages. For data storage we use a serverless nosql solution provided by the cloud provider.
 
 \begin{figure}[h]
   \centering
@@ -471,13 +471,13 @@ Ratable provides its services to users as a web application. The web application
 
 We are providing our services through a web application because the tooling for scala was very good and we could this way provide our services to a larger audience (e.g. mobile and desktop devices) in a more accessable way without downloads. Additionally we provide PWA functionality to enable users to install Ratable as a App on their device. We decided against server side rendering because neither was the tooling for scala was good nor had it a lot of advantages for our use case. Because of this we were able to take a simple and very cost effective (in fact free with our cloud provider) approach in delivering the application to users by giving access to the content files through an CDN. 
 
-We decided to use a serverless backend because it is very cost effective (again free with our cloud provider), is simple to deploy without any system configuration issues while only having the drawback that applications have to be specially designed for serverless environment. That was not really an issue because we did want to create a cloud-native solution and additionally implemented enough abstraction to be able to change the cloud provider without a complete rewrite. For a similar reason, especially because of the cost-effectiveness we decided to use a serverless nosql storage system. Additionally we decided to use nosql because we did not have specific requirements and the recommmended way by our cloud provider was to use this service. One drawback of serverless that could be brought to consideration are cold start times. Our use-case is not very time-critical and therefore cold starts did not seem to outweight the advantages.
+We decided to use a serverless backend because it is very cost effective (again free with our cloud provider), is simple to deploy without any system configuration issues while only having the drawback that applications have to be specially designed for a serverless environment. That was not really an issue because we did want to create a cloud-native solution and additionally implemented enough abstraction to be able to change the cloud provider without a complete rewrite. For a similar reason, especially because of the cost-effectiveness we decided to use a serverless nosql storage system. Additionally we decided to use nosql because we did not have specific requirements and the recommmended way by our cloud provider was to use this service. One drawback of serverless that could be brought to consideration are cold start times. Our use-case is not very time-critical and therefore cold starts did not seem to outweight the advantages.
 
 To provide real-time updates we need to have a constant connection to backend. For web applications one would use websockets to implement this feature. Because we are using a general serverless architecture we are not able to simply have a ongoing websocket-conntection to our backend. This issue is solved by a service provided by our cloud provider, the pubsub. Using this service the client can create a websocket connection to the pubsub which is then managed by our backend using events. The backend is called every time a user connects, disconnects or sends a message.
 
 One special thing about our communication is that we are not using json like most web application do but rather are using protobuf. Our messages contain a lot of 'one of' relationships. That means that a lot of messages consist of a type and content in the message where the content contains a sub message. Generally scala has multiple json libraries which support this type of "inheritence" but because of our special case where we do not want to parse the whole type directly (or only with more context) using the given json libraries seemed more difficult than using protobuf where protobuf has extensive support for 'one of' relationships while also providing great scala support. Additionally to note is that we decided with json against storing sub messages simply as string because to store json in json the content first has to be escaped which after mutliple times results in a significant increase of size.
 
-The idea behind ECmRDT would allow us to use peer-to-peer communication instead or additionally to client-server communication. The reason why we decided against it is that it would be out of the scope of this thesis. Implementing peer-to-peer communication would add multiple new problems in implementing the communication, state management, event ordering and more. It should be noted that theoretically we have indirect peer-to-peer because our server does not do anything more than forwarding all Events.
+The idea behind ECmRDT would allow us to use peer-to-peer communication instead or additionally to client-server communication. The reason why we decided against it is that it would be out of the scope of this thesis. Implementing peer-to-peer communication would add multiple new problems in implementing the communication, state management and event ordering. It should be noted that theoretically we have indirect peer-to-peer because our server does not do anything more than forwarding all Events.
 
 Ratable is implemented as a web application. 
 
@@ -488,19 +488,43 @@ Why we decided against peer to peer
 Additional services used shown in a diagram to get an overall view
 
 \section{Project Structure}
-Ratable consists of two applications. The serverless backend running accepting messages over HTTP or eventes over WebSockets and the web application giving an interface to the user and communicating with the backend. Additionally we have a common core module which contains the domain model, the ECmRDT implementation as well as all protobuf definitions modelling the communication between the backend and web application.
+Ratable consists of two applications. The serverless backend running accepting messages over HTTP or events over WebSockets and the web application giving an interface to the user and communicating with the backend. Additionally we have a common core module which contains the domain model, the ECmRDT implementation as well as all protobuf definitions modelling the communication between the backend and web application.
 
-Both the web application as well as the backend are structured similarly. 
+Both the web application as well as the backend are structured similarly. They consist of a application and a device layer. Between these two layers can be additional suppo
+rtive layers abstracting away the device layer or adding new functionality like a state layer. By using a device layer implementing all interaction with device resources we are able to test the whole application by only mocking this layer. This comes at the cost of having to abstract away every interaction with device resource which can be difficult for more complex apis like database management. 
 
-Project consists of layers
+Layers interact between each other using services. By heavly using dependency injection each service can request the services it needs. Generally services should only request services from the same layer or from a layer below. This is also to prevent cyclic dependencies. 
 
-Device layer for hardware abstraction
-
-Application layer containing use cases and additionally ui
-
-Structure enabling testing of each use case by mocking device layer only
+The application layer is structured differently between the webapp and the backend. In the webapp we decided to use a use case oriented approach. This is useful because it plays nicely with user interactions and the event driven design of ECmRDTs. Here state is managed by its own layer which can then be used in combination with the use cases to drive our user interface. Our user interface is similiar to other frontend frameworks split into pages and components. In the backend the primary goal of the application layer is to provide an entrypoint for all azure functions and then handle all incoming messages. The application layer is split into multiple modules each containing a gateway and multiple message handlers.
 
 \section{State managment}
+A core part of this thesis are ECmRDTs. They provide a new way to work with data and therefore state managment is an important part in providing a convient way to work with ECmRDTs. 
+
+We designed the state management in a way that every aggregate defined by a ECmRDT exists as a repository. Aggregates existing only once use the userid as aggregateid enabling theoretical multiuser functionality. The user can either create a new aggregate or load an existing one, it is currently not possible to delete an aggregate. 
+
+An single aggregate is represented by an AggregateView allows a user to listen for changes and submit events. This is the only way to interact with aggregates outside of the state layer.
+
+\begin{lstlisting}
+trait AggregateView[A, C, E <: Event[A, C]]:
+  def effect(event: E, context: C)(using EffectPipeline[A, C]): EitherT[Future, RatableError, Unit]
+  def listen: Signal[A]
+\end{lstlisting}
+
+Internally the aggregate is contained by an AggregateFacade. It contains the concrete ECmRDT value and allows free mutations around it. This additional abstraction is needed because we do not store the ECmRDT directly. We need additional wrappers to enable communication. One responsibility of the 
+
+\begin{lstlisting}
+class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
+  private val initial: EventBufferContainer[A, C, E]
+):
+  def listen: Signal[EventBufferContainer[A, C, E]] = variable
+
+  def mutate(
+    f: EventBufferContainer[A, C, E] => EitherT[Future, RatableError, EventBufferContainer[A, C, E]]
+  ): EitherT[Future, RatableError, EventBufferContainer[A, C, E]] = ???
+
+\end{lstlisting}
+
+
 What our state managment can do
 
 How users interact with our state
@@ -508,7 +532,6 @@ How users interact with our state
 Inner and outer aggregate abstractions
 
 How state is managed between abstractions and outer access
-
 How side effects for distribution and co work
 
 \chapter{Future}
