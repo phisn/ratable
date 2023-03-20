@@ -90,7 +90,6 @@ case class RateEvent(
       yield
         state.rate(context.replicaId, ratingForCategory)
 
-
 case class CreateRatableEvent(
   val canRate: Claim[RatableClaims],
   val canRateBehindPassword: BinaryDataWithIV,

@@ -106,23 +106,15 @@
 \tableofcontents
 
 \chapter{Introduction}
-There are crdt and local first application
+Modern applications often rely on distributed systems that allow users to collaborate and share data across different devices and networks. One approach to achieve this is to use conflict-free replicated data types (CRDTs), which are data structures that can be replicated and modified concurrently without coordination. CRDTs enable local-first applications, which prioritize local availability and responsiveness over global consistency.
 
-Why we need authorization in modern applications
+However, CRDTs also pose some challenges for application developers, especially when it comes to authentication and authorization. Authentication is the process of verifying the identity of a user or device, while authorization is the process of granting or denying access rights to resources based on predefined policies. CRDTs do not inherently support authentication or authorization mechanisms, which means that any replica can modify any part of the shared data without restrictions.
 
-CRDTs do not allow authentication
+However, this also poses some challenges to ensuring the security and privacy of shared data. For example, how can a user verify that another user is who they claim to be? How can a user control who can access their data and what they can do with it? How can a user prevent unauthorized or malicious modifications of their data by other users or devices?
 
-Propose ECmRDT to enable authentication and authorization
+This thesis proposes a novel type of CRDTs called ECmRDTs (extendable conflict-free replicated data types), which allows us to write extensions enabling authentication and authorization in local-first applications. We use symmetric and assymetric encryption techniques to protect the confidentiality and integrity of shared data, as well as to enforce access control policies based on proofs provided by users. 
 
-Additionally ECmRDT will enable us to create a variaty of extensions
-
-Working on a case study including ECmRDT
-
-case study will need a new type of architecture
-
-introduce concepts how local first applications can be build
-
-Enabled us to implement new use cases not possible previously
+To demonstrate the feasibility and applicability of ECmRDTs, this thesis presents a case study of a rating application called Ratable as its underlying data model. The case study also requires a new type of architecture that supports local-first principles and enables efficient synchronization of encrypted data among replicas. This thesis introduces several concepts and techniques that can help design and implement such an architecture.
 
 \chapter{Case Study}
 Our case study is named Ratable. With Ratable users can create ratable objects and let a group of people rate them. Ratable is an application, users can interact with on their mobile devices or desktop computers. 
@@ -449,7 +441,77 @@ object AsymPermissionEffectPipeline:
 How this extension can be used will be shown in the next section where we will look into how ECmRDTs are used to model the Ratable domain.
 
 \section{Integration into Ratable}
-Ratable itself has a simple domain.
+Ratable itself has a simple domain. A Ratable is an object containing a title, categories and ratings. To enable authorization we are using the AsymPermissionExtension with the provided EffectPipeline and to allow easier sharing of private keys we use the ClaimByPasswordExtension. The context provides no custom information and contains the standard IdentityContext as well as the AsymPermissionExtension context.
+
+\begin{lstlisting}
+case class Ratable(
+  val claims: List[Claim[RatableClaims]],
+  val claimsBehindPassword: Map[RatableClaims, BinaryDataWithIV],
+
+  val title: String,
+  val categories: Map[Int, Category],
+  val ratings: Map[ReplicaId, Rating]
+)
+
+case class Rating(
+  val ratingForCategory: Map[Int, Int]
+)
+
+case class Category(
+  val title: String
+)
+
+object Ratable:
+  given (using Crypt): EffectPipeline[Ratable, RatableContext] = 
+    EffectPipeline(
+      AsymPermissionEffectPipeline[
+        Ratable, RatableClaims, RatableContext]
+    )
+
+case class RatableContext(
+  val replicaId: ReplicaId,
+  val proofs: List[ClaimProof[RatableClaims]]
+) 
+extends IdentityContext 
+    with AsymPermissionContextExtension[RatableClaims]
+\end{lstlisting}
+
+Additionally, we define our domain around our state to enable better readability and code reuse.
+
+\begin{lstlisting}
+case class Ratable(...):
+  def rate(
+    replicaId: ReplicaId, 
+    ratingForCategory: Map[Int, Int]
+  ): Ratable = ...
+
+  def categoriesWithRating: Map[Int, (Category, Int)] = ...
+\end{lstlisting}
+
+We only need to provide an event called RateEvent and one Claim called CanRate to create or replace a rating.
+
+\begin{lstlisting}
+// we need to extend Enum[T] to allow serialization of enum
+enum RatableClaims extends Enum[RatableClaims]:
+  case CanRate
+
+// sealed base trait to allow serialization
+sealed trait RatableEvent extends Event[Ratable, RatableContext]
+
+case class RateEvent(
+  val ratingForCategory: Map[Int, Int]
+) extends RatableEvent:
+  def asEffect: Effect[Ratable, RatableContext] =
+    (state, context, meta) =>
+      for
+        _ <- context.verifyClaim(RatableClaims.CanRate)
+        _ <- EitherT.cond(ratingForCategory.size == state.categories.size, (),
+          RatableError(s"Rating must contain ${state.categories.size} categories, but ${ratingForCategory.size} given"))
+      yield
+        state.rate(context.replicaId, ratingForCategory)
+\end{lstlisting}
+
+How ECmRDTs can be integrated 
 
 How the ratable domain is designed using ECmRDT
 
@@ -479,14 +541,6 @@ One special thing about our communication is that we are not using json like mos
 
 The idea behind ECmRDT would allow us to use peer-to-peer communication instead or additionally to client-server communication. The reason why we decided against it is that it would be out of the scope of this thesis. Implementing peer-to-peer communication would add multiple new problems in implementing the communication, state management and event ordering. It should be noted that theoretically we have indirect peer-to-peer because our server does not do anything more than forwarding all Events.
 
-Ratable is implemented as a web application. 
-
-Explain three projects composing rtable
-
-Why we decided against peer to peer
-
-Additional services used shown in a diagram to get an overall view
-
 \section{Project Structure}
 Ratable consists of two applications. The serverless backend running accepting messages over HTTP or events over WebSockets and the web application giving an interface to the user and communicating with the backend. Additionally we have a common core module which contains the domain model, the ECmRDT implementation as well as all protobuf definitions modelling the communication between the backend and web application.
 
@@ -510,7 +564,7 @@ trait AggregateView[A, C, E <: Event[A, C]]:
   def listen: Signal[A]
 \end{lstlisting}
 
-Internally the aggregate is contained by an AggregateFacade. It contains the concrete ECmRDT value and allows free mutations around it. This additional abstraction is needed because we do not store the ECmRDT directly. We need additional wrappers to enable communication. One responsibility of the 
+Internally the aggregate is contained by an AggregateFacade. It contains the concrete ECmRDT value and allows free mutations around it. This free ability of free mutations is needed for operations like acknowledging sent events. This additional abstraction is needed because we do not store the ECmRDT directly. We need additional wrappers to enable communication and asynchronous mutations. 
 
 \begin{lstlisting}
 class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
@@ -524,15 +578,24 @@ class AggregateFacade[A, C <: IdentityContext, E <: Event[A, C]](
 
 \end{lstlisting}
 
+These AggregateFacades are then created and cached by the AggregateFacadeProvider so that only one exists per aggregate at any moment. Around the AggregateFacadeProvider we have the AggreagteViewProvider which converts AggregateFacades into AggregateViews. 
 
-What our state managment can do
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{state.png}
+  \caption{Architecture overview}
+\end{figure}
 
-How users interact with our state
+Access to the AggregateViewProvider is handled through AggregateViewRepositories which are created through the AggregateViewRepositoryFactory and then saved as ApplicationState. The separation between AggregationViewProvider and AggregateFacadeProvider is needed so that other state services can access the AggregateFacade instead of the AggregateView. The two services currently using this are the StateStorageService handling loading and saving aggregates on the user device and the StateDistributionService handling outgoing and incoming events. 
 
-Inner and outer aggregate abstractions
+Using this abstraction we can now provide an ApplicationState like the following.
 
-How state is managed between abstractions and outer access
-How side effects for distribution and co work
+\begin{lstlisting}
+case class ApplicationState(
+  ratables: AggregateViewRepository[Ratable, RatableContext, RatableEvent],
+  library: AggregateViewRepository[RatableLibrary, RatableLibraryContext, RatableLibraryEvent]
+)
+\end{lstlisting}
 
 \chapter{Future}
 Real peer to peer systems using ecmrdt's
