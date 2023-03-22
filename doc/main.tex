@@ -116,6 +116,13 @@ This thesis proposes a novel type of CRDTs called ECmRDTs (extendable conflict-f
 
 To demonstrate the feasibility and applicability of ECmRDTs, this thesis presents a case study of a rating application called Ratable as its underlying data model. The case study also requires a new type of architecture that supports local-first principles and enables efficient synchronization of encrypted data among replicas. This thesis introduces several concepts and techniques that can help design and implement such an architecture.
 
+\section{CRDT}
+Conflict-free replicated data types (CRDTs) are data structures that can be replicated across multiple nodes in a distributed system, and can be updated concurrently without coordination or locking. CRDTs guarantee eventual consistency, meaning that all replicas will converge to the same state if no new updates are made. CRDTs are useful for applications that require high availability, low latency and tolerance to network partitions.
+
+There are two main approaches to CRDTs: state-based (CvRDT) and operation-based (CmRDT). In state-based CRDTs, each replica maintains a full copy of the data structure, and updates are propagated by sending the entire state or a delta-state to other replicas. The merge function for state-based CRDTs must be commutative, associative and idempotent, ensuring that the order and number of merges do not affect the final state. In operation-based CRDTs, each replica maintains a partial copy of the data structure, and updates are propagated by sending only the operations that modify the state to other replicas. The delivery function for operation-based CRDTs must ensure causal order, meaning that an operation cannot be applied before its dependencies are satisfied. The operations for operation-based CRDTs must also be commutative, ensuring that the order of concurrent operations does not affect the final state.
+
+In this thesis, we will use operation-based CRDTs to build extendable CRDTs (ECmRDTs), which are CRDTs that can dynamically incorporate new data types and operations without requiring a global agreement or a system restart. We will show how ECmRDTs can support various use cases such as collaborative editing, online gaming and social networking.
+
 \chapter{Case Study}
 Our case study is named Ratable. With Ratable users can create ratable objects and let a group of people rate them. Ratable is an application, users can interact with on their mobile devices or desktop computers. 
 
@@ -123,17 +130,30 @@ The core idea contrary to usual rating services is that not everyone can rate a 
 
 Ratable is implemented as a cloud-native local-first application. Ratable allows users to use the application without an internet connection and provides updates/changes in real-time. This provides for a very fluent usage of Ratable because we do not need to have any loading screens. The only time we need to load something is when we access some Ratable for the first time. Changes to Ratables are done instantly and synchronized when possible.
 
+Cloud-native and local-first are two design principles that enable Ratable to deliver a fast and reliable user experience. Cloud-native means that Ratable is built and deployed using cloud computing services, such as storage, databases, and serverless functions. This allows Ratable to scale up or down according to the demand, and to benefit from the security and availability of the cloud providers. Local-first means that Ratable stores and processes data on the user’s device, rather than on a remote server. This allows Ratable to work offline, and to sync data with the cloud only when needed. This reduces the network latency and bandwidth consumption, and enhances the privacy and autonomy of the user. By combining cloud-native and local-first, Ratable achieves a balance between performance and functionality, and offers a smooth and seamless user experience.
+
 Especially important for local-first applications is the feature that all trust is given to individual users instead of a server. This means that the server for Ratable plays only a secondary role and does not do much more than distributing state. All authorization and authentication are done by the clients themselves. This allows us to enable end-to-end encryption of the state.
 
 \chapter{Extendable CmRDT}
 In this chapter, we will look into what ECmRDT's are, what they are trying to do and how they are used to achieve the goal.
 
 \section{Overview}
-Extendable CmRDT's are normal CmRDT's with the ability to build extensions for them. Here CmRDT's are operation based CRDT's. Extensions are able verify and mutate events and state. They can also interact with other extensions. 
+CmRDTs are operation-based CRDTs that allow concurrent updates on replicated data without coordination. However, CmRDTs have some limitations, such as the lack of security and the difficulty of adding new features. To overcome these limitations, we introduce ECmRDTs, which are extendable CmRDTs that support extensions for verification, mutation, interaction, and authentication of events and state.
 
-With ECmRDT's we want to enable developers to create extensions that can be enabled for data types to easily extend them with additional functionality. This functionality can be for example something like verification of replicaId's in events, change of some variables in state before or after applying an event, migrations of events or authentication and authorization of events. Especially the last example is the primary reason for the usage of ECmRDT's. Contrary to normal CRDT's they allow us to build in security.
+An event is an operation that modifies the state of an ECmRDT. A state is the current value of an ECmRDT. Events are signed by the clients that generate them and sent to a server that stores them. The server acts as an event source, which means that it provides events to clients on demand. Clients can request events from the server and apply them to their local state to update their ECmRDTs. This way, clients do not need to store events locally and can always access the latest version of the data.
 
-Generally ECmRDT's work with events and state. In our design we do only use event sourcing at server side. That means that an ECmRDT itself only contains state. Users can then create an event and apply it to the ECmRDT and distribute it to other clients. Because events are signed, they can not be forged. How an event is applied to state in detail depends on and is defined in the domain logic. Extensions now come into place directly before applying the event to the state. The extensions are defined in something like a pipeline and can either forward the to event to the next extension or fail. Thereby events can either changes the data coming in or coming out.
+Extensions are functions that can be attached to an ECmRDT to enhance its functionality. Extensions can be defined in a pipeline, which is a sequence of extensions that are applied to an event before it is applied to the state. Extensions can perform various tasks, such as:
+
+\begin{itemize}
+  \item Verifying the replicaId of an event to ensure its origin
+  \item Changing some variables in the state before or after applying an event
+  \item Migrating events from one format to another
+  \item Authenticating and authorizing events based on some criteria
+\end{itemize}
+
+The main advantage of ECmRDTs is that they enable developers to create secure and customizable data types that can be easily extended with additional functionality. For example, one can use extensions to implement access control policies or data validation rules for an ECmRDT. Extensions can also interact with other extensions and exchange information or modify each other’s behavior.
+
+In summary, ECmRDTs are a novel approach to extend CmRDTs with security and customization features using extensions. Extensions are functions that can verify and mutate events and state in a pipeline. They can also interact with other extensions and authenticate and authorize events based on some criteria. Events are signed operations that modify the state of an ECmRDT and are stored on a server that acts as an event source. Clients can request events from the server and apply them to their local state to update their ECmRDTs.
 
 Lets say we want to implement a counter that can only be incremented by the owner. We would first define the state as a integer counter and one event that increments the state counter by one. The context and generally how these concepts relate to each other will be covered in the next section.
 
@@ -202,15 +222,16 @@ How exactly the ECmRDT's and the SingleOwnerEffectPipeline work will be in the n
 
 \section{Concepts}
 
-In this section, we will introduce concepts of our ECmRDT with definitions, code examples and also explain how certain relate to each other.
+This section explains the main ideas of our ECmRDT with definitions, code examples and how they are connected.
 
 \minisec{Aggregate}
-The definition of aggregate I will use here is "An AGGREGATE is a cluster of associated objects that we treat as a unit for the purpose of data changes. Each AGGREGATE has a root and a boundary. The boundary defines what is inside the AGGREGATE. The root is a single, specific ENTITY contained in the AGGREGATE." from Evans DDD.
 
-In general it can be understood as a Domain concepts where only one aggregate at a time should be changed by a use case. Here we will define one ECmRDT per aggregate. 
+An aggregate is a group of related objects that we handle as one unit when we change data. Each aggregate has a root and a boundary. The boundary shows what is inside the aggregate. The root is one specific object in the aggregate. 
+
+In general, an aggregate is a domain concept where only one aggregate at a time should be changed by a use case. We will define one ECmRDT for each aggregate.
 
 \minisec{ReplicaId}
-The ReplicaId is a unique identifier for a user. The ReplicaId consists of a public/private key pair. With this we can sign and verify events send by a user. Because the private key only exists in the corresponding replica as a privateReplicaId, the ReplicaId as a data structure only contains the public key for identification. More about the usage of the ReplicaId is covered in the chapter about authentication and authorization. 
+The ReplicaId is a unique identifier for a user. The ReplicaId has a public/private key pair. With this, we can sign and verify events sent by a user. Because the private key only exists in the corresponding replica as a privateReplicaId, the ReplicaId only has the public key for identification. More details about the ReplicaId are in the chapter about authentication and authorization.
 
 \begin{lstlisting}
 case class ReplicaId(
@@ -219,7 +240,7 @@ case class ReplicaId(
 \end{lstlisting}
 
 \minisec{AggregateId}
-The AggregateId is a unique identifier for an ECmRDT/aggregate. The AggregateId is a combination of a ReplicaId and random bytes. The ReplicaId inside the aggregateId represents the owner of the aggregate. We need to store the ReplicaId to prevent other replica's of creating aggreagtes with the same AggregateId malicously. The random bytes are used to prevent collisions of AggregateIds within a group of aggregates of a replica. 
+The AggregateId is a unique identifier for an ECmRDT/aggregate. The AggregateId is a combination of a ReplicaId and random bytes. The ReplicaId in the aggregateId shows the owner of the aggregate. We need to store the ReplicaId to stop other replicas from creating aggregates with the same AggregateId on purpose. The random bytes are used to avoid collisions of AggregateIds within a group of aggregates of a replica.
 
 \begin{lstlisting}
 case class AggregateId(
@@ -229,14 +250,14 @@ case class AggregateId(
 \end{lstlisting}
 
 \minisec{Effect}
-An Event can be converted to an Effect to apply the Event to the state. Generally Effect is a function that takes a state, an context, an MetaContext and returns a new state or an RatableError in future. By returning an RatableError we can abort the Event and therefore verify the Event together with the given parameters if they are valid. The effect is an asynchronous operation because we sometimes need to use cryptograpic operations to verify the Event which are implemented in webbrowsers asynchronously.
+An Event can be converted to an Effect to apply the Event to the state. Generally Effect is a function that takes a state, an context, an MetaContext and returns a new state or an RatableError in future. By returning an RatableError we can abort the Event and therefore verify the Event together with the given parameters if they are valid. The effect is an asynchronous operation because we sometimes need to use cryptographic operations to check the event which are done in web browsers asynchronously.
 
 \begin{lstlisting}
 type Effect[A, C] = (A, C, MetaContext) => EitherT[Future, RatableError, A]
 \end{lstlisting}
 
 \minisec{Event}
-Events are created by users to change the state. Usally Events are caused directly by user actions. Events are implicitly associated with a context. Thereby Events contain information specific to this event and the context contains information that is contained in every event. Events can be converted into Effects to be late be used to advance the state.
+Events are made by users to change the state. Usually events are caused directly by user actions. Events are linked with a context. So events have information specific to one particular event and the context has information that is contained in every event. Events can be changed into effects to be used later to update the state.
 
 \begin{lstlisting}
 trait Event[A, C]:
@@ -603,5 +624,11 @@ Real peer to peer systems using ecmrdt's
 Why do we have events and contexts. Couldnt we just say Event extends Context and explicitly associate them from the beginning?
 
 Include event signing in general ECmRDT architecture.
+
+- evaluation (ecmrdt als konzept messen -> speed, time)
+- negative aspekte darstellen
+- examples for ecmrdts
+- Conclusion and future
+- The ratable case study (title der case study)
 
 \end{document}
