@@ -74,7 +74,7 @@
 
 \Metadata{
 	title=TUDaThesis - Abschlussarbeiten im CD der TU Darmstadt,
-	author=Marei Peischl
+	author=Philipp Hinz
 }
 
 \title{My Bachelorthesis title}
@@ -123,7 +123,7 @@ There are two main approaches to CRDTs: state-based (CvRDT) and operation-based 
 
 In this thesis, we will use operation-based CRDTs to build extendable CRDTs (ECmRDTs), which are CRDTs that can dynamically incorporate new data types and operations without requiring a global agreement or a system restart. We will show how ECmRDTs can support various use cases such as collaborative editing, online gaming and social networking.
 
-\chapter{Case Study}
+\section{Case Study}
 Our case study is named Ratable. With Ratable users can create ratable objects and let a group of people rate them. Ratable is an application, users can interact with on their mobile devices or desktop computers. 
 
 The core idea contrary to usual rating services is that not everyone can rate a Ratable. With a newly created Ratable two links are provided. A rate and a view link. Only people with the rate link can rate and view the ratable.
@@ -516,7 +516,9 @@ case class RateEvent(
 
 \chapter{Architecture}
 
-\minisec{Overview}
+In this chapter, we present the design and implementation of Ratable, a web application that allows users to rate and compare different products and services. We describe the main components and features of Ratable and explain the rationale and challenges behind our design and implementation choices. We also show some code snippets and diagrams to illustrate how Ratable works.
+
+\section{Overview}
 
 Ratable is a web application that allows users to rate and compare different products and services. The web application is built with Scala and uses a serverless architecture to provide cost-effective and scalable services. The main components of the architecture are:
 
@@ -615,7 +617,7 @@ case class ApplicationState(
 \end{lstlisting}
 
 \chapter{Future}
-Real peer to peer systems using ecmrdt's
+Real peer to peer systems using ecmrdt's 
 
 Why do we have events and contexts. Couldnt we just say Event extends Context and explicitly associate them from the beginning?
 
