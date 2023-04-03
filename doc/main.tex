@@ -77,7 +77,7 @@
 \begin{document}
 
 \Metadata{
-	title=ERDT: A New Distributed Data Structure for Local-First Applications,
+	title=ERDT: A New Replicated Data Structure for Local-First Applications,
 	author=Philipp Hinz
 }
 
@@ -100,20 +100,21 @@
 \maketitle
 
 % oder \affidavit[digital] falls eine rein digitale Abgabe vorgesehen ist.
-\affidavit
+% \affidavit
 % Es gibt mit Version 3.20 die Möglichkeit ein Bild als Signatur einzubinden.
 % TUDa-CI kann nicht garantieren, dass dies zulässig ist oder eine eigenhändige Unterschrift ersetzt.
 % Dies ist durch Studierende vor der Verwendung abzuklären.
 % Die Verwendung funktioniert so:
-%\affidavit[signature-image={\includegraphics[width=\width,height=1cm]{example-image}}, <hier können andere Optionen wie z.B. affidavit=digital zusätzlich stehen>]
 
-\tableofcontents
+\affidavit[signature-image={\includegraphics[width=\width]{sign.jpg}}]
 
 \begin{abstract}
-This thesis proposes a novel type of CRDTs called ERDTs (extendable conflict-free replicated data types), which allows us to write extensions enabling authentication and authorization in local-first applications. We use symmetric and asymmetric encryption techniques to protect the confidentiality and integrity of shared data, as well as to enforce access control policies based on proofs provided by users.
-
-To demonstrate the feasibility and applicability of ERDTs, this thesis presents a case study of a rating application called Ratable as its underlying data model. The case study also requires a new type of architecture that supports local-first principles and enables efficient synchronization of encrypted data among replicas. This thesis introduces several concepts and techniques that can help design and implement such an architecture around ERDTs.
+  This thesis proposes a novel type of CRDTs called ERDTs (extendable conflict-free replicated data types), which allows us to write extensions enabling authentication and authorization in local-first applications. We use symmetric and asymmetric encryption techniques to protect the confidentiality and integrity of shared data, as well as to enforce access control policies based on proofs provided by users.
+  
+  To demonstrate the feasibility and applicability of ERDTs, this thesis presents a case study of a rating application called Ratable as its underlying data model. The case study also requires a new type of architecture that supports local-first principles and enables efficient synchronization of encrypted data among replicas. This thesis introduces several concepts and techniques that can help design and implement such an architecture around ERDTs.
 \end{abstract}
+
+\tableofcontents
 
 \chapter{Introduction}
 Modern applications often rely on distributed systems that allow users to collaborate and share data across different devices and networks. One approach to achieve this is to use conflict-free replicated data types (CRDTs), which are data structures that can be replicated and modified concurrently without coordination. CRDTs enable local-first applications, which prioritize local availability and responsiveness over global consistency.
@@ -199,7 +200,7 @@ object Counter:
 
 \end{lstlisting}
 
-Using only a few lines of code we have now a secure incrementable counter that can only be incremented by the owner. This counter can now be used like the following. The example will first create a replica id and an initial state. With both, we can create an event and apply it to our created state. In the end, we print the state before and after applying our event. 
+Using only a few lines of code we now have a secure incrementable counter that can only be incremented by the owner. This counter can now be used like the following. The example will first create a replica id and an initial state. With both, we can create an event and apply it to our created state. In the end, we print the state before and after applying our event. 
 
 \begin{lstlisting}
     
@@ -288,7 +289,7 @@ case class MetaContext(
 \end{lstlisting}
 
 \minisec{ERDTEventWrapper}
-Events are implicitly associated with contexts. This association becomes explicit through an \texttt{ERDTEventWrapper}. The reason why we normally only associate events implicitly is because an \texttt{ERDTEventWrapper} contains additional information that is acquired by preparing an event and context through an ERDT. Only after preparation and conversion to an \texttt{ERDTEventWrapper} can it be used to update an ERDT. 
+Events are implicitly associated with contexts. This association becomes explicit through an \texttt{ERDTEventWrapper}. The reason why we usually only associate events implicitly is because an \texttt{ERDTEventWrapper} contains additional information that is acquired by preparing an event and context through an ERDT. Only after preparation and conversion to an \texttt{ERDTEventWrapper} can it be used to update an ERDT. 
 
 The current primary information packed additionally with an \texttt{ERDTEventWrapper} is time. An ERDT uses a vector clock to prevent event duplicates. The vector clock's time is then stored inside the event to associate it with the time.
 
@@ -301,7 +302,7 @@ case class ERDTEventWrapper[A, C, +E <: Event[A, C]](
 \end{lstlisting}
 
 \minisec{Context} \label{sec:context}
-Events only contain information specific to the aggregate and the information is neither accessible by ERDT nor extensions. Therefore we use contexts to provide common information stored with events that allow us to use them in ERDTs and extensions. 
+Events only contain data specific to the aggregate and this data contained in the event is neither accessible by ERDT nor extensions. Therefore we use contexts to provide common data stored with events that allow us to use them in ERDTs and extensions. 
 
 A common example is the \texttt{IdentityContext} containing a replica id. It is used in ERDTs to update the vector clock of the replica sending the event and is also used when filtering events for authentication and authorization.
 
@@ -315,7 +316,7 @@ trait IdentityContext:
 \minisec{ERDT}
 The core concept is the ERDT. The ERDT consists of a state and a clock. The state contains the actual data of the aggregate. The clock is a vector clock to prevent duplications of events. Our ERDT does neither handle the distribution of events nor storing pending events nor validation of identities (see section \ref{sec:context}). This has to be done by the user of the ERDT.
 
-Our ERDT supports two operations. One to prepare an event and one to apply a prepared event. The prepare operation is used to acquire additional information from the ERDT, specifically the clock and bundle the event with a context into one \texttt{ERDTEventWrapper}. The apply operation is used to apply the event to the ERDT while also advancing the vector clock.
+Our ERDT supports two operations. One to prepare an event and one to apply a prepared event. The prepare operation is used to acquire additional information from the ERDT, specifically the clock. We then bundle the event with a context into one \texttt{ERDTEventWrapper}. The apply operation is used to apply the event to the ERDT while also advancing the vector clock.
 
 \begin{lstlisting}
 case class ERDT[A, C <: IdentityContext, E <: Event[A, C]](
@@ -346,7 +347,7 @@ trait EffectPipeline[A, C]:
 \section{Extensions}
 Extensions allow developers to define functionality used in the whole aggregate. Extensions can enable things like event validation, state mutation or replace/adjust state, context or meta-context parameters. Additionally, extensions also allow for easier code reuse between aggregates and extensions can build on existing extensions. An extension consists of an effect pipeline and optionally of a context and state. 
 
-An effect pipeline itself is only a function transforming an effect into a new effect (where effect itself is a function). The idea is to intercept the effect function call and execute custom logic before or after the call. If an aggregate wants to define multiple extensions we can chain these effect pipelines into a call chain which results in a single resulting function which itself is again an effect pipeline. This does in practice look like the following. Here we log the replica id of the sender.
+An effect pipeline itself is only a function transforming an effect into a new effect (where effect itself is a function). The idea is to intercept the effect function call and execute custom logic before or after the call. If an aggregate wants to define multiple extensions we can chain these effect pipelines into a call chain which results in a single resulting function which itself is again an effect pipeline. In practice this looks like the following. Here we log the replica id of the sender.
 
 \begin{lstlisting}
 
@@ -361,7 +362,7 @@ object TestEffectPipeline:
 
 \end{lstlisting}
 
-An important aspect is that an effect can also fail. Because of that, we can shortcircuit the extension call chain when an error happens or some validation fails. One example of this is the \texttt{SingleOwnerEffectPipeline}. Here we validate that the context replica id (event sender replica id) is the same as the meta replica id (aggregate owner replica id). If the check fails we do not continue calling the given effect. Because verification extensions are common we are using a \texttt{verifyEffectPipeline} helper function to make development easier. This helper function only expects a list of errors as a return. If the list is empty we succeeded and continue the effect call.
+An important aspect is that an effect can also fail. Because of that, we can shortcircuit the extension call chain when an error happens or some validation fails. One example of this is the \texttt{SingleOwnerEffectPipeline}. Here we validate that the context replica id (event sender replica id) is the same as the meta replica id (aggregate owner replica id). If the check fails we do not continue calling the given effect. Because verification extensions are common, we are using a \texttt{verifyEffectPipeline} helper function to make development easier. This helper function only expects a list of errors as a return. If the list is empty, we succeeded and continue the effect call.
 
 \begin{lstlisting}
   
@@ -394,7 +395,7 @@ def verifyEffectPipelineFuture[A, C](
 
 \end{lstlisting}
 
-In the previous example, we used the \texttt{IdentityContext} by specifying type bounds. In addition to defining effect pipelines, extensions can also define their context as well as their state. When an aggregate wants to use an extension it has to include the extension context and state into its context and state. Because of the type bounds, we would get a type error if forgotten. How custom context and state can be used to create more flexible functions will be shown in the section \ref{sec:auth}.
+In the previous example, we used the \texttt{IdentityContext} by specifying type bounds. In addition to defining effect pipelines, extensions can also define their context as well as their state. When an aggregate wants to use an extension, it has to include the extension context and state into its context and state. Because of the type bounds, we would get a type error if forgotten. How custom context and state can be used to create more flexible functions will be shown in the section \ref{sec:auth}.
 888
 \section{Authentication and Authorization} \label{sec:auth}
 In this section how an extension for ERDTs is created to enable authentication and authorization and how this extension can be used. We want to allow aggregates to specify a set of permissions for different events. Some events may need permissions only under certain conditions defined by the aggregate. Users who want to use these events have to provide proof of the permissions that can be verified by other users.
@@ -423,7 +424,7 @@ trait AsymPermissionStateExtension[I]:
   def claims: List[Claim[I]]
 \end{lstlisting}
 
-The state and context now are used inside the effect pipeline. The idea is to verify all proofs contained in the event context, no matter if they are required by the event. The extension itself does not even need to know what proofs are required, it only makes sure that all provided proofs are valid. The effect of the event itself later can call the \texttt{verifyPermission} method of the context to easily make sure that all required permissions are proved by the context.
+The state and context now are used inside the effect pipeline. The idea is to verify all proofs contained in the event context, no matter if they are required by the event. The extension itself does not even need to know what proofs are required, it only makes sure that all provided proofs are valid. The effect of the event itself can call the \texttt{verifyPermission} method of the context to make sure that all required permissions are proven by the context.
 
 So in the effect pipeline, we first have to find the claim for the respective proof and then make sure it is valid. If either the claim does not exist or the proof is invalid we cancel the pipeline call chain by returning an error. For this, we are using the \texttt{verifyEffectPipelineFuture} helper.
 
@@ -555,10 +556,10 @@ ERDTs would allow us to use peer-to-peer communication instead or in addition to
 We chose to provide our services through a web application because it allows us to reach a larger audience (e.g. mobile and desktop devices) in a more accessible way without downloads. One of our main goals was to implement our application using local-first principles. Therefore offline support as well as confidentiality and integrity of data are important to us. These concepts can be achieved using our newly proposed ERDTs. A technology that aligned very closely with our goals was Progressive Web App (PWA). So we provide PWA functionality to enable users to install Ratable as an app on their device and access it offline at any time using it like a native mobile app. We used Scala as the programming language for the web application because it has good tooling and support for web development and was a commonly used language in our research department. We did not use server-side rendering because it did not have many benefits for our use case and the tooling for Scala was not there. Instead, we used a simple and cost-effective approach of delivering the web application to users by giving access to the static files through a CDN.
 
 \subsection{Serverless backend} 
-We chose to use a serverless backend because it is very cost-effective (in fact free with our cloud provider), simple to deploy without any system configuration issues, and scalable to handle variable workloads. The main drawback of serverless is that it requires a special design for the application to work in a stateless and event-driven environment. However, this was not a major issue for us because we wanted to create a cloud-native solution and we implemented enough abstraction to be able to change the cloud provider without a complete rewrite. We used Scala as the programming language for the backend because it is compatible with the web application and it has good support for concurrency and distribution. We used an event sourcing pattern to persist the state changes as a sequence of events in the database, which enables us to make the state always accessible to users without violating local-first principles as well as being a core mechanic working with our ECRDTs.
+We chose to use a serverless backend because it is very cost-effective (in fact, free with our cloud provider), simple to deploy without any system configuration issues, and scalable to handle variable workloads. The main drawback of serverless is that it requires a special design for the application to work in a stateless and event-driven environment. However, this was not a major issue for us because we wanted to create a cloud-native solution and we implemented enough abstraction to be able to change the cloud provider without a complete rewrite. We used Scala as the programming language for the backend because it is compatible with the web application and it has good support for concurrency and distribution. We used an event sourcing pattern to persist the state changes as a sequence of events in the database, which enables us to make the state always accessible to users without violating local-first principles as well as being a core mechanic working with our ECRDTs.
 
 \subsection{Serverless NoSQL database} 
-We chose to use a serverless NoSQL database because it is also very cost-effective (again free with our cloud provider), easy to access through a cloud service API, and scalable to handle large amounts of data. The main advantage of NoSQL is that it allows us to use a flexible schema design that can accommodate changes in the data model without affecting the existing data. The main disadvantage of NoSQL is that it does not support complex queries or joins that are common in relational databases. However, this was not a problem for us because we did not have specific requirements for querying or joining data and we followed the recommended way by our cloud provider to use this service. The database also supports transactions and consistency guarantees for the data operations, which are important for ensuring data integrity and reliability.
+We chose to use a serverless NoSQL database because it is also very cost-effective, easy to access through a cloud service API, and scalable to handle large amounts of data. The main advantage of NoSQL is that it allows us to use a flexible schema design that can accommodate changes in the data model without affecting the existing data. The main disadvantage of NoSQL is that it does not support complex queries or joins that are common in relational databases. However, this was not a problem for us because we did not have specific requirements for querying or joining data and we followed the recommended way by our cloud provider to use this service. The database also supports transactions and consistency guarantees for the data operations, which are important for ensuring data integrity and reliability.
 
 \subsection{Pub-sub service}
 We chose to use a pub-sub service because it enables us to provide real-time updates and asynchronous messaging between the web application and the backend. The pub-sub service manages the WebSocket connections and publishes or subscribes to messages based on events. This way, we can avoid polling or refreshing the page to get updates from the backend, which improves the user experience and reduces the network traffic. The pub-sub service also allows us to implement a publish-subscribe pattern that decouples the producers and consumers of messages, which increases the modularity and scalability of our system.
@@ -628,30 +629,30 @@ case class ApplicationState(
 \chapter{Conclusion and Future Work}
 In this thesis, we proposed a new variant of operation-based CRDTs to support the development of domain-independent extensions especially to solve the problem of security enabling authentication and authorization. Additionally, we developed an application called Ratable showcasing the use, the benefits as well as a possible architecture to implement modern local-first applications using ERDTs.
 
-The here proposed solution focuses on domain problems similar to Ratable with non-frequent events describing user actions. This is especially important because CRDTs are usually often used in real-time text editing/collaboration software where frequent events are expected. Our solution would likely not be suitable for such applications because of quickly increasing storage costs and non-optimal latency because of extension pipelines.
+The proposed solution focuses on domain problems similar to Ratable with non-frequent events describing user actions. This is especially important because CRDTs are usually often used in real-time text editing/collaboration software where frequent events are expected. Our solution would likely not be suitable for such applications because of quickly increasing storage costs and non-optimal latency because of extension pipelines.
 
-For problem domains like Ratable it provides an elegant way to implement complex business logic in a distributed local-first and eventually consistent system. While the here proposed solution does not support peer-to-peer systems, it is possible to implement a solution that does.
+For problem domains like Ratable it provides an elegant way to implement complex business logic in a distributed local-first and eventually consistent system. While the proposed solution does not support peer-to-peer systems, it is possible to implement a solution that does.
 
-\minisec{Peer to Peer}
+\minisec{Peer-to-Peer}
 ERDTs use the single server as an event store and as means of communication with other peers. Authentication, authorization, as well as business-logic, is handled fully by the clients themselves therefore extending the existing ERDTs to enable peer-to-peer systems is not very difficult. Two things have to be implemented and redesigned.
 
 \begin{itemize}
   \item Every client has to act as an event store for itself as well as for other clients. This is especially important when a client wants to query new events it has not seen yet. Since the server is not available in a peer-to-peer system, this system has to implement additional redundancy to ensure data availability.
-  \item The communication between clients has to be replaced by a peer-to-peer network using technologies like WebRTC. This poses new challenges like unreliable connections, high latency and the need for handshakes. Additionally usually technologies supporting peer-to-peer connections only allow a limited number of concurrent connections. In larger networks, one would have to implement a custom topology to ensure that all clients can communicate with each other.
+  \item The communication between clients has to be replaced by a peer-to-peer network using technologies like WebRTC. This poses new challenges like unreliable connections, high latency and the need for handshakes. Additionally technologies supporting peer-to-peer connections usually only allow a limited number of concurrent connections. In larger networks, one would have to implement a custom topology to ensure that all clients can communicate with each other.
 \end{itemize}
 
-While achieving peer-to-peer systems might be possible, it is with current peer-to-peer technologies like WebRTC rarely the best solution for applications. Data integrity and security can already be achieved by ERDTs using additional end-to-end encryption between clients. The overhead of implementation difficulty and complexity as well as limitations of peer-to-peer systems like unreliable connections and high latency make it not worth the effort. Additionally often pure peer-to-peer systems are not possible to implement because of the need for handshakes between clients before they can communicate with each other or the need for high data availability.
+While achieving peer-to-peer systems might be possible, it is rarely the best solution for applications with current peer-to-peer technologies like WebRTC. Data integrity and security can already be achieved by ERDTs using additional end-to-end encryption between clients. The overhead of implementation difficulty and complexity as well as limitations of peer-to-peer systems like unreliable connections and high latency make it not worth the effort. Additionally often pure peer-to-peer systems are not possible to implement because of the need for handshakes between clients before they can communicate with each other or the need for high data availability.
 
 \minisec{ERDTs}
 In the current state, ERDTs are not perfect and can be further improved. The following are some ideas for future work.
 
 \begin{itemize}
   \item ERDTs do not support the signing of events by themselves. It has to be implemented manually by the developer. In the future, it might be possible to integrate event signing into the ERDTs themselves or even better into a custom extension.
-  \item Currently we have separate concepts of events and contexts which are then associated together. It might be possible to combine these two concepts into one and then explicitly associate them together. This would make the implementation of ERDTs easier and more intuitive.
-  \item Currently ERDTs do not have an event store. When extending this concept directly into peer-to-peer systems it would be beneficial to have an event store. The drawback of this is that it would decrease the flexibility of ERDTs.
+  \item Currently, we have separate concepts of events and contexts, which are then associated together. It might be possible to combine these two concepts into one and then explicitly associate them together. This would make the implementation of ERDTs easier and more intuitive.
+  \item Currently, ERDTs do not have an event store. When extending this concept directly into peer-to-peer systems it would be beneficial to have an event store. The drawback of this is that it would decrease the flexibility of ERDTs.
 \end{itemize}
 
-Currently, ERDTs only build upon the concept of operation-based CRDTs because they support the most intuitive way of implementing authorization. However, there are use cases where state-based CRDTs are more suitable, especially in the case of frequent events. In the future, it might be possible to combine the two concepts to create a more general solution supporting both use cases. This could be done by allowing the merging of events. This would solve the problem of long term storage as well as network throughput. 
+Currently, ERDTs only build upon the concept of operation-based CRDTs because they support the most intuitive way of implementing authorization. However, there are use cases where state-based CRDTs are more suitable, especially in the case of frequent events. In the future, it might be possible to combine the two concepts to create a more general solution supporting both use cases. This could be done by allowing the merging of events. This would solve the problem of long-term storage as well as network throughput. 
 
 \printbibliography
 
